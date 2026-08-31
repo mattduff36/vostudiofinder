@@ -127,10 +127,29 @@ The Prisma tree contains timestamped migrations alongside consolidation scripts,
 - Vercel config still contains a `src/pages/api/**/*.ts` function rule even though the project uses App Router routes.
 - Dependabot/CI ownership settings should be checked against the actual GitHub repository configuration.
 
+## Verified local health baseline — 31 August 2026
+
+Recorded after the governance installation and after removing `docs-private/` from the Git index. Local private files were preserved. No runtime, dependency, schema, auth, Stripe, email, Docker, CI, or deployment configuration was changed for this baseline.
+
+Environment used: Node v22.18.0, npm 10.9.3, `npm ci` against the existing lockfile (success). Prisma Client generated as 6.19.2 from the `^6.16.3` range. `npm ci` printed ordinary deprecation/funding noise and an `npm audit` count of 46 vulnerabilities; those were not treated as a reason to upgrade packages.
+
+| Command | Result |
+|---|---|
+| `npm run health` (quick) | Overall **WARN**, exit 0. `tracked-sensitive-paths` is PASS. Remaining WARNs match Priority 1 items already listed above (env-contract drift, Docker Node 25, Docker standalone mismatch, Next middleware/proxy, disabled CI, Prisma query logging, critical-path TODOs, large source files). |
+| `npm run type-check` | PASS (`tsc --noEmit`; tests/scripts still excluded by `tsconfig.json`). |
+| `npm run lint` | FAIL before any file analysis: ESLint 10.0.2 cannot resolve `globals`, required at runtime by `eslint-plugin-sonarjs`. That package is not present in `package-lock.json`. `eslint-plugin-sonarjs` 3.0.6 also declares a peer of ESLint 8 or 9, while this repo uses ESLint 10. |
+| `npx jest tests/unit --runInBand` | FAIL: 1 failed, 146 passed, 7 suites. Failure: `tests/unit/admin/studio-update-geocoding.test.ts` — `detectManualCoordinateOverride` expected `false` when existing coordinates are null, received `true`. |
+| `npx jest tests/integration --runInBand` | FAIL: 17 failed, 7 passed, 4 suites. Sixteen failures in `tests/integration/api-endpoints.test.ts` because nothing was listening on `http://localhost:4000`. One failure in `tests/integration/subscriptions/enforcement-database.test.ts` (`decisions.length` expected `>= 2`, received `1`). Image-rights and admin studio-update integration suites passed. These DB-backed tests used the local development `DATABASE_URL`, not production. |
+| `npm run build` | PASS. Next.js 16.2.6 Turbopack production build compiled and generated routes. Build-time warning: middleware file convention is deprecated in favour of `proxy`. Prisma printed a major-upgrade advertisement (6.19.2 → 8); ignored. Health-full still skips build unless `HEALTH_BUILD=1`. |
+| `npm run health:full` | Overall **FAIL**, exit 1, because full mode re-runs lint and unit tests. Type-check PASS. Build skipped (default). `tracked-sensitive-paths` PASS. |
+| `git diff --check` | PASS (exit 0). Unrelated working-copy LF/CRLF notice on `vostudiofinder.code-workspace` only. |
+
+Do not treat the full-health FAIL as a regression from untracking `docs-private/`. Quick health no longer FAILs on tracked private documentation. Lint, the geocoding unit assertion, the live-server integration suite, and the enforcement-database assertion are backlog items.
+
 ## Recommended work order
 
 1. Install this governance pack only.
-2. Run the new quick health audit and record baseline WARN items.
+2. Run the new quick health audit and record baseline WARN items. **Done** (see verified baseline above). Remaining full-health FAILs are lint/test backlog, not governance/index hygiene.
 3. Refresh `env.example` and environment documentation in a documentation/config-only workstream.
 4. Move Docker to Node 24 LTS and repair/verify standalone output as one deployment workstream.
 5. Migrate Next.js `middleware.ts` to `proxy.ts` with focused tests.

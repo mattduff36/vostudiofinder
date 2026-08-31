@@ -40,7 +40,7 @@ Sentry-related webhook/sync/admin functionality remains in the repo, but direct 
 
 ## Health
 
-Run `npm run health` for cheap static governance/drift checks. `npm run health:full` adds available local deterministic checks when dependencies/environment support them.
+Run `npm run health` for cheap static governance/drift checks. `npm run health:full` adds available local deterministic checks when dependencies/environment support them. The 31 August 2026 verified baseline is recorded in `docs/CODEBASE_AUDIT_2026-08-31.md` and `docs/TESTING.md`: quick health is WARN; full health currently FAILs on ESLint startup (`globals` missing) and one unit test. Production build is separately green and remains opt-in for `health:full` via `HEALTH_BUILD=1`.
 
 ## Recovery first
 
