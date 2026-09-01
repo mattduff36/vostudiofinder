@@ -12,6 +12,10 @@ import {
   RotateCcw, Users,
 } from 'lucide-react';
 import { formatDate, formatDateTime } from '@/lib/date-format';
+import {
+  describePaymentPackage,
+  getPaymentPackageBadgeClass,
+} from '@/lib/payment-package';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,6 +29,7 @@ interface Payment {
   created_at: string;
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
+  metadata: unknown;
   users: {
     id: string;
     email: string;
@@ -456,6 +461,9 @@ export default function AdminPaymentsPage() {
                               <h3 className="text-base font-semibold text-gray-900 truncate">{payment.users.display_name}</h3>
                               <p className="text-sm text-gray-600">{payment.users.email}</p>
                               <p className="text-xs text-gray-500">@{payment.users.username}</p>
+                              <div className="mt-1">
+                                <PackageBadge metadata={payment.metadata} />
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-lg font-bold text-gray-900">{formatAmount(payment.amount, payment.currency)}</p>
@@ -487,6 +495,7 @@ export default function AdminPaymentsPage() {
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Package</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Refunded</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
@@ -496,7 +505,7 @@ export default function AdminPaymentsPage() {
                       <tbody className="bg-white">
                         {payments.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="px-6 py-12 text-center text-gray-500 border-t border-gray-200">
+                            <td colSpan={7} className="px-6 py-12 text-center text-gray-500 border-t border-gray-200">
                               {searchTerm || statusFilter ? 'No payments found matching your filters' : 'No payments found'}
                             </td>
                           </tr>
@@ -510,7 +519,7 @@ export default function AdminPaymentsPage() {
                               <Fragment key={payment.id}>
                                 {refundSuccess === payment.id && (
                                   <tr>
-                                    <td colSpan={6} className="px-6 py-3 bg-green-50 border-t border-green-200">
+                                    <td colSpan={7} className="px-6 py-3 bg-green-50 border-t border-green-200">
                                       <div className="flex items-center">
                                         <Check className="w-5 h-5 text-green-600 mr-2" />
                                         <span className="text-sm text-green-800">Refund issued successfully</span>
@@ -526,6 +535,9 @@ export default function AdminPaymentsPage() {
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm font-semibold text-gray-900">{formatAmount(payment.amount, payment.currency)}</div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <PackageBadge metadata={payment.metadata} />
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(payment.status)}`}>
@@ -544,11 +556,17 @@ export default function AdminPaymentsPage() {
                                 {/* Expanded Details */}
                                 {isExpanded && (
                                   <tr>
-                                    <td colSpan={6} className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                                    <td colSpan={7} className="px-6 py-4 bg-gray-50 border-t border-gray-200">
                                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         <div className="bg-white rounded-lg border border-gray-200 p-3">
                                           <h3 className="text-sm font-semibold text-gray-900 mb-2">Payment Information</h3>
                                           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-3">
+                                            <div className="col-span-2">
+                                              <p className="text-xs text-gray-500">Package</p>
+                                              <div className="mt-0.5">
+                                                <PackageBadge metadata={payment.metadata} />
+                                              </div>
+                                            </div>
                                             <div>
                                               <p className="text-xs text-gray-500">Payment ID</p>
                                               <p className="text-gray-900 font-mono text-xs">{payment.id}</p>
@@ -965,6 +983,12 @@ export default function AdminPaymentsPage() {
               <h3 className="text-sm font-semibold text-gray-900 mb-3">Payment Information</h3>
               <div className="space-y-2 text-sm">
                 <div>
+                  <span className="text-gray-500">Package:</span>
+                  <div className="mt-1">
+                    <PackageBadge metadata={mobileSelectedPayment.metadata} />
+                  </div>
+                </div>
+                <div>
                   <span className="text-gray-500">Payment ID:</span>
                   <p className="text-gray-900 font-mono text-xs break-all">{mobileSelectedPayment.id}</p>
                 </div>
@@ -1162,6 +1186,15 @@ export default function AdminPaymentsPage() {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+function PackageBadge({ metadata }: { metadata: unknown }) {
+  const pkg = describePaymentPackage(metadata);
+  return (
+    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentPackageBadgeClass(pkg.tone)}`}>
+      {pkg.label}
+    </span>
+  );
+}
 
 function SummaryCard({ icon, label, value, accent }: {
   icon: React.ReactNode;

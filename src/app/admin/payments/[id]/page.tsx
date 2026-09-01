@@ -5,6 +5,10 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { ArrowLeft, DollarSign, AlertCircle, Check } from 'lucide-react';
+import {
+  describePaymentPackage,
+  getPaymentPackageBadgeClass,
+} from '@/lib/payment-package';
 
 interface PaymentDetails {
   payment: {
@@ -17,6 +21,7 @@ interface PaymentDetails {
     status: string;
     refunded_amount: number;
     created_at: string;
+    metadata: unknown;
     users: {
       id: string;
       email: string;
@@ -171,6 +176,7 @@ export default function PaymentDetailPage() {
 
   const maxRefundable = details.payment.amount - details.payment.refunded_amount;
   const canRefund = maxRefundable > 0 && details.payment.status !== 'FAILED';
+  const paymentPackage = describePaymentPackage(details.payment.metadata);
 
   return (
     <div className="container mx-auto px-4 py-4 md:py-8">
@@ -205,6 +211,13 @@ export default function PaymentDetailPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Payment Information</h2>
 
             <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <p className="text-sm text-gray-500">Package</p>
+                <span className={`inline-flex mt-1 px-3 py-1 text-sm font-semibold rounded-full ${getPaymentPackageBadgeClass(paymentPackage.tone)}`}>
+                  {paymentPackage.label}
+                </span>
+              </div>
+
               <div>
                 <p className="text-sm text-gray-500">Amount</p>
                 <p className="text-lg font-semibold text-gray-900">
