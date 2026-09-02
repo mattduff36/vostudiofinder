@@ -5,6 +5,20 @@
  * Does not call OAuth providers, send mail, or use DATABASE_URL / TEST_DATABASE_URL.
  */
 
+const mockFindUnique = jest.fn();
+const mockUpdate = jest.fn();
+const mockCreate = jest.fn();
+
+jest.mock('@/lib/db', () => ({
+  db: {
+    users: {
+      findUnique: (...args: unknown[]) => mockFindUnique(...args),
+      update: (...args: unknown[]) => mockUpdate(...args),
+      create: (...args: unknown[]) => mockCreate(...args),
+    },
+  },
+}));
+
 import { authOptions } from '@/lib/auth';
 
 type ProviderLike = {
@@ -34,6 +48,12 @@ function credentialsProvider(): ProviderLike {
 }
 
 describe('NextAuth v4 options contract', () => {
+  beforeEach(() => {
+    mockFindUnique.mockReset();
+    mockUpdate.mockReset();
+    mockCreate.mockReset();
+  });
+
   it('configures credentials and three OAuth providers without an email provider', () => {
     expect(providerIds().sort()).toEqual(['credentials', 'facebook', 'google', 'twitter']);
     expect(
@@ -42,6 +62,9 @@ describe('NextAuth v4 options contract', () => {
       )
     ).toBe(false);
     expect(authOptions.adapter).toBeDefined();
+    expect(typeof (authOptions.adapter as { createUser?: unknown }).createUser).toBe(
+      'function'
+    );
     expect(authOptions.session).toEqual({ strategy: 'jwt' });
     expect(authOptions.pages).toEqual({
       signIn: '/auth/signin',
@@ -139,5 +162,65 @@ describe('NextAuth v4 options contract', () => {
     expect(provider.id).toBe('credentials');
     expect(provider.type).toBe('credentials');
     expect(typeof provider.authorize).toBe('function');
+  });
+
+  it('normalizes OAuth createUser emails without sending mail', async () => {
+    const adapter = authOptions.adapter as {
+      createUser: (data: {
+        email?: string;
+        name?: string;
+        image?: string;
+        email_verified?: Date | null;
+      }) => Promise<unknown>;
+    };
+    mockCreate.mockImplementation(async ({ data }: { data: unknown }) => data);
+
+    const created = await adapter.createUser({
+      email: '  Alex.OAuth@Example.COM ',
+      name: 'Alex',
+      image: 'https://example.com/a.png',
+      email_verified: new Date('2026-01-01'),
+    });
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(created).toEqual(
+      expect.objectContaining({
+        email: 'alex.oauth@example.com',
+        display_name: 'Alex',
+        avatar_url: 'https://example.com/a.png',
+        email_verified: true,
+        role: 'USER',
+        password: '',
+      })
+    );
+  });
+
+  it('syncs OAuth profile fields onto an existing user through the jwt callback', async () => {
+    mockFindUnique.mockResolvedValue({
+      id: 'user-9',
+      avatar_url: null,
+      display_name: 'Old Name',
+    });
+    mockUpdate.mockResolvedValue({ id: 'user-9' });
+
+    const token = await authOptions.callbacks!.jwt!({
+      token: { email: 'linked@example.com', sub: 'user-9' },
+      user: undefined,
+      account: { provider: 'google', type: 'oauth', providerAccountId: 'g-9' },
+      profile: { name: 'New Name', image: 'https://example.com/new.png' },
+    } as never);
+
+    expect(mockFindUnique).toHaveBeenCalledWith({
+      where: { email: 'linked@example.com' },
+    });
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: 'user-9' },
+      data: {
+        avatar_url: 'https://example.com/new.png',
+        display_name: 'New Name',
+        email_verified: true,
+      },
+    });
+    expect(token.email).toBe('linked@example.com');
   });
 });

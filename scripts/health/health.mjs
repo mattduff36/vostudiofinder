@@ -1,7 +1,17 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { execFileSync, spawnSync } from 'node:child_process';
+
+const require = createRequire(import.meta.url);
+const {
+  parseSemverCore,
+  semverGte,
+  formatSemver,
+  isPrereleaseSpec,
+  versionMeetsSecurityFloor,
+} = require('./semver-floor.cjs');
 
 const root = process.cwd();
 const modeArg = process.argv.find((arg) => arg.startsWith('--mode='));
@@ -25,28 +35,6 @@ function run(cmd, args, label) {
 
 /** August 2026 Next.js Active-LTS security floor. Bump when a later required secure release ships. */
 const NEXT_MIN_SECURE = { major: 16, minor: 3, patch: 3 };
-
-function parseSemverCore(input) {
-  if (input == null) return null;
-  const m = String(input).match(/(\d+)\.(\d+)\.(\d+)/);
-  if (!m) return null;
-  return { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]) };
-}
-
-function semverGte(a, b) {
-  if (!a || !b) return false;
-  if (a.major !== b.major) return a.major > b.major;
-  if (a.minor !== b.minor) return a.minor > b.minor;
-  return a.patch >= b.patch;
-}
-
-function formatSemver(v) {
-  return v ? `${v.major}.${v.minor}.${v.patch}` : 'unknown';
-}
-
-function isPrereleaseSpec(input) {
-  return /-(?:canary|alpha|beta|rc|preview)\b/i.test(String(input || ''));
-}
 
 for (const tool of ['node', 'npm', 'git']) {
   add(commandExists(tool) ? 'PASS' : 'FAIL', 'tooling', `tool:${tool}`, commandExists(tool) ? 'available' : 'missing');
@@ -172,20 +160,6 @@ function lockPackageEntries(lock, name) {
   return found;
 }
 
-function isExactFloorPrerelease(spec, floor) {
-  const parsed = parseSemverCore(spec);
-  if (!parsed || !isPrereleaseSpec(spec)) return false;
-  return parsed.major === floor.major && parsed.minor === floor.minor && parsed.patch === floor.patch;
-}
-
-function versionMeetsSecurityFloor(spec, floor) {
-  const parsed = parseSemverCore(spec);
-  if (!parsed) return false;
-  if (isExactFloorPrerelease(spec, floor)) return false;
-  if (parsed.major >= 5) return true;
-  return semverGte(parsed, floor);
-}
-
 {
   const declaredSpec = pkg?.dependencies?.['next-auth'];
   let lock = null;
@@ -195,9 +169,10 @@ function versionMeetsSecurityFloor(spec, floor) {
   const nextAuthEntries = lock ? lockPackageEntries(lock, 'next-auth') : [];
   const coreEntries = lock ? lockPackageEntries(lock, '@auth/core') : [];
   const declared = parseSemverCore(declaredSpec);
-  const declaredOk = versionMeetsSecurityFloor(declaredSpec, AUTH_MIN_SECURE);
+  const authFloorOpts = { allowMajorGte: 5 };
+  const declaredOk = versionMeetsSecurityFloor(declaredSpec, AUTH_MIN_SECURE, authFloorOpts);
   const nextAuthResolvedOk = nextAuthEntries.length
-    ? nextAuthEntries.every((entry) => versionMeetsSecurityFloor(entry.version, AUTH_MIN_SECURE))
+    ? nextAuthEntries.every((entry) => versionMeetsSecurityFloor(entry.version, AUTH_MIN_SECURE, authFloorOpts))
     : declaredOk;
   const coreOk = coreEntries.every((entry) => versionMeetsSecurityFloor(entry.version, AUTH_CORE_MIN_SECURE));
   const nextAuthLabel = formatSemver(AUTH_MIN_SECURE);

@@ -275,7 +275,7 @@ Previous resolved baseline: `next-auth` **4.24.13** (declared `^4.24.11`), `@aut
 
 Advisories: GHSA-7rqj-j65f-68wh (email normalisation — **not exposed**, no EmailProvider), GHSA-xmf8-cvqr-rfgj (`getToken()` — **not exposed**, no call sites), GHSA-x445-f3h2-j279 (OAuth cookie binding — library patch; three OAuth providers configured, no logged-in link-another-provider UI).
 
-Added: `tests/unit/auth-options.test.ts`, `tests/unit/auth-security-baseline.test.ts`, `authjs-security-baseline` in `scripts/health/health.mjs`. Class B auth integration tests under `tests/auth/integration/` were **not run** (`TEST_DATABASE_URL` unset).
+Added: `tests/unit/auth-options.test.ts` (providers, pages, JWT/session mapping, sign-in/redirect callbacks, custom `adapter.createUser`, OAuth JWT profile-sync against mocked `db`), `tests/unit/auth-security-baseline.test.ts`, `authjs-security-baseline` in `scripts/health/health.mjs`. Class B auth integration tests under `tests/auth/integration/` were **not run** (`TEST_DATABASE_URL` unset).
 
 | Command | Result |
 |---|---|
@@ -284,12 +284,12 @@ Added: `tests/unit/auth-options.test.ts`, `tests/unit/auth-security-baseline.tes
 | `npm ci` | PASS in isolated temp dir (`/tmp/vosf-ci-*`). Resolves `next-auth@4.24.15`, `@auth/prisma-adapter@2.11.3`, `@auth/core@0.41.3`, `next@16.3.3`, `prisma@6.19.2`. Optional peer `@auth/core@0.34.3` from `next-auth` still reports invalid under strict `npm ls` (pre-existing `legacy-peer-deps=true`). |
 | `npm run type-check` | PASS |
 | `npm run lint` | PASS (exit 0). 0 errors, **818** pre-existing warnings. |
-| `npm run test:unit` | PASS: **11 suites, 182 tests** (+2 suites / +6 tests: auth contract + lockfile baseline). Proxy **23/23**, payment-package **5/5** unchanged. |
+| `npm run test:unit` | PASS: **11 suites, 185 tests** (+2 suites / +9 tests vs the 9/176 pre-Auth baseline: auth contract including `createUser` + OAuth JWT profile-sync, lockfile baseline, and unnamed exact-floor prerelease rejection). Proxy **23/23**, payment-package **5/5** unchanged. |
 | Normal `npm run build` | PASS. Next.js **16.3.3**. `.next/standalone/server.js` and `.next/static` present. |
 | Docker `vostudiofinder:local-test` | PASS. Node **24** Alpine. Image Next.js **16.3.3**, NextAuth **4.24.15**. Standalone `server.js` copied. No `.env*` in image. Image not pushed. |
 | Container smoke-start | PASS with **fake** env on host port 4010. Ready. `GET /robots.txt` **200**. `GET /about?foo=bar` **301** → `/about`. `/api/health` not called. Container removed. |
 | `npm run health` (quick) | Overall **WARN**, exit 0. **PASS:** `authjs-security-baseline`, `next-security-baseline`, `next-proxy-migration`, `docker-standalone-contract`. |
-| `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS (818 warnings, 182 tests). Build skipped unless `HEALTH_BUILD=1`. |
+| `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS (818 warnings, 185 tests). Build skipped unless `HEALTH_BUILD=1`. |
 
 No deployment. Nothing pushed. CI remains disabled.
 
