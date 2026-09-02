@@ -1,7 +1,7 @@
 # Security
 
 Status: canonical security engineering guide
-Last reviewed: 31 August 2026 (Phase 2E Next.js proxy migration)
+Last reviewed: 2 September 2026 (Phase 2F Auth.js security baseline)
 
 ## High-risk domains
 
@@ -52,4 +52,18 @@ The patched 16.3.3 runtime disables AVIF image optimization until an upstream li
 
 `src/proxy.ts` is the canonical Next.js request-boundary file (migrated from deprecated `middleware.ts`). It sanitises and canonicalises inbound URLs with 301 redirects. It is not authentication middleware: it does not check sessions, roles, or membership, and it does not touch payments or the database. Do not reintroduce `src/middleware.ts`.
 
-Do not run `npm audit fix` or `npm audit fix --force` as a substitute for a scoped framework update. Remaining npm audit findings (Auth.js, Prisma, sharp top-level, tooling) are a separate backlog.
+The required NextAuth / Auth.js v4 security baseline is **next-auth 4.24.15** (July 2026 advisories). Previous resolved baseline was **4.24.13** (declared `^4.24.11`). `@auth/prisma-adapter` **2.11.3** pins `@auth/core` **0.41.3**. There is no direct `@auth/core` dependency. Do not migrate to NextAuth/Auth.js v5 as part of routine security work.
+
+Advisories addressed by 4.24.15 / `@auth/core` 0.41.3:
+
+| Advisory | Severity (npm/GHSA) | Applicability in this project |
+| --- | --- | --- |
+| GHSA-7rqj-j65f-68wh | Critical / High | Email/magic-link `EmailProvider` only. **Not exposed:** Credentials + Google/Facebook/Twitter only; verification email is a separate Resend token flow. |
+| GHSA-xmf8-cvqr-rfgj | High | `getToken()` malformed Bearer DoS. **Not exposed:** application uses `getServerSession` / `useSession`; no `getToken()` call sites. |
+| GHSA-x445-f3h2-j279 | Moderate | OAuth state/nonce/PKCE cookies unbound to provider. **Limited exposure:** three OAuth providers configured; no logged-in “link another provider” UI; patch applied at library level. |
+
+`npm run health` fails if declared or lockfile `next-auth` is below 4.24.15 when major is 4. A deliberate future major `>= 5` is accepted by the health floor without implying a completed v5 migration.
+
+`next-auth@4.24.15` still lists an optional peer on `@auth/core@0.34.3` while `@auth/prisma-adapter` pins 0.41.3. The repository’s pre-existing `.npmrc` `legacy-peer-deps=true` remains; do not add a new override.
+
+Do not run `npm audit fix` or `npm audit fix --force` as a substitute for a scoped framework update. Remaining npm audit findings (Prisma, sharp top-level, tooling) are a separate backlog.

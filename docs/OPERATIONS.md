@@ -1,7 +1,7 @@
 # Operations
 
 Status: canonical operational safety guide
-Last reviewed: 2 September 2026 (Vercel/Docker output split)
+Last reviewed: 2 September 2026 (Phase 2F Auth.js security baseline)
 
 ## Environments
 
@@ -60,7 +60,7 @@ Sentry-related webhook/sync/admin functionality remains in the repo, but direct 
 
 ## Health
 
-Run `npm run health` for cheap static governance/drift checks. `npm run health:full` adds available local deterministic checks when dependencies/environment support them. Dated command results live in `docs/CODEBASE_AUDIT_2026-08-31.md`. A production build remains opt-in for `health:full` via `HEALTH_BUILD=1`.
+Run `npm run health` for cheap static governance/drift checks. `npm run health:full` adds available local deterministic checks when dependencies/environment support them. Quick mode includes an Auth.js security baseline check (`next-auth` >= 4.24.15 when major is 4). Dated command results live in `docs/CODEBASE_AUDIT_2026-08-31.md`. A production build remains opt-in for `health:full` via `HEALTH_BUILD=1`.
 
 ## Recovery first
 

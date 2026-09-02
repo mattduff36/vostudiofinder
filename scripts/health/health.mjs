@@ -153,6 +153,70 @@ if (exists('Dockerfile')) {
   }
 }
 
+/** July 2026 Auth.js / NextAuth v4 security floor. Major >=5 is a future deliberate migration. */
+const AUTH_MIN_SECURE = { major: 4, minor: 24, patch: 15 };
+const AUTH_CORE_MIN_SECURE = { major: 0, minor: 41, patch: 3 };
+
+function isLockPackageKey(key, name) {
+  return key === `node_modules/${name}` || key.endsWith(`/node_modules/${name}`);
+}
+
+function lockPackageEntries(lock, name) {
+  const packages = lock?.packages || {};
+  const found = [];
+  for (const [key, meta] of Object.entries(packages)) {
+    if (isLockPackageKey(key, name) && meta && typeof meta === 'object') {
+      found.push({ key, version: meta.version || null });
+    }
+  }
+  return found;
+}
+
+function isExactFloorPrerelease(spec, floor) {
+  const parsed = parseSemverCore(spec);
+  if (!parsed || !isPrereleaseSpec(spec)) return false;
+  return parsed.major === floor.major && parsed.minor === floor.minor && parsed.patch === floor.patch;
+}
+
+function versionMeetsSecurityFloor(spec, floor) {
+  const parsed = parseSemverCore(spec);
+  if (!parsed) return false;
+  if (isExactFloorPrerelease(spec, floor)) return false;
+  if (parsed.major >= 5) return true;
+  return semverGte(parsed, floor);
+}
+
+{
+  const declaredSpec = pkg?.dependencies?.['next-auth'];
+  let lock = null;
+  if (exists('package-lock.json')) {
+    try { lock = JSON.parse(read('package-lock.json')); } catch { lock = null; }
+  }
+  const nextAuthEntries = lock ? lockPackageEntries(lock, 'next-auth') : [];
+  const coreEntries = lock ? lockPackageEntries(lock, '@auth/core') : [];
+  const declared = parseSemverCore(declaredSpec);
+  const declaredOk = versionMeetsSecurityFloor(declaredSpec, AUTH_MIN_SECURE);
+  const nextAuthResolvedOk = nextAuthEntries.length
+    ? nextAuthEntries.every((entry) => versionMeetsSecurityFloor(entry.version, AUTH_MIN_SECURE))
+    : declaredOk;
+  const coreOk = coreEntries.every((entry) => versionMeetsSecurityFloor(entry.version, AUTH_CORE_MIN_SECURE));
+  const nextAuthLabel = formatSemver(AUTH_MIN_SECURE);
+  const coreLabel = formatSemver(AUTH_CORE_MIN_SECURE);
+  const nextAuthResolved = nextAuthEntries.map((entry) => `${entry.key}@${entry.version || 'unknown'}`).join(', ') || 'none';
+  const coreResolved = coreEntries.map((entry) => `${entry.key}@${entry.version || 'unknown'}`).join(', ') || 'none';
+  const detail = `declared ${declaredSpec || 'missing'} (core ${formatSemver(declared)}); lockfile next-auth ${nextAuthResolved}; lockfile @auth/core ${coreResolved}; next-auth floor ${nextAuthLabel} (GHSA-7rqj-j65f-68wh, GHSA-xmf8-cvqr-rfgj, GHSA-x445-f3h2-j279); @auth/core floor ${coreLabel} when present`;
+
+  if (!declaredSpec) {
+    add('FAIL', 'framework', 'authjs-security-baseline', `next-auth is not declared. ${detail}`);
+  } else if (!declaredOk || !nextAuthResolvedOk) {
+    add('FAIL', 'framework', 'authjs-security-baseline', `next-auth is below the required secure release ${nextAuthLabel}, or a prerelease of that exact floor was used. ${detail}`);
+  } else if (coreEntries.length && !coreOk) {
+    add('FAIL', 'framework', 'authjs-security-baseline', `@auth/core copy is below ${coreLabel}, or a prerelease of that exact floor was used. ${detail}`);
+  } else {
+    add('PASS', 'framework', 'authjs-security-baseline', detail);
+  }
+}
+
 {
   const hasProxy = exists('src/proxy.ts');
   const hasMiddleware = exists('src/middleware.ts');

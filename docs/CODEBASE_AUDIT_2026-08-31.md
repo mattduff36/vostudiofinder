@@ -109,7 +109,7 @@ These should be tracked as explicit product/security/payment work, not left as i
 
 ### 16. Auth stack deserves a deliberate modernization review
 
-The repo uses `next-auth` 4.24.11 with `@auth/prisma-adapter` and casts the adapter to `any`. This may be intentional compatibility code, but it should be documented and tested before any Auth.js migration. Auth is CRITICAL and must not be bundled with routine dependency upgrades.
+The repo uses `next-auth` **4.24.15** (Phase 2F security baseline; previously 4.24.11 declared / 4.24.13 resolved) with `@auth/prisma-adapter` **2.11.3** and casts the adapter to `any`. This may be intentional compatibility code, but it should be documented and tested before any Auth.js **v5** migration. Auth is CRITICAL and must not be bundled with routine dependency upgrades.
 
 ### 17. Migration history is difficult for an agent to interpret safely
 
@@ -267,6 +267,32 @@ Cause: Next.js 16.3 adapter builds omit that root nft file while `output: 'stand
 | `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS (818 warnings, 176 tests). |
 | Vercel production deploy | *Recorded after real Vercel result.* |
 
+## Phase 2F — Auth.js / NextAuth security baseline (2 September 2026)
+
+Targeted dependency patch only. **No NextAuth v5 migration.** **No application runtime source changes** (`src/lib/auth.ts` and auth routes unchanged). **No production OAuth login, verification email, or database mutation.**
+
+Previous resolved baseline: `next-auth` **4.24.13** (declared `^4.24.11`), `@auth/prisma-adapter` **2.11.1**, `@auth/core` **0.41.1**. Patched baseline: `next-auth` **4.24.15**, `@auth/prisma-adapter` **2.11.3**, single `@auth/core` **0.41.3**. Next.js remains **16.3.3**. Prisma unchanged. Vercel-conditional standalone output unchanged. Proxy 23/23 unchanged. `/admin/payments` package display unchanged.
+
+Advisories: GHSA-7rqj-j65f-68wh (email normalisation — **not exposed**, no EmailProvider), GHSA-xmf8-cvqr-rfgj (`getToken()` — **not exposed**, no call sites), GHSA-x445-f3h2-j279 (OAuth cookie binding — library patch; three OAuth providers configured, no logged-in link-another-provider UI).
+
+Added: `tests/unit/auth-options.test.ts`, `tests/unit/auth-security-baseline.test.ts`, `authjs-security-baseline` in `scripts/health/health.mjs`. Class B auth integration tests under `tests/auth/integration/` were **not run** (`TEST_DATABASE_URL` unset).
+
+| Command | Result |
+|---|---|
+| Pre-update `npm audit` | 43 total (3 critical, 26 high, 12 moderate, 2 low). All 3 criticals: Auth.js (`next-auth`, `@auth/core`, `@auth/prisma-adapter`). |
+| Post-update `npm audit` | 40 total (0 critical, 26 high, 12 moderate, 2 low). Auth.js packages absent. |
+| `npm ci` | PASS in isolated temp dir (`/tmp/vosf-ci-*`). Resolves `next-auth@4.24.15`, `@auth/prisma-adapter@2.11.3`, `@auth/core@0.41.3`, `next@16.3.3`, `prisma@6.19.2`. Optional peer `@auth/core@0.34.3` from `next-auth` still reports invalid under strict `npm ls` (pre-existing `legacy-peer-deps=true`). |
+| `npm run type-check` | PASS |
+| `npm run lint` | PASS (exit 0). 0 errors, **818** pre-existing warnings. |
+| `npm run test:unit` | PASS: **11 suites, 182 tests** (+2 suites / +6 tests: auth contract + lockfile baseline). Proxy **23/23**, payment-package **5/5** unchanged. |
+| Normal `npm run build` | PASS. Next.js **16.3.3**. `.next/standalone/server.js` and `.next/static` present. |
+| Docker `vostudiofinder:local-test` | PASS. Node **24** Alpine. Image Next.js **16.3.3**, NextAuth **4.24.15**. Standalone `server.js` copied. No `.env*` in image. Image not pushed. |
+| Container smoke-start | PASS with **fake** env on host port 4010. Ready. `GET /robots.txt` **200**. `GET /about?foo=bar` **301** → `/about`. `/api/health` not called. Container removed. |
+| `npm run health` (quick) | Overall **WARN**, exit 0. **PASS:** `authjs-security-baseline`, `next-security-baseline`, `next-proxy-migration`, `docker-standalone-contract`. |
+| `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS (818 warnings, 182 tests). Build skipped unless `HEALTH_BUILD=1`. |
+
+No deployment. Nothing pushed. CI remains disabled.
+
 ## Recommended work order
 
 1. Install this governance pack only.
@@ -278,7 +304,7 @@ Cause: Next.js 16.3 adapter builds omit that root nft file while `output: 'stand
 7. Restore a current CI workflow after local checks are deterministic.
 8. Resolve Sentry runtime/operations intent.
 9. Triage high-risk payment/account TODOs individually.
-10. Plan Prisma and auth major upgrades separately. Do not combine them.
+10. Plan Prisma major upgrade and Auth.js **v5** migration separately. Phase 2F applied the v4 security patch (4.24.15) only; do not combine with v5.
 
 ## What the governance pack deliberately does not decide
 

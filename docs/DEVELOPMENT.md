@@ -1,7 +1,7 @@
 # Development
 
 Status: canonical engineering workflow
-Last reviewed: 2 September 2026 (Vercel/Docker output split)
+Last reviewed: 2 September 2026 (Phase 2F Auth.js security baseline)
 
 ## Baseline commands
 
@@ -49,6 +49,8 @@ Do not mix opportunistic dependency upgrades into feature/bugfix work. Runtime/f
 The current Next.js security baseline is **16.3.3** (declared `^16.3.3`, lockfile 16.3.3). React remains `^19.2.3` (lockfile 19.2.4). There is no `eslint-config-next` package in this repo. `legacy-peer-deps=true` in `.npmrc` is a pre-existing install setting, not a new workaround from the 16.3.3 update.
 
 The Next.js request-boundary file is `src/proxy.ts` (the supported Next 16 convention). Query-sanitisation behaviour is covered by `tests/unit/proxy.test.ts` and is included in `npm run test:unit`. Do not reintroduce `src/middleware.ts`.
+
+The Auth.js / NextAuth v4 security baseline is **next-auth 4.24.15** with `@auth/prisma-adapter` **2.11.3** (lockfile `@auth/core` **0.41.3**). Previous resolved baseline was **4.24.13**. Auth provider/callback behaviour is unchanged; focused regression tests live in `tests/unit/auth-options.test.ts` and `tests/unit/auth-security-baseline.test.ts`. Do not bundle a NextAuth v5 migration into dependency maintenance.
 
 Local `npm run build` (no `VERCEL`) still emits `.next/standalone` for Docker. A Vercel production build sets `VERCEL` and must not request standalone output. Do not set `VERCEL=1` in `.env.local` for routine local work.
 

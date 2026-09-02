@@ -87,7 +87,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^2.10.0",
+    "@auth/prisma-adapter": "^2.11.3",
     "@google-cloud/local-auth": "^3.0.1",
     "@googlemaps/markerclusterer": "^2.6.2",
     "@hello-pangea/dnd": "^18.0.1",
@@ -110,7 +110,7 @@
     "minimatch": "^5.1.9",
     "nanoid": "^5.1.6",
     "next": "^16.3.3",
-    "next-auth": "^4.24.11",
+    "next-auth": "^4.24.15",
     "prisma": "^6.16.3",
     "qs": "^6.15.0",
     "react": "^19.2.3",
