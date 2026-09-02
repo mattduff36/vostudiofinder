@@ -15,7 +15,7 @@ Audit baseline: 31 August 2026
 - Resend email
 - Google Maps/location services
 - Redis-compatible caching where configured
-- Docker packaging uses Node 24 Alpine and Next.js `output: 'standalone'` (Vercel remains the primary host)
+- Docker packaging uses Node 24 Alpine and Next.js `output: 'standalone'`. Vercel (primary host) uses native Next.js output: `next.config.ts` sets `output` only when `VERCEL` is unset, avoiding a Next.js 16.3 adapter/standalone `.nft.json` regression.
 - Sentry-related sync/webhook/admin error-log subsystem remains in code, while direct runtime instrumentation appears removed
 
 Exact package versions are authoritative in `package.json` and `package-lock.json`.
@@ -72,4 +72,4 @@ Proxy runs on Next.js's supported Node.js runtime. It does not import Prisma, Ne
 
 ## Known architecture drift
 
-See `CODEBASE_AUDIT_2026-08-31.md` for the audit backlog. Docker uses Node 24 LTS with Next.js `output: 'standalone'`. Next.js is on the August 2026 Active LTS security release 16.3.3. The deprecated `middleware.ts` convention was migrated to `src/proxy.ts` in Phase 2E. Remaining items include Prisma major-version lag, Sentry intent drift and disabled CI.
+See `CODEBASE_AUDIT_2026-08-31.md` for the audit backlog. Docker uses Node 24 LTS with Next.js standalone output. Vercel builds leave `output` unset. Next.js is on the August 2026 Active LTS security release 16.3.3. The deprecated `middleware.ts` convention was migrated to `src/proxy.ts` in Phase 2E. Remaining items include Prisma major-version lag, Sentry intent drift and disabled CI.

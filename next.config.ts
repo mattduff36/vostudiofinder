@@ -23,10 +23,6 @@ const gitCommitDateIso =
 const nextConfig: NextConfig = {
   /* config options here */
 
-  // Required by the production Dockerfile, which copies `.next/standalone`.
-  // Vercel does not need this option; it is set for the Docker packaging path.
-  output: 'standalone',
-
   // Disable streamed metadata so crawlers and SEO tools always receive
   // robots/canonical tags inside <head> on App Router routes.
   htmlLimitedBots: /.*/,
@@ -122,5 +118,15 @@ const nextConfig: NextConfig = {
     },
   },
 };
+
+// Docker/local packaging requires standalone output.
+// Vercel uses its own Next.js adapter and must not set standalone:
+// Next.js 16.3 adapter builds omit `.next/next-server.js.nft.json`,
+// which standalone finalisation then fails to open (ENOENT).
+// Assigned here (not `output: undefined`) because NextConfig forbids
+// explicit undefined under exactOptionalPropertyTypes.
+if (!process.env.VERCEL) {
+  nextConfig.output = 'standalone';
+}
 
 export default nextConfig;

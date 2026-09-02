@@ -1,7 +1,7 @@
 # Operations
 
 Status: canonical operational safety guide
-Last reviewed: 31 August 2026 (Phase 2E Next.js proxy migration)
+Last reviewed: 2 September 2026 (Vercel/Docker output split)
 
 ## Environments
 
@@ -13,7 +13,7 @@ Vercel is the current primary production host (`vercel.json`). Docker is a secon
 
 - Docker base image: `node:24-alpine` (builder and runner).
 - Next.js security baseline is **16.3.3** (August 2026 Active LTS). Confirm the image/lockfile version after any framework change.
-- Next.js `output: 'standalone'` produces `.next/standalone` plus `.next/static`; the Dockerfile copies both (and `public/`) into the runtime image.
+- Next.js output is platform-conditional in `next.config.ts`: standalone is assigned only when `VERCEL` is unset (`if (!process.env.VERCEL) nextConfig.output = 'standalone'`). Vercel uses its native Next.js adapter and must not request standalone (Next.js 16.3 adapter builds omit `.next/next-server.js.nft.json`, which standalone finalisation then fails to open). Local and Docker builds still produce `.next/standalone` plus `.next/static`; the Dockerfile copies both (and `public/`) into the runtime image. Do not remove the conditional until upstream adapter/standalone behaviour is verified fixed.
 - Request-boundary URL sanitisation lives in `src/proxy.ts` (Next.js 16 Proxy, Node.js runtime). A local Docker smoke-start can prove Proxy 301s (for example `/about?foo=bar` → `/about`) without following the redirect into database-backed rendering. Do not call `/api/health`, Stripe, Resend, Neon, or GSC as part of that check.
 - A successful `npm run build` on a developer machine is not proof that the Docker image builds. Build a local test tag to verify packaging.
 - Deps stage runs `npm ci --ignore-scripts` because `postinstall` would otherwise generate Prisma before the schema is copied. The builder runs `prisma generate`.

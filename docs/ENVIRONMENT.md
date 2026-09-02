@@ -1,7 +1,7 @@
 # Environment Configuration
 
 Status: canonical environment contract guide
-Last reviewed: 31 August 2026 (Phase 2C)
+Last reviewed: 2 September 2026 (Vercel/Docker output split)
 
 ## Principle
 
@@ -56,7 +56,9 @@ Test-only:
 
 - `TEST_DATABASE_URL` — required for mutating Jest integration tests. Must be an isolated database. Never production. Never the shared development database.
 
-Platform-injected (omit from `.env.local`): `NODE_ENV`, `VERCEL_ENV`, `VERCEL_URL`, `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_GIT_COMMIT_DATE`, `GITHUB_RUN_NUMBER`, `NEXT_RUNTIME`.
+Platform-injected (omit from `.env.local`): `NODE_ENV`, `VERCEL`, `VERCEL_ENV`, `VERCEL_URL`, `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_GIT_COMMIT_DATE`, `GITHUB_RUN_NUMBER`, `NEXT_RUNTIME`.
+
+`VERCEL` is set by the Vercel build environment. `next.config.ts` uses it only to disable Next.js `output: 'standalone'` on Vercel while keeping standalone for local/Docker packaging. Do not set `VERCEL` in `.env.local` unless you are deliberately simulating a Vercel-mode build.
 
 ## Removed from the example (Phase 2C)
 

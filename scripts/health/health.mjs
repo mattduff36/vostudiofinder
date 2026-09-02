@@ -93,7 +93,7 @@ if (exists('env.example')) {
     const m = line.match(/^([A-Z0-9_]+)=/); if (m) exampleKeys.add(m[1]);
   }
 }
-const ignoredComputed = new Set(['NODE_ENV','VERCEL_ENV','VERCEL_URL','VERCEL_PROJECT_PRODUCTION_URL','VERCEL_GIT_COMMIT_DATE','GITHUB_RUN_NUMBER','NEXT_RUNTIME','NEXT_PUBLIC_BUILD_VERSION','NEXT_PUBLIC_GIT_COMMIT_DATE','HEALTH_BUILD']);
+const ignoredComputed = new Set(['NODE_ENV','VERCEL','VERCEL_ENV','VERCEL_URL','VERCEL_PROJECT_PRODUCTION_URL','VERCEL_GIT_COMMIT_DATE','GITHUB_RUN_NUMBER','NEXT_RUNTIME','NEXT_PUBLIC_BUILD_VERSION','NEXT_PUBLIC_GIT_COMMIT_DATE','HEALTH_BUILD']);
 const missingEnv = [...envUse].filter((k) => !exampleKeys.has(k) && !ignoredComputed.has(k)).sort();
 add(missingEnv.length ? 'WARN' : 'PASS', 'config', 'env-contract', missingEnv.length ? `Used but absent from env.example: ${missingEnv.join(', ')}` : 'No obvious missing code-referenced keys');
 
@@ -105,8 +105,25 @@ if (exists('Dockerfile')) {
   else if (dockerMajor === 25) add('WARN', 'runtime', 'docker-node', 'Dockerfile uses Node 25, which is EOL. Supported baseline is Node 24 LTS.');
   else add('WARN', 'runtime', 'docker-node', dockerMajor ? `Dockerfile uses Node ${dockerMajor}; supported baseline is Node 24 LTS.` : 'No node major detected');
   if (docker.includes('.next/standalone')) {
-    const standalone = exists('next.config.ts') && /output\s*:\s*['\"]standalone['\"]/.test(read('next.config.ts'));
-    add(standalone ? 'PASS' : 'WARN', 'runtime', 'docker-standalone-contract', standalone ? 'next.config enables standalone' : 'Docker expects .next/standalone but next.config.ts does not visibly enable output: standalone');
+    if (!exists('next.config.ts')) {
+      add('FAIL', 'runtime', 'docker-standalone-contract', 'Docker expects .next/standalone but next.config.ts is missing');
+    } else {
+      const cfg = read('next.config.ts');
+      const vercelConditionalTernary = /output\s*:\s*process\.env\.VERCEL\s*\?\s*undefined\s*:\s*['"]standalone['"]/.test(cfg);
+      const vercelConditionalGuard = /if\s*\(\s*!process\.env\.VERCEL\s*\)[\s\S]{0,120}output\s*=\s*['"]standalone['"]/.test(cfg);
+      const vercelConditional = vercelConditionalTernary || vercelConditionalGuard;
+      const unconditionalStandalone = /^\s*output\s*:\s*['"]standalone['"]\s*,?\s*$/m.test(cfg);
+      const mentionsStandalone = /['"]standalone['"]/.test(cfg);
+      if (vercelConditional && !unconditionalStandalone) {
+        add('PASS', 'runtime', 'docker-standalone-contract', 'Standalone output is Vercel-conditional: disabled on Vercel, enabled for local/Docker');
+      } else if (unconditionalStandalone) {
+        add('FAIL', 'runtime', 'docker-standalone-contract', 'output: standalone is unconditional. Next.js 16.3 + the Vercel adapter fails looking for .next/next-server.js.nft.json. Enable standalone only when VERCEL is unset.');
+      } else if (!mentionsStandalone) {
+        add('FAIL', 'runtime', 'docker-standalone-contract', 'Docker expects .next/standalone but next.config.ts no longer enables standalone for non-Vercel builds');
+      } else {
+        add('WARN', 'runtime', 'docker-standalone-contract', 'Standalone output is present but not in the expected Vercel-conditional form (assign output: "standalone" only when VERCEL is unset)');
+      }
+    }
   }
 }
 

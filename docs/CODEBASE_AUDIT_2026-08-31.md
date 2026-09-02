@@ -245,6 +245,28 @@ No production deployment. No production database, Stripe, Resend, Neon, or Searc
 | `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS (818 warnings, 171 tests). `next-proxy-migration` PASS. Build skipped unless `HEALTH_BUILD=1`. |
 | `git diff --check` | PASS (exit 0). CRLF/LF working-copy notices only. |
 
+## Deployment repair — Vercel adapter / standalone (2 September 2026)
+
+Vercel failed after deploying `6eb93dc5` (`feat: show purchased package in admin payments`). The Next.js 16.3.3 compile/type-check/static generation succeeded; Vercel's `onBuildComplete` adapter then failed with `ENOENT` for `/vercel/path0/.next/next-server.js.nft.json`.
+
+Cause: Next.js 16.3 adapter builds omit that root nft file while `output: 'standalone'` still tries to consume it. Workaround: disable standalone on Vercel only.
+
+`next.config.ts` now assigns `output: 'standalone'` only when `VERCEL` is unset (TypeScript `exactOptionalPropertyTypes` cannot set `output: undefined`). Docker/local builds keep standalone. Next.js remains 16.3.3. Proxy and `/admin/payments` were not changed. Do not remove the conditional until upstream adapter/standalone behaviour is verified fixed.
+
+| Command | Result |
+|---|---|
+| `npm ci` | PASS against the existing lockfile. No dependency change. Next.js remains 16.3.3. |
+| `npm run type-check` | PASS after assigning `output` only when `VERCEL` is unset (`exactOptionalPropertyTypes` rejects `output: undefined`). |
+| `npm run lint` | PASS (exit 0). 0 errors, 818 pre-existing warnings. |
+| `npm run test:unit` | PASS: 9 suites, 176 tests. Proxy 23/23 and payment-package 5/5 unchanged. |
+| Normal `npm run build` | PASS. Next.js 16.3.3. `.next/standalone/server.js` and `.next/static` generated. |
+| Vercel-mode `VERCEL=1 npm run build` | PASS. Next.js 16.3.3 compile/type-check/static generation succeeded. `.next/standalone` absent. Local run cannot emulate Vercel's adapter; this only proves the config omits standalone when `VERCEL` is set. |
+| Docker `vostudiofinder:local-test` | PASS. Node v24.20.0, Next.js 16.3.3, `/app/server.js` present. No `.env*` in the image. Image not pushed. |
+| Container smoke-start | PASS with **fake** env on host port 4010. Ready. `GET /robots.txt` 200. `GET /about?foo=bar` 301 `Location: /about`. `/api/health` not called. Container removed. |
+| `npm run health` (quick) | Overall **WARN**, exit 0. **PASS:** `docker-standalone-contract` (Vercel-conditional). Remaining WARNs unchanged (CI, Prisma query logging, critical-path TODOs, large files). |
+| `npm run health:full` | Overall **WARN**, exit 0. type-check/lint/unit PASS (818 warnings, 176 tests). |
+| Vercel production deploy | *Recorded after real Vercel result.* |
+
 ## Recommended work order
 
 1. Install this governance pack only.
