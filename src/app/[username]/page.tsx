@@ -1,3 +1,4 @@
+import { applyPublicTierLimits, effectivePublicTier, publicMembershipSelect } from '@/lib/subscriptions/public-entitlements';
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
@@ -85,6 +86,8 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
       username: true,
       display_name: true,
       status: true,
+      deletion_status: true,
+      ...publicMembershipSelect,
       user_metadata: {
         where: { key: 'custom_meta_title' },
         select: {
@@ -128,7 +131,9 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const baseUrl = getBaseUrl();
   const canonicalUsername = user.username ?? username;
   const pageUrl = `${baseUrl}/${canonicalUsername}`;
-  const studio = getPrimaryRelationItem(user.studio_profiles);
+  const savedStudio = getPrimaryRelationItem(user.studio_profiles);
+  const publicTier = effectivePublicTier(user);
+  const studio = savedStudio ? applyPublicTierLimits(savedStudio, publicTier) : null;
   const isOwner = session?.user?.id === user.id;
   const isAdmin = session?.user?.role === 'ADMIN';
   const canPreviewPrivateStudio = isOwner || isAdmin;
@@ -161,7 +166,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
 
   // Determine if profile should be indexed by search engines
   // Only index if profile is ACTIVE and visible to public
-  const shouldIndex = studio.status === 'ACTIVE' && studio.is_profile_visible === true;
+  const shouldIndex = user.status === 'ACTIVE' && user.deletion_status === 'ACTIVE' && studio.status === 'ACTIVE' && studio.is_profile_visible === true;
   if (!shouldIndex && !canPreviewPrivateStudio) {
     notFound();
   }
@@ -196,7 +201,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
     null;
 
   // Check for custom meta title from user metadata, otherwise use auto-generated
-  const customMetaTitle = user.user_metadata?.[0]?.value?.trim();
+  const customMetaTitle = publicTier === 'PREMIUM' ? user.user_metadata?.[0]?.value?.trim() : undefined;
   const metaTitle = customMetaTitle || buildProfileMetaTitle({
     studioName: studio.name,
     primaryStudioType,
@@ -262,6 +267,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
   const user = await db.users.findFirst({
     where: { username: { equals: username, mode: 'insensitive' } },
     include: {
+      subscriptions: publicMembershipSelect.subscriptions,
       studio_profiles: {
         // Remove status filter - load all profiles for permission check
         include: {
@@ -334,13 +340,13 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
   const studioProfile = getPrimaryRelationItem(user.studio_profiles);
   
   if (studioProfile) {
-    const studio = studioProfile;
+    const studio = applyPublicTierLimits(studioProfile, effectivePublicTier(user));
     
     if (!studio) {
       return <div>Studio not found</div>;
     }
 
-    if ((studio.status !== 'ACTIVE' || studio.is_profile_visible === false) && !canPreviewPrivateStudio) {
+    if ((user.status !== 'ACTIVE' || user.deletion_status !== 'ACTIVE' || user.deletion_requested_at || user.deletion_scheduled_for || studio.admin_review || studio.status !== 'ACTIVE' || studio.is_profile_visible === false || studio.studio_studio_types.length === 0) && !canPreviewPrivateStudio) {
       notFound();
     }
 

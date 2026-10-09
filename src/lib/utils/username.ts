@@ -96,6 +96,63 @@ export function isReservedUsername(username: string): boolean {
   return RESERVED_USERNAMES.includes(lowerUsername as any);
 }
 
+/** System placeholders created before a person chooses a public username. */
+export function isSystemUsername(username: string | null | undefined): boolean {
+  if (!username) return false;
+  const lower = username.toLowerCase();
+  return lower.startsWith('temp_') || lower.startsWith('expired_');
+}
+
+export type UsernameIssue = 'empty' | 'format' | 'reserved' | 'system';
+
+export type UsernameValidation =
+  | { ok: true; username: string }
+  | { ok: false; issue: UsernameIssue; message: string };
+
+/**
+ * A real public username: 3-20 ASCII letters, digits, or underscores,
+ * not a reserved route, and not a system temp_/expired_ placeholder.
+ * Display names are a separate field and may contain hyphens.
+ */
+export function validateUsername(username: unknown): UsernameValidation {
+  if (typeof username !== 'string' || username.trim() === '') {
+    return { ok: false, issue: 'empty', message: 'Username is required' };
+  }
+
+  const value = username.trim();
+
+  if (isSystemUsername(value)) {
+    return {
+      ok: false,
+      issue: 'system',
+      message: 'This username is reserved and cannot be used',
+    };
+  }
+
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(value)) {
+    return {
+      ok: false,
+      issue: 'format',
+      message: 'Username must be 3-20 characters (letters, numbers, underscores only)',
+    };
+  }
+
+  if (isReservedUsername(value)) {
+    return {
+      ok: false,
+      issue: 'reserved',
+      message: 'This username is reserved and cannot be used',
+    };
+  }
+
+  return { ok: true, username: value };
+}
+
+/** True only for a persisted username that may be used as a public profile slug. */
+export function isCanonicalUsername(username: string | null | undefined): username is string {
+  return typeof username === 'string' && username === username.trim() && validateUsername(username).ok;
+}
+
 /**
  * Convert display name to CamelCase (e.g., "Smith Studios" -> "SmithStudios")
  */
@@ -146,20 +203,27 @@ export function hasSpaces(display_name: string): boolean {
 export function generateUsernameSuggestions(display_name: string): string[] {
   const suggestions: string[] = [];
   const sanitized = sanitizeUsername(display_name);
-  
-  if (!hasSpaces(display_name)) {
-    // No spaces - use display name directly as first suggestion
-    suggestions.push(sanitized);
+  const hasSeparator = /[\s_-]/.test(display_name);
+
+  const pushCandidate = (value: string) => {
+    const clipped = value.slice(0, 20);
+    if (clipped && !suggestions.includes(clipped)) {
+      suggestions.push(clipped);
+    }
+  };
+
+  if (!hasSeparator) {
+    if (sanitized) pushCandidate(sanitized);
   } else {
-    // Has spaces - generate CamelCase and Snake_Case
+    // Hyphens stay in the display name. They are only word separators here.
     const camelCase = toCamelCase(display_name);
     const snakeCase = toSnakeCase(display_name);
-    
-    if (camelCase) suggestions.push(camelCase);
-    if (snakeCase && snakeCase !== camelCase) suggestions.push(snakeCase);
+    if (camelCase) pushCandidate(camelCase);
+    if (snakeCase && snakeCase !== camelCase) pushCandidate(snakeCase);
+    if (sanitized) pushCandidate(sanitized);
   }
-  
-  return suggestions.filter(s => s.length >= 3 && s.length <= 20);
+
+  return suggestions.filter((suggestion) => isCanonicalUsername(suggestion));
 }
 
 /**
@@ -175,6 +239,10 @@ export function addNumberSuffix(username: string, number: number): string {
  * @param checkReserved - Whether to check against reserved usernames (default: true)
  */
 export function isValidUsername(username: string, checkReserved: boolean = true): boolean {
+  if (isSystemUsername(username)) {
+    return false;
+  }
+
   // Must be 3-20 characters, alphanumeric and underscores only
   const regex = /^[a-zA-Z0-9_]{3,20}$/;
   

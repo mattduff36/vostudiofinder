@@ -50,3 +50,20 @@ Vercel cron configuration currently includes subscription enforcement, reservati
 ## Product change rule
 
 When dated PRDs/implementation summaries disagree with this document or current code, inspect the intended current behaviour and update the appropriate canonical doc. Do not revive historical features solely because archived documentation mentions them.
+
+## Membership recovery and expiry (9 October 2026)
+
+- Expiry removes Premium benefits and moves an account to Basic. It does not itself change studio `status` or turn an owner-hidden profile public. Cron, login and Stripe deletion use the same locked, entitlement-rechecking transition.
+- Missing expiry records require review. Deletion-requested accounts are excluded from automatic transitions. A refund-hidden profile remains hidden.
+- Basic public rendering limits images, social links, connection methods, studio types and Premium contact/badge/SEO features; stored content is retained for renewal. Voiceover categories are never silently converted to Home Studio. A downgraded Voiceover profile stays hidden until its owner chooses an eligible category.
+- The advertised legacy six-month offer is redeemed once. `legacy_premium_offer_state` in user metadata distinguishes `unclaimed`, `claimed`, and `review`. Existing future grants are preserved; ambiguous prior claims are not automatically extended. A first claim records its time and creates an auditable subscription period.
+- Recovery uses an explicit snapshot and the conservative policy in `src/lib/subscriptions/recovery-policy.ts`. It does not override visibility-off, deletion, review, refund, paid-membership ambiguity, Voiceover-category or missing-location holds. It sends no emails.
+- Downgrade confirmations describe actual visibility. Renewal reminders exclude unclaimed/review legacy offers and do not mark failed provider sends as successful.
+
+Expiry enforcement runs hourly in bounded batches. Historic catch-up (more than 48 hours after expiry) does not send a backlog of downgrade emails.
+
+## Username completion
+
+Display names may contain hyphens. Public usernames must contain 3–20 ASCII letters, digits or underscores, and cannot use reserved routes or system placeholder prefixes. Username validation is enforced in the browser and on the server before Basic activation or a new Premium checkout. Verification and membership entry points return incomplete signups to username selection, including when browser session storage is unavailable.
+
+An authenticated active account stranded with a system placeholder can complete its username once from the dashboard. The server uses the signed-in account identity and refuses subsequent renames. Choosing a username does not alter membership, visibility, payments or deletion state.

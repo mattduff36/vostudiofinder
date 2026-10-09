@@ -57,6 +57,14 @@ export async function GET(request: NextRequest) {
       const users = await db.users.findMany({
         where: {
           membership_tier: 'PREMIUM',
+          status: 'ACTIVE',
+          deletion_status: 'ACTIVE',
+          deletion_requested_at: null,
+          deletion_scheduled_for: null,
+          NOT: [
+            { user_metadata: { some: { key: 'legacy_premium_offer_state', value: { in: ['unclaimed', 'review'] } } } },
+            { last_login: null, studio_profiles: { created_at: { lt: new Date('2026-01-01') } }, payments: { none: { status: 'SUCCEEDED' } } },
+          ],
           [sentField]: null,
           subscriptions: {
             some: {
@@ -81,7 +89,7 @@ export async function GET(request: NextRequest) {
 
       for (const user of users) {
         const expiry = user.subscriptions[0]?.current_period_end;
-        if (!expiry) continue;
+        if (!expiry || expiry < start || expiry > end) continue;
 
         try {
           const expiryDateStr = expiry.toLocaleDateString('en-GB', {
@@ -90,7 +98,7 @@ export async function GET(request: NextRequest) {
             year: 'numeric',
           });
 
-          await sendTemplatedEmail({
+          const delivery = await sendTemplatedEmail({
             to: user.email,
             templateKey,
             variables: {
@@ -101,6 +109,7 @@ export async function GET(request: NextRequest) {
             skipMarketingCheck: true,
           });
 
+          if (!delivery.success) throw new Error('Email provider did not accept delivery');
           await db.users.update({
             where: { id: user.id },
             data: { [sentField]: now, updated_at: now },

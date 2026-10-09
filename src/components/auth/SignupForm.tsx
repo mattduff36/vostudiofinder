@@ -11,6 +11,7 @@ import { Eye, EyeOff, Mail, Shield } from 'lucide-react';
 import { ResumeSignupBanner } from './ResumeSignupBanner';
 import { SignupProgressIndicator } from './SignupProgressIndicator';
 import { storeSignupData } from '@/lib/signup-recovery';
+import { isCanonicalUsername } from '@/lib/utils/username';
 
 // Declare Turnstile types
 declare global {
@@ -198,7 +199,7 @@ export function SignupForm() {
 
     // Navigate to appropriate step
     if (pendingSignup.resumeStep === 'username') {
-      router.push(`/auth/username-selection?display_name=${encodeURIComponent(pendingSignup.user.display_name)}`);
+      router.push(`/auth/username-selection?email=${encodeURIComponent(pendingSignup.user.email)}&display_name=${encodeURIComponent(pendingSignup.user.display_name)}`);
     } else if (pendingSignup.resumeStep === 'payment') {
       const params = new URLSearchParams();
       params.set('userId', pendingSignup.user.id);
@@ -323,14 +324,12 @@ export function SignupForm() {
         reservation_expires_at: registerResult.user.reservation_expires_at,
       });
 
-      // Check if display name has spaces - determines if username selection is needed
-      const hasSpaces = /\s/.test(display_name);
-      
-      if (hasSpaces) {
-        // Redirect to username selection page (will redirect to verify-email after)
-        router.push(`/auth/username-selection?display_name=${encodeURIComponent(display_name)}`);
+      // Display names may contain hyphens and exceed 20 characters.
+      // Only a canonical username can be reserved without the username step.
+      const usernameStep = `/auth/username-selection?email=${encodeURIComponent(data.email)}&display_name=${encodeURIComponent(display_name)}`;
+      if (!isCanonicalUsername(display_name)) {
+        router.push(usernameStep);
       } else {
-        // No spaces - check if username is available
         const response = await fetch('/api/auth/check-username', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -346,6 +345,7 @@ export function SignupForm() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               userId,
+              email: data.email,
               username: display_name,
             }),
           });
@@ -358,15 +358,14 @@ export function SignupForm() {
             }
             
             // For other errors, go to username selection
-            router.push(`/auth/username-selection?display_name=${encodeURIComponent(display_name)}`);
+            router.push(usernameStep);
             return;
           }
 
-          // Username reserved - proceed to email verification
+          // Username reserved - verification email is sent by the reserve endpoint
           router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}&flow=signup`);
         } else {
-          // Username taken - go to username selection
-          router.push(`/auth/username-selection?display_name=${encodeURIComponent(display_name)}`);
+          router.push(usernameStep);
         }
       }
     } catch (err) {

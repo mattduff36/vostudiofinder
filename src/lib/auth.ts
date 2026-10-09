@@ -7,6 +7,8 @@ import TwitterProvider from 'next-auth/providers/twitter';
 import bcrypt from 'bcryptjs';
 import { db } from './db';
 import { Role } from '@prisma/client';
+import { recordLoginAndClaimLegacyOffer } from './subscriptions/legacy-offer';
+import { performDowngrade } from './subscriptions/downgrade';
 
 export const authOptions: NextAuthOptions = {
   adapter: {
@@ -216,219 +218,15 @@ export const authOptions: NextAuthOptions = {
       // Update last_login timestamp and handle membership
       if (user.email) {
         try {
-          const dbUser = await db.users.update({
-            where: { email: user.email },
-            data: { last_login: new Date() },
-            include: {
-              studio_profiles: true,
-              subscriptions: {
-                orderBy: { created_at: 'desc' },
-                take: 1,
-                select: {
-                  id: true,
-                  status: true,
-                  stripe_subscription_id: true,
-                  stripe_customer_id: true,
-                  current_period_start: true,
-                  current_period_end: true,
-                  created_at: true,
-                  updated_at: true,
-                  payment_method: true,
-                  user_id: true,
-                }
-              },
-              // Check if user has ever made a successful payment (one-time payments
-              // create subscriptions with null stripe_subscription_id AND null
-              // stripe_customer_id, making them indistinguishable from legacy grants).
-              payments: {
-                where: { status: 'SUCCEEDED' },
-                take: 1,
-                select: { id: true },
-              },
-            }
+          const identity = await db.users.findUnique({ where: { email: user.email }, select: { id: true } });
+          if (!identity) return;
+          await recordLoginAndClaimLegacyOffer(identity.id);
+          await performDowngrade(identity.id);
+          const now = new Date();
+          await db.studio_profiles.updateMany({
+            where: { user_id: identity.id, is_featured: true, featured_until: { lte: now } },
+            data: { is_featured: false, updated_at: now },
           });
-
-          // Handle legacy membership grant + enforce studio status (skip for admin accounts)
-          const isAdminAccount = dbUser.role === 'ADMIN';
-          
-          if (dbUser.studio_profiles && !isAdminAccount) {
-            const studio = dbUser.studio_profiles;
-            let latestSubscription = dbUser.subscriptions[0];
-            const now = new Date();
-            const LEGACY_CUTOFF = new Date('2026-01-01T00:00:00.000Z');
-
-            // Check if user qualifies for legacy membership
-            const isLegacyUser = studio.created_at < LEGACY_CUTOFF;
-            // A "paid" user has a real Stripe subscription, a stripe_customer_id
-            // (from coupon/zero-amount payments), or a successful payment record
-            // (one-time payments create subscriptions with null stripe IDs).
-            const hasPaidSubscription =
-              latestSubscription?.stripe_subscription_id != null ||
-              latestSubscription?.stripe_customer_id != null ||
-              dbUser.payments.length > 0;
-            // Legacy grant should fire if:
-            //  1. Legacy user with no subscription at all, OR
-            //  2. Legacy user with a batch-migrated/legacy-granted subscription (no stripe ID)
-            // It should NOT fire for users who paid via Stripe (recurring, one-time, or coupon)
-            const needsLegacyGrant = isLegacyUser && !hasPaidSubscription;
-
-            // Grant or re-grant legacy membership (6 months from NOW, no cap)
-            // Uses a transaction with SELECT FOR UPDATE to prevent duplicate subscriptions
-            // from concurrent login requests for the same user.
-            let legacyGrantSucceeded = false;
-
-            if (needsLegacyGrant) {
-              const granted = await db.$transaction(async (tx) => {
-                // Lock the user row to serialize concurrent legacy-grant attempts
-                const [lockedUser] = await tx.$queryRaw<Array<{ membership_tier: string | null }>>`
-                  SELECT membership_tier FROM users WHERE id = ${dbUser.id} FOR UPDATE
-                `;
-
-                // Re-fetch the latest subscription inside the lock.
-                // A Stripe webhook (or another login) may have created a paid
-                // subscription between our initial read and acquiring this lock.
-                const freshSub = await tx.subscriptions.findFirst({
-                  where: { user_id: dbUser.id },
-                  orderBy: { created_at: 'desc' },
-                });
-
-                // If a paid subscription now exists, skip the legacy grant entirely.
-                // Check both stripe_subscription_id (recurring) and stripe_customer_id
-                // (one-time / coupon payments) since either indicates a real payment.
-                if (freshSub?.stripe_subscription_id != null || freshSub?.stripe_customer_id != null) {
-                  return null;
-                }
-
-                const sixMonthsFromNow = new Date(now);
-                sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-
-                let newSub;
-                if (freshSub && !freshSub.stripe_subscription_id && !freshSub.stripe_customer_id) {
-                  // Update existing batch-migrated/legacy subscription to 6 months from now
-                  newSub = await tx.subscriptions.update({
-                    where: { id: freshSub.id },
-                    data: {
-                      status: 'ACTIVE',
-                      current_period_start: now,
-                      current_period_end: sixMonthsFromNow,
-                      updated_at: now,
-                    }
-                  });
-                } else {
-                  // No subscription exists — create one
-                  newSub = await tx.subscriptions.create({
-                    data: {
-                      id: require('crypto').randomBytes(12).toString('base64url'),
-                      user_id: dbUser.id,
-                      status: 'ACTIVE',
-                      payment_method: 'STRIPE',
-                      current_period_start: now,
-                      current_period_end: sixMonthsFromNow,
-                      created_at: now,
-                      updated_at: now
-                    }
-                  });
-                }
-
-                // Set membership tier to PREMIUM if not already
-                if (lockedUser?.membership_tier !== 'PREMIUM') {
-                  await tx.users.update({
-                    where: { id: dbUser.id },
-                    data: { membership_tier: 'PREMIUM' }
-                  });
-                }
-
-                return newSub;
-              });
-
-              if (granted) {
-                latestSubscription = granted;
-                legacyGrantSucceeded = true;
-                console.log(`✅ Legacy membership granted to ${user.email}: tier set to PREMIUM, expires ${granted.current_period_end?.toISOString()}`);
-              } else {
-                // Grant was attempted but aborted — a paid Stripe subscription
-                // appeared between our initial read and the lock acquisition.
-                // Re-fetch BOTH the current subscription AND the user's membership_tier
-                // so enforcement uses fresh data instead of the stale pre-transaction
-                // references. The Stripe webhook that created the paid subscription
-                // also sets membership_tier to PREMIUM on the user record.
-                const [currentSub, freshUser] = await Promise.all([
-                  db.subscriptions.findFirst({
-                    where: { user_id: dbUser.id },
-                    orderBy: { created_at: 'desc' },
-                  }),
-                  db.users.findUnique({
-                    where: { id: dbUser.id },
-                    select: { membership_tier: true },
-                  }),
-                ]);
-                if (currentSub) {
-                  latestSubscription = currentSub;
-                }
-                if (freshUser) {
-                  dbUser.membership_tier = freshUser.membership_tier;
-                }
-              }
-            }
-
-            // Enforce studio status based on membership tier + expiry (lazy enforcement)
-            // Only treat as PREMIUM if the legacy grant actually succeeded.
-            // If it was aborted (paid sub found concurrently) or never attempted,
-            // fall back to the tier already on the user record.
-            const effectiveTier = legacyGrantSucceeded ? 'PREMIUM' : (dbUser.membership_tier || 'BASIC');
-            const currentExpiry = latestSubscription?.current_period_end;
-            
-            // Basic tier: always ACTIVE. Premium tier: check subscription expiry.
-            let desiredStatus: 'ACTIVE' | 'INACTIVE';
-            if (effectiveTier === 'BASIC') {
-              desiredStatus = 'ACTIVE';
-            } else if (currentExpiry) {
-              desiredStatus = currentExpiry < now ? 'INACTIVE' : 'ACTIVE';
-            } else {
-              // Premium with no subscription = INACTIVE
-              desiredStatus = 'INACTIVE';
-            }
-            
-            // Only update if status needs to change
-            if (studio.status !== desiredStatus) {
-              await db.studio_profiles.update({
-                where: { id: studio.id },
-                data: { 
-                  status: desiredStatus,
-                  updated_at: now
-                }
-              });
-              console.log(`🔄 Studio status updated to ${desiredStatus} for ${user.email}`);
-            }
-            
-            // Enforce featured expiry (lazy enforcement)
-            if (studio.is_featured && studio.featured_until) {
-              const isFeaturedExpired = studio.featured_until < now;
-              if (isFeaturedExpired) {
-                await db.studio_profiles.update({
-                  where: { id: studio.id },
-                  data: { 
-                    is_featured: false,
-                    updated_at: now
-                  }
-                });
-                console.log(`🔄 Studio unfeatured (expired) for ${user.email}`);
-              }
-            }
-          } else if (dbUser.studio_profiles && isAdminAccount) {
-            // Ensure admin studio is always ACTIVE
-            const studio = dbUser.studio_profiles;
-            if (studio.status !== 'ACTIVE') {
-              await db.studio_profiles.update({
-                where: { id: studio.id },
-                data: { 
-                  status: 'ACTIVE',
-                  updated_at: new Date()
-                }
-              });
-              console.log(`🔄 Admin studio set to ACTIVE for ${user.email}`);
-            }
-          }
         } catch (error) {
           console.error('Failed to update last_login or handle membership:', error);
         }

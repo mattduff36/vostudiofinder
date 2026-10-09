@@ -1,3 +1,4 @@
+import { endStripeSubscription } from '@/lib/subscriptions/stripe-deletion';
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
@@ -1144,6 +1145,8 @@ async function handleRefund(refund: Stripe.Refund) {
         },
       });
 
+      const transition = await performDowngrade(payment.user_id, { sendEmail: false });
+      if (transition.error) throw new Error(transition.error);
       console.log(`[SUCCESS] Membership ended for user ${payment.user_id}`);
     }
   }
@@ -1322,13 +1325,7 @@ export async function POST(request: NextRequest) {
 
         case 'customer.subscription.deleted': {
           const sub = event.data.object as Stripe.Subscription;
-          const dbSub = await db.subscriptions.findFirst({
-            where: { stripe_subscription_id: sub.id },
-            select: { user_id: true },
-          });
-          if (dbSub) {
-            await performDowngrade(dbSub.user_id);
-          }
+          await endStripeSubscription(sub.id);
           break;
         }
 

@@ -216,7 +216,7 @@ describe('Subscription Enforcement - Database Integration', () => {
 
     const expiredStudioDecision = decisions.find((decision) => decision.studioId === expiredPremiumStudioId);
     expect(expiredStudioDecision).toBeDefined();
-    expect(expiredStudioDecision?.statusUpdate?.status).toBe('INACTIVE');
+    expect(expiredStudioDecision).not.toHaveProperty('statusUpdate');
     expect(expiredStudioDecision?.triggerDowngrade).toBe(true);
 
     const featuredStudioDecision = decisions.find((decision) => decision.studioId === expiredFeaturedStudioId);

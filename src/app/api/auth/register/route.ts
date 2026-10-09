@@ -3,12 +3,11 @@ import { registerSchema } from '@/lib/validations/auth';
 import { hashPassword } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
-import { sendVerificationEmail } from '@/lib/email/email-service';
 import { UserStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { ZodError } from 'zod';
-import { getBaseUrl } from '@/lib/seo/site';
 import { checkRateLimit, generateFingerprint, RATE_LIMITS } from '@/lib/rate-limiting';
+import { isCanonicalUsername } from '@/lib/utils/username';
 
 export async function POST(request: NextRequest) {
   try {
@@ -183,7 +182,7 @@ export async function POST(request: NextRequest) {
           // Continue to create new user below
         } else {
           // Reservation still valid - check signup progress
-          const hasRealUsername = existingUser.username && !existingUser.username.startsWith('temp_');
+          const hasRealUsername = isCanonicalUsername(existingUser.username);
           
           // Check if payment exists
           const payment = await db.payments.findFirst({
@@ -323,30 +322,11 @@ export async function POST(request: NextRequest) {
     });
     
     console.log(`✅ Created PENDING user: ${user.email} (ID: ${user.id}), reservation expires: ${reservationExpires.toISOString()}`);
-    
-    // Send verification email immediately
-    const verificationUrl = `${getBaseUrl(request)}/api/auth/verify-email?token=${verificationToken}`;
-    
-    try {
-      const emailSent = await sendVerificationEmail(
-        user.email,
-        user.display_name,
-        verificationUrl
-      );
-      
-      if (emailSent) {
-        console.log('✅ Verification email sent successfully to:', user.email);
-      } else {
-        console.warn('[WARNING] Failed to send verification email to:', user.email);
-      }
-    } catch (emailError) {
-      console.error('❌ Error sending verification email:', emailError);
-      // Don't fail the request, email sending is non-critical for account creation
-    }
-    
+
+    // Verification email waits until a public username is saved (reserve-username).
     return NextResponse.json(
       {
-        message: 'Account created. Please verify your email to continue.',
+        message: 'Account created. Choose a username to continue.',
         user: {
           id: user.id,
           email: user.email,
@@ -356,7 +336,7 @@ export async function POST(request: NextRequest) {
           reservation_expires_at: user.reservation_expires_at,
           email_verified: false,
         },
-        verificationEmailSent: true,
+        verificationEmailSent: false,
       },
       { status: 201 }
     );

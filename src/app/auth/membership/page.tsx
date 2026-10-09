@@ -6,6 +6,7 @@ import { requireEmailVerification } from '@/lib/auth-guards';
 import { db } from '@/lib/db';
 import { UserStatus } from '@prisma/client';
 import { MembershipPayment } from '@/components/auth/MembershipPayment';
+import { incompleteUsernameDestination } from '@/lib/signup/username-routing';
 
 export const metadata: Metadata = {
   title: 'Studio Membership - Voiceover Studio Finder',
@@ -41,15 +42,18 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
       redirect('/dashboard');
     }
 
+    const incomplete = incompleteUsernameDestination(user);
+    if (incomplete) {
+      redirect(incomplete);
+    }
+
     // If params are missing, rebuild them from the signed-in user
     if (!params.userId && !params.email) {
       const paymentParams = new URLSearchParams();
       paymentParams.set('userId', user.id);
       paymentParams.set('email', user.email);
       paymentParams.set('name', user.display_name);
-      if (user.username && !user.username.startsWith('temp_')) {
-        paymentParams.set('username', user.username);
-      }
+      paymentParams.set('username', user.username);
       redirect(`/auth/membership?${paymentParams.toString()}`);
     }
 
@@ -60,7 +64,27 @@ export default async function MembershipPage({ searchParams }: MembershipPagePro
   // Use userId or email from query params to check verification
   if (!session) {
     if (params.userId || params.email) {
-      await requireEmailVerification(params.userId, params.email);
+      const identified = await db.users.findUnique({
+        where: params.userId ? { id: params.userId } : { email: params.email!.toLowerCase() },
+        select: {
+          id: true,
+          email: true,
+          display_name: true,
+          username: true,
+          status: true,
+        },
+      });
+
+      if (!identified) {
+        redirect('/auth/signup');
+      }
+
+      const incomplete = incompleteUsernameDestination(identified);
+      if (incomplete) {
+        redirect(incomplete);
+      }
+
+      await requireEmailVerification(identified.id, identified.email);
     } else {
       // No user identification provided - redirect to signup
       console.error('[ERROR] Payment page accessed without user identification');

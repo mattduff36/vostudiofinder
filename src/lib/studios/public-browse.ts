@@ -1,3 +1,4 @@
+import { applyPublicTierLimits, effectivePublicTier, publicMembershipSelect } from '@/lib/subscriptions/public-entitlements';
 import { db } from '@/lib/db';
 import {
   StudioSearchMapMarker,
@@ -90,6 +91,8 @@ export async function getPublicStudiosBrowsePage({
     where: {
       status: 'ACTIVE',
       is_profile_visible: true,
+      admin_review: false,
+      users: { status: 'ACTIVE', deletion_status: 'ACTIVE', deletion_requested_at: null, deletion_scheduled_for: null },
       latitude: { not: null },
       longitude: { not: null },
       city: { not: '' },
@@ -106,6 +109,7 @@ export async function getPublicStudiosBrowsePage({
       website_url: true,
       users: {
         select: {
+          ...publicMembershipSelect,
           id: true,
           display_name: true,
           username: true,
@@ -137,7 +141,7 @@ export async function getPublicStudiosBrowsePage({
     },
   });
 
-  const serializedStudios: PrioritizableStudio[] = fetchedStudios.map(studio => ({
+  const serializedStudios: PrioritizableStudio[] = fetchedStudios.map(saved => applyPublicTierLimits(saved, effectivePublicTier(saved.users))).filter(studio => studio.studio_studio_types.length > 0).map(studio => ({
     id: studio.id,
     name: studio.name,
     description: studio.short_about || '',
@@ -187,6 +191,8 @@ export async function getPublicStudiosBrowsePage({
     where: {
       status: 'ACTIVE',
       is_profile_visible: true,
+      admin_review: false,
+      users: { status: 'ACTIVE', deletion_status: 'ACTIVE', deletion_requested_at: null, deletion_scheduled_for: null },
       latitude: { not: null },
       longitude: { not: null },
     },
@@ -205,6 +211,7 @@ export async function getPublicStudiosBrowsePage({
       is_verified: true,
       users: {
         select: {
+          ...publicMembershipSelect,
           username: true,
           avatar_url: true,
         },
@@ -222,7 +229,7 @@ export async function getPublicStudiosBrowsePage({
     },
   });
 
-  const mapMarkers: StudioSearchMapMarker[] = mapMarkersRaw.map(studio => ({
+  const mapMarkers: StudioSearchMapMarker[] = mapMarkersRaw.map(saved => applyPublicTierLimits(saved, effectivePublicTier(saved.users))).filter(studio => studio.studio_studio_types.length > 0).map(studio => ({
     id: studio.id,
     name: studio.name,
     latitude: studio.latitude !== null ? Number(studio.latitude) : null,

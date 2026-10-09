@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
 import { UserStatus } from '@prisma/client';
+import { isCanonicalUsername } from '@/lib/utils/username';
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check signup progress
-    const hasRealUsername = user.username && !user.username.startsWith('temp_');
+    const hasRealUsername = isCanonicalUsername(user.username);
 
     const payment = await db.payments.findFirst({
       where: { user_id: user.id },
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
       recoveryUrl = `/auth/membership?${params.toString()}`;
     } else {
       // Go to username selection
-      recoveryUrl = `/auth/username-selection?display_name=${encodeURIComponent(user.display_name)}`;
+      recoveryUrl = `/auth/username-selection?email=${encodeURIComponent(user.email)}&display_name=${encodeURIComponent(user.display_name)}`;
     }
 
     console.log(`🔄 Recovery URL generated for ${user.email}: ${recoveryUrl}`);

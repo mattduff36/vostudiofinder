@@ -65,3 +65,13 @@ Run `npm run health` for cheap static governance/drift checks. `npm run health:f
 ## Recovery first
 
 For production-risk work, define stop conditions and recovery before mutation. Report implementation verification separately from post-deploy monitoring/user acceptance.
+
+## Snapshot-bound legacy recovery
+
+`scripts/recover-expired-memberships.ts` requires `--env-file`, `--expected-host`, and an absolute `--snapshot` path outside the repository. Without a mutation flag it is read-only and writes a dry-run plan. Review the counts and exclusions before running the same arguments with `--apply` under explicit production authority.
+
+Apply verifies the host/database, snapshot hash, and current selected rows under user/profile/subscription locks. Any drift aborts the entire batch. It restores eligible listings to active Basic, preserves saved content, records the legacy offer state and a recovery run identifier, and sends no email. External snapshots contain identifiers and state and must remain private.
+
+An `.applied.json` receipt stores the resulting state. `--rollback` with the original arguments restores the original selected fields/metadata only when the live rows still exactly match that receipt. If members or billing have changed them since, rollback refuses; investigate and reconcile rather than overwriting newer work. Never roll back publication by broad status updates.
+
+Deploy the corrected workflow before applying a freshly verified recovery plan. Confirm production deployment SHA and domain, compare exclusion states, and verify representative public pages and search/map counts afterward. Do not invoke a mutating cron merely as an authentication smoke test.

@@ -6,14 +6,14 @@ import { computeEnforcementDecisions, applyEnforcementDecisions } from '@/lib/su
  * Cron endpoint to enforce subscription and featured status
  * 
  * This endpoint can be called by a cron service to periodically check and enforce:
- * - Studio status (ACTIVE/INACTIVE) based on membership expiry
+ * - Premium benefits expire to Basic without changing publication status
  * - Featured status based on featured_until expiry
  * 
- * NOT SCHEDULED - Must be manually configured in cron service/scheduler
+ * Scheduled hourly by Vercel; bounded batches avoid function timeouts.
  * 
  * Usage:
  *   POST /api/cron/check-subscriptions
- *   Header: X-Cron-Secret: <CRON_SECRET>
+ *   Header: Authorization: Bearer <CRON_SECRET> (legacy X-Cron-Secret also accepted)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -26,8 +26,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const authHeader = request.headers.get('x-cron-secret');
-    if (authHeader !== cronSecret) {
+    const authHeader = request.headers.get('authorization');
+    const legacyHeader = request.headers.get('x-cron-secret');
+    if (authHeader !== `Bearer ${cronSecret}` && legacyHeader !== cronSecret) {
       return NextResponse.json(
         { error: 'Unauthorized - Invalid cron secret' },
         { status: 401 }
@@ -46,6 +47,9 @@ export async function POST(request: NextRequest) {
             id: true,
             email: true,
             membership_tier: true,
+            role: true,
+            status: true,
+            deletion_status: true,
             subscriptions: {
               orderBy: { created_at: 'desc' },
               take: 1,

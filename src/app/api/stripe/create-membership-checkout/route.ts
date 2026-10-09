@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
 import { getBaseUrl } from '@/lib/seo/site';
+import { isCanonicalUsername } from '@/lib/utils/username';
 
 const stripeKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeKey
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, name, username, userId, autoRenew } = await request.json();
+    const { email, name, userId, autoRenew } = await request.json();
 
     if (!email || !name) {
       return NextResponse.json(
@@ -42,6 +43,8 @@ export async function POST(request: NextRequest) {
       select: {
         id: true,
         email: true,
+        display_name: true,
+        username: true,
         email_verified: true,
       },
     });
@@ -60,6 +63,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Email must be verified before payment', verified: false },
         { status: 403 }
+      );
+    }
+
+    if (typeof email === 'string' && email.toLowerCase() !== user.email.toLowerCase()) {
+      return NextResponse.json(
+        { error: 'Account email does not match' },
+        { status: 403 }
+      );
+    }
+
+    // New checkout uses the saved public username. A client-supplied username is ignored.
+    // Already-created successful Stripe sessions retain their existing webhook handling.
+    if (!isCanonicalUsername(user.username)) {
+      return NextResponse.json(
+        { error: 'A valid username must be saved before payment', code: 'USERNAME_REQUIRED' },
+        { status: 400 }
       );
     }
 
@@ -92,10 +111,10 @@ export async function POST(request: NextRequest) {
 
     const priceId = useSubscription ? subscriptionPriceId : oneTimePriceId;
     const metadata = {
-      user_id: userId,
-      user_email: email,
-      user_name: name,
-      user_username: username || '',
+      user_id: user.id,
+      user_email: user.email,
+      user_name: user.display_name,
+      user_username: user.username,
       purpose: 'membership' as const,
       // Preserve user's auto-renew preference for webhook (Stripe metadata values must be strings)
       auto_renew: useSubscription ? 'true' : 'false',
@@ -104,12 +123,12 @@ export async function POST(request: NextRequest) {
     // Create Stripe checkout: subscription (auto-renew) or one-time payment
     const session = useSubscription
       ? await stripe.checkout.sessions.create({
-          customer_email: email,
+          customer_email: user.email,
           payment_method_types: ['card', 'link'],
           line_items: [{ price: priceId!, quantity: 1 }],
           mode: 'subscription',
           ui_mode: 'custom',
-          return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+          return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(user.email)}`,
           metadata,
           subscription_data: {
             metadata,
@@ -117,16 +136,16 @@ export async function POST(request: NextRequest) {
           allow_promotion_codes: true,
         })
       : await stripe.checkout.sessions.create({
-          customer_email: email,
+          customer_email: user.email,
           payment_method_types: ['card', 'link'],
           line_items: [{ price: priceId!, quantity: 1 }],
           mode: 'payment',
           ui_mode: 'custom',
-          return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+          return_url: `${baseUrl}/auth/membership/success?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(user.email)}`,
           metadata,
           payment_intent_data: {
             metadata,
-            receipt_email: email,
+            receipt_email: user.email,
           },
           invoice_creation: { enabled: true },
           allow_promotion_codes: true,

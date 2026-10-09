@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { UserStatus } from '@prisma/client';
+import { isCanonicalUsername } from '@/lib/utils/username';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
         membership_tier: true,
         email_verified: true,
         reservation_expires_at: true,
+        username: true,
       },
     });
 
@@ -64,6 +66,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Gate 4: a public username must already be persisted. Client input is ignored.
+    if (!isCanonicalUsername(user.username)) {
+      return NextResponse.json(
+        { error: 'A valid username must be saved before activating membership' },
+        { status: 400 }
+      );
+    }
+
     // All gates passed — activate the user with BASIC tier
     //
     // NOTE ON payment_attempted_at: This field is intentionally set for Basic
@@ -78,8 +88,9 @@ export async function POST(req: NextRequest) {
     //      for `payment_attempted_at: null` to find users who haven't completed
     //      the membership selection step yet.
     // Removing or skipping this field for Basic users would break both systems.
-    await db.users.update({
-      where: { id: userId },
+    const activated = await db.users.updateMany({
+      where: { id: userId, status: UserStatus.PENDING, email_verified: true, username: user.username,
+        OR: [{ reservation_expires_at: null }, { reservation_expires_at: { gt: new Date() } }] },
       data: {
         status: UserStatus.ACTIVE,
         membership_tier: 'BASIC',
@@ -87,6 +98,10 @@ export async function POST(req: NextRequest) {
         reservation_expires_at: null, // Clear reservation
       },
     });
+
+    if (activated.count !== 1) {
+      return NextResponse.json({ error: 'Signup changed or expired. Please refresh and try again.' }, { status: 409 });
+    }
 
     // Ensure studio profile exists so the user appears on /admin/studios immediately
     const { ensureStudioProfile } = await import('@/lib/studio-profile');

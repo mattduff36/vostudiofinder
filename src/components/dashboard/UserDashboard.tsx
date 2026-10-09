@@ -29,6 +29,8 @@ import { ShareProfileButton } from '@/components/profile/ShareProfileButton';
 import { logger } from '@/lib/logger';
 import { showError } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
+import { isCanonicalUsername } from '@/lib/utils/username';
+import { UsernameCompletion } from '@/components/dashboard/UsernameCompletion';
 import { useProfileAnimation } from '@/hooks/useProfileAnimation';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
 import type { ProfileData } from '@/types/profile';
@@ -129,6 +131,8 @@ interface UserDashboardProps {
 
 export function UserDashboard({ data, initialProfileData }: UserDashboardProps) {
   const { user } = data;
+  const [profileUsername, setProfileUsername] = useState(user.username);
+  const needsUsername = !isCanonicalUsername(profileUsername);
   const [profileData, setProfileData] = useState<ProfileData | null>(() => initialProfileData ?? null);
   const [loading, setLoading] = useState<boolean>(() => !initialProfileData);
   const [isProfileVisible, setIsProfileVisible] = useState<boolean>(() => {
@@ -435,16 +439,28 @@ export function UserDashboard({ data, initialProfileData }: UserDashboardProps) 
                     </span>
                   )}
                 </h1>
-                <p className="text-text-secondary">
-                  <a
-                    href={`${getBaseUrl()}/${user.username}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary-600 hover:text-primary-700 hover:underline transition-colors"
-                  >
-                    {getBaseUrl()}/<span className="text-[#9C060B] font-medium">{user.username}</span>
-                  </a>
-                </p>
+                {needsUsername ? (
+                  <div className="mt-3 max-w-xl">
+                    <UsernameCompletion
+                      currentUsername={profileUsername}
+                      onCompleted={(username) => {
+                        setProfileUsername(username);
+                        invalidateProfileCache();
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-text-secondary">
+                    <a
+                      href={`${getBaseUrl()}/${profileUsername}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-700 hover:underline transition-colors"
+                    >
+                      {getBaseUrl()}/<span className="text-[#9C060B] font-medium">{profileUsername}</span>
+                    </a>
+                  </p>
+                )}
               </div>
             </div>
 

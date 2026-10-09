@@ -1,216 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { handleApiError } from '@/lib/error-logging';
-import { UserStatus } from '@prisma/client';
 import { checkRateLimit, generateFingerprint, RATE_LIMITS } from '@/lib/rate-limiting';
-import { isReservedUsername } from '@/lib/utils/username';
+import { validateUsername } from '@/lib/utils/username';
+import { getBaseUrl } from '@/lib/seo/site';
+import { sendVerificationEmail } from '@/lib/email/email-service';
+import { pendingSignupEmailMatches, shouldSendVerificationAfterUsername } from '@/lib/signup/username-routing';
+import { claimUsername } from '@/lib/signup/claim-active-username';
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const fingerprint = generateFingerprint(request);
-    const rateLimitResult = await checkRateLimit(fingerprint, RATE_LIMITS.RESERVE_USERNAME);
-    
-    if (!rateLimitResult.allowed) {
-      return NextResponse.json(
-        { error: 'Too many username reservation attempts. Please slow down.' },
-        { status: 429 }
-      );
+    const limit = await checkRateLimit(generateFingerprint(request), RATE_LIMITS.RESERVE_USERNAME);
+    if (!limit.allowed) return NextResponse.json({ error: 'Too many username attempts. Please slow down.' }, { status: 429 });
+    const { userId, username, email } = await request.json();
+    if (typeof userId !== 'string' || !userId) return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    const validation = validateUsername(username);
+    if (!validation.ok) return NextResponse.json({ error: validation.message, available: false }, { status: 400 });
+    const user = await db.users.findUnique({ where: { id: userId } });
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    if (!pendingSignupEmailMatches(user.email, email)) return NextResponse.json({ error: 'Signup session does not match this account' }, { status: 403 });
+    const result = await claimUsername(userId, validation.username, 'PENDING');
+    if (!result.ok) return NextResponse.json({ error: result.error, available: result.available }, { status: result.status });
+    if (shouldSendVerificationAfterUsername(user.username, user.email_verified) && user.verification_token) {
+      try {
+        await sendVerificationEmail(user.email, user.display_name, `${getBaseUrl(request)}/api/auth/verify-email?token=${user.verification_token}`);
+      } catch { console.warn('[Signup] Verification delivery failed; resend remains available'); }
     }
-
-    const body = await request.json();
-    const { userId, username } = body;
-
-    if (!userId || !username) {
-      return NextResponse.json(
-        { error: 'User ID and username are required' },
-        { status: 400 }
-      );
-    }
-
-    // Validate username format
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    if (!usernameRegex.test(username)) {
-      return NextResponse.json(
-        { error: 'Username must be 3-20 characters (letters, numbers, underscores only)' },
-        { status: 400 }
-      );
-    }
-
-    // Check if username is reserved
-    if (isReservedUsername(username)) {
-      return NextResponse.json(
-        { error: 'This username is reserved and cannot be used', available: false },
-        { status: 400 }
-      );
-    }
-
-    // Check if user exists and is PENDING
-    const user = await db.users.findUnique({
-      where: { id: userId },
+    return NextResponse.json({
+      message: `Username @${validation.username} reserved successfully`,
+      user: { id: user.id, username: validation.username, reservation_expires_at: user.reservation_expires_at },
     });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    if (user.status !== UserStatus.PENDING) {
-      return NextResponse.json(
-        { error: 'User account is not in PENDING status' },
-        { status: 400 }
-      );
-    }
-
-    // Check if reservation has expired
-    if (user.reservation_expires_at && user.reservation_expires_at < new Date()) {
-      // Mark user as EXPIRED and clear their username (consistent with cron job)
-      const expiredUsername = `expired_${user.username}_${Date.now()}_${userId.substring(0, 4)}`;
-      await db.users.update({
-        where: { id: userId },
-        data: {
-          status: UserStatus.EXPIRED,
-          username: expiredUsername, // Free up the username
-          updated_at: new Date(),
-        },
-      });
-
-      console.log(`✅ Expired current user: ${user.username} → ${expiredUsername} (${userId})`);
-
-      return NextResponse.json(
-        { error: 'Username reservation has expired. Please sign up again.' },
-        { status: 410 }
-      );
-    }
-
-    // Check if username is already taken (excluding this user and EXPIRED users)
-    // Use case-insensitive comparison for username checking
-    // Consistent with check-username endpoint behavior
-    const existingUsername = await db.users.findFirst({
-      where: {
-        username: {
-          equals: username,
-          mode: 'insensitive', // Case-insensitive username check
-        },
-        status: {
-          not: UserStatus.EXPIRED, // Exclude already-expired reservations
-        },
-      },
-    });
-
-    if (existingUsername && existingUsername.id !== userId) {
-      // Check if the existing PENDING user's reservation has just expired
-      if (
-        existingUsername.status === UserStatus.PENDING &&
-        existingUsername.reservation_expires_at &&
-        existingUsername.reservation_expires_at < new Date()
-      ) {
-        // Use transaction to atomically free old username and claim it for current user
-        // This prevents race conditions where another request claims it in between
-        try {
-          const updatedUser = await db.$transaction(async (tx) => {
-            // Step 1: Free the expired user's username
-            const expiredUsername = `expired_${existingUsername.username}_${Date.now()}`;
-            await tx.users.update({
-              where: { id: existingUsername.id },
-              data: {
-                status: UserStatus.EXPIRED,
-                username: expiredUsername, // Free up the username
-                updated_at: new Date(),
-              },
-            });
-
-            // Step 2: Immediately claim it for current user (atomic!)
-            const updated = await tx.users.update({
-              where: { id: userId },
-              data: {
-                username,
-                updated_at: new Date(),
-              },
-            });
-
-            console.log(`✅ Freed and claimed username: ${existingUsername.username} (${existingUsername.id} → ${expiredUsername}, claimed by ${userId})`);
-            return updated;
-          });
-
-          // Transaction succeeded - username claimed
-          console.log(`✅ Username reserved: ${username} for user ${userId} (expires: ${updatedUser.reservation_expires_at?.toISOString()})`);
-
-          return NextResponse.json(
-            {
-              message: `Username @${username} reserved successfully`,
-              user: {
-                id: updatedUser.id,
-                username: updatedUser.username,
-                reservation_expires_at: updatedUser.reservation_expires_at,
-              },
-            },
-            { status: 200 }
-          );
-        } catch (error: any) {
-          // Handle unique constraint violation (race condition with another transaction)
-          if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
-            console.error(`[WARNING] Race condition: Username ${username} claimed during transaction`);
-            return NextResponse.json(
-              { error: 'Username was just claimed by another user. Please select a different username.', available: false },
-              { status: 409 }
-            );
-          }
-          // Re-throw other errors
-          throw error;
-        }
-      } else {
-        // Username is taken by an active user or pending user with valid reservation
-        return NextResponse.json(
-          { error: 'Username is already taken', available: false },
-          { status: 409 }
-        );
-      }
-    }
-
-    // Update user with selected username (no conflict, direct update)
-    // Wrap in try-catch to handle race condition (unique constraint violation)
-    let updatedUser;
-    try {
-      updatedUser = await db.users.update({
-        where: { id: userId },
-        data: {
-          username,
-          updated_at: new Date(),
-        },
-      });
-    } catch (error: any) {
-      // Handle unique constraint violation (race condition)
-      if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
-        console.error(`[WARNING] Race condition: Username ${username} claimed by another request`);
-        return NextResponse.json(
-          { error: 'Username was just claimed by another user. Please select a different username.', available: false },
-          { status: 409 }
-        );
-      }
-      // Re-throw other errors
-      throw error;
-    }
-
-    console.log(`✅ Username reserved: ${username} for user ${userId} (expires: ${updatedUser.reservation_expires_at?.toISOString()})`);
-
-    return NextResponse.json(
-      {
-        message: `Username @${username} reserved successfully`,
-        user: {
-          id: updatedUser.id,
-          username: updatedUser.username,
-          reservation_expires_at: updatedUser.reservation_expires_at,
-        },
-      },
-      { status: 200 }
-    );
   } catch (error) {
-    console.error('Username reservation error:', error);
-    const errorResponse = handleApiError(error, request);
-    return NextResponse.json(errorResponse, { status: 500 });
+    console.error('[Signup] Username reservation failed', error);
+    return NextResponse.json({ error: 'Unable to save username. Please try again.' }, { status: 500 });
   }
 }
-

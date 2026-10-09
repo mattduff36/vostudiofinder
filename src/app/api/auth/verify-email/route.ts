@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
+import { postVerificationPath } from '@/lib/signup/username-routing';
 
 function sanitizeRedirectPath(raw: string | null): string | null {
   if (!raw) return null;
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
         email: true,
         username: true,
         display_name: true,
+        status: true,
         email_verified: true,
         verification_token_expiry: true,
       },
@@ -60,24 +62,11 @@ export async function GET(request: NextRequest) {
     // Check if already verified
     if (user.email_verified) {
       console.log('[INFO] Email already verified for user:', user.email);
-      
-      // If redirect param provided, use it; otherwise go to payment
-      if (redirect) {
-        return NextResponse.redirect(new URL(redirect, request.url));
-      }
-      
-      // Build payment URL with user data
-      const paymentParams = new URLSearchParams();
-      paymentParams.set('userId', user.id);
-      paymentParams.set('email', user.email);
-      paymentParams.set('name', user.display_name);
-      if (user.username && !user.username.startsWith('temp_')) {
-        paymentParams.set('username', user.username);
-      }
-      
-      return NextResponse.redirect(
-        new URL(`/auth/membership?${paymentParams.toString()}&already_verified=true`, request.url)
-      );
+      const destination = postVerificationPath(user, {
+        redirect,
+        alreadyVerified: true,
+      });
+      return NextResponse.redirect(new URL(destination, request.url));
     }
 
     // Mark email as verified and clear verification token
@@ -106,25 +95,10 @@ export async function GET(request: NextRequest) {
       console.log('[SUCCESS] Studio profile set to visible for user:', user.email);
     }
 
-    // Determine redirect URL
-    let redirectUrl: string;
-    
-    if (redirect) {
-      // Use custom redirect if provided
-      redirectUrl = redirect;
-    } else {
-      // Default: redirect to payment page with user data
-      const paymentParams = new URLSearchParams();
-      paymentParams.set('userId', user.id);
-      paymentParams.set('email', user.email);
-      paymentParams.set('name', user.display_name);
-      if (user.username && !user.username.startsWith('temp_')) {
-        paymentParams.set('username', user.username);
-      }
-      paymentParams.set('verified', 'true');
-      
-      redirectUrl = `/auth/membership?${paymentParams.toString()}`;
-    }
+    const redirectUrl = postVerificationPath(user, {
+      redirect,
+      verified: true,
+    });
 
     return NextResponse.redirect(
       new URL(redirectUrl, request.url)

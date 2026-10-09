@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
+import { postVerificationPath } from '@/lib/signup/username-routing';
 import VerifyEmailContent from './VerifyEmailContent';
 
 export const metadata: Metadata = {
@@ -30,42 +31,36 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
   const error = params?.error;
   const redirectTo = sanitizeRedirectPath(params?.redirect);
 
-  // If email is provided, check if user is already verified
+  // redirect() throws, so compute the destination inside try and leave the try before calling it.
+  let destination: string | undefined;
   if (email && !error) {
     try {
       const user = await db.users.findUnique({
         where: { email: email.toLowerCase() },
         select: { 
           id: true, 
+          email: true,
           email_verified: true,
           username: true,
           display_name: true,
+          status: true,
         },
       });
 
-      // If user is verified, redirect based on flow
       if (user && user.email_verified) {
-        if (flow === 'account') {
-          redirect(redirectTo || '/dashboard');
-        }
-        
-        console.log(`[SUCCESS] User ${email} already verified, redirecting to payment`);
-        
-        // Build payment URL with user data
-        const paymentParams = new URLSearchParams();
-        paymentParams.set('userId', user.id);
-        paymentParams.set('email', email);
-        paymentParams.set('name', user.display_name);
-        if (user.username && !user.username.startsWith('temp_')) {
-          paymentParams.set('username', user.username);
-        }
-        
-        redirect(`/auth/membership?${paymentParams.toString()}`);
+        const customRedirect = flow === 'account' ? (redirectTo || '/dashboard') : redirectTo;
+        destination = postVerificationPath(user, {
+          redirect: customRedirect ?? null,
+          alreadyVerified: flow !== 'account',
+        });
       }
     } catch (dbError) {
       console.error('Error checking verification status:', dbError);
-      // Continue to render verification page on error
     }
+  }
+
+  if (destination) {
+    redirect(destination);
   }
 
   const flowValue = flow as 'account' | 'profile' | 'signup';

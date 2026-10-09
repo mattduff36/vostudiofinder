@@ -336,7 +336,7 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
     bodyParagraphs: [
       'Hi {{displayName}},',
       'Your Premium membership has expired and your listing is now on the Basic plan.',
-      'Your studio is still live and searchable.',
+      '{{visibilityMessage}}',
       'However, the following Premium features are now inactive:',
       '• Voiceover artist listing',
       '• Verified badge',
@@ -350,6 +350,7 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
     ctaPrimaryUrl: '{{renewUrl}}',
     variableSchema: {
       displayName: 'string',
+      visibilityMessage: 'string',
       renewUrl: 'url',
     },
   },
@@ -366,7 +367,7 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
     bodyParagraphs: [
       'Hi {{displayName}},',
       'Just a quick heads-up that your Premium membership on Voiceover Studio Finder expires on {{expiryDate}}.',
-      'If you choose not to renew, your listing will remain live on our Basic plan. However, you will lose:',
+      'If you choose not to renew, eligible public studio listings remain live on Basic. Hidden profiles stay hidden, and Voiceover artist listings require Premium. You will lose:',
       '• Voiceover artist listing',
       '• Verified badge',
       '• Phone & directions visibility',

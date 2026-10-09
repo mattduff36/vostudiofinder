@@ -5,7 +5,7 @@ import {
   generateUsernameSuggestions, 
   addNumberSuffix,
   isValidUsername,
-  isReservedUsername 
+  validateUsername,
 } from '@/lib/utils/username';
 import { checkRateLimit, generateFingerprint, RATE_LIMITS } from '@/lib/rate-limiting';
 
@@ -45,33 +45,24 @@ export async function POST(request: NextRequest) {
 
     // If checking a specific username
     if (username) {
-      // Check format first (without reserved check)
-      if (!isValidUsername(username, false)) {
+      const validation = validateUsername(username);
+      if (!validation.ok) {
         return NextResponse.json(
-          { 
-            available: false, 
-            message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' 
+          {
+            available: false,
+            message: validation.issue === 'format'
+              ? 'Username must be 3-20 characters and contain only letters, numbers, and underscores'
+              : validation.message,
           },
           { status: 400 }
         );
       }
 
-      // Check if reserved
-      if (isReservedUsername(username)) {
-        return NextResponse.json(
-          { 
-            available: false, 
-            message: 'This username is reserved and cannot be used' 
-          },
-          { status: 400 }
-        );
-      }
-
-      const exists = await usernameExists(username);
+      const exists = await usernameExists(validation.username);
 
       return NextResponse.json({
         available: !exists,
-        username,
+        username: validation.username,
       });
     }
 

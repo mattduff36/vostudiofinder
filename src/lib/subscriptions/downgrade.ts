@@ -1,138 +1,67 @@
-/**
- * Premium to Basic Downgrade Logic
- *
- * Performs all database and profile changes when a Premium membership expires or is cancelled.
- * Does NOT delete any user data (images, social links, connections) — only hides/limits in UI.
- */
-
+import { randomBytes } from 'crypto';
 import { db } from '@/lib/db';
 import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { getBaseUrl } from '@/lib/seo/site';
 
-/**
- * Perform downgrade from Premium to Basic for a user.
- * Idempotent: safe to call multiple times (no-op if already BASIC).
- */
-export async function performDowngrade(userId: string): Promise<{ downgraded: boolean; voiceoverRemoved?: boolean; error?: string }> {
+interface DowngradeOptions {
+  sendEmail?: boolean;
+}
+
+/** All callers recheck entitlement under a lock. Expiry changes benefits, not consent. */
+export async function performDowngrade(userId: string, options: DowngradeOptions = {}) {
   try {
-    const user = await db.users.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        display_name: true,
-        membership_tier: true,
-        studio_profiles: {
-          select: { id: true },
-        },
-      },
-    });
-
-    if (!user) {
-      return { downgraded: false, error: 'User not found' };
-    }
-
-    if (user.membership_tier === 'BASIC') {
-      return { downgraded: false };
-    }
-
-    const studioId = user.studio_profiles?.id;
     const now = new Date();
-
-    let voiceoverRemoved = false;
-
-    await db.$transaction(async (tx) => {
-      // 1. Set membership_tier to BASIC
-      await tx.users.update({
-        where: { id: userId },
-        data: { membership_tier: 'BASIC', updated_at: now },
+    const result = await db.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM users WHERE id = ${userId} FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM subscriptions WHERE user_id = ${userId} FOR UPDATE`;
+      const user = await tx.users.findUnique({ where: { id: userId }, include: {
+        subscriptions: { orderBy: { created_at: 'desc' }, take: 1 },
+        studio_profiles: { include: { studio_studio_types: true } },
+      } });
+      if (!user || user.membership_tier === 'BASIC' || user.role === 'ADMIN'
+        || user.status !== 'ACTIVE' || user.deletion_status !== 'ACTIVE'
+        || user.deletion_requested_at || user.deletion_scheduled_for) return null;
+      const expiry = user.subscriptions[0]?.current_period_end;
+      // Missing entitlement records require review; do not guess that a grant expired.
+      if (!expiry || expiry > now) return null;
+      const studio = user.studio_profiles;
+      const hasVoiceover = studio?.studio_studio_types.some(t => t.studio_type === 'VOICEOVER') ?? false;
+      await tx.users.update({ where: { id: userId }, data: { membership_tier: 'BASIC', updated_at: now } });
+      if (studio) await tx.studio_profiles.update({ where: { id: studio.id }, data: {
+        show_phone: false, show_directions: false, is_verified: false,
+        is_featured: false, featured_until: null, is_premium: false,
+        // Retain the saved category; never invent a Home Studio for an artist.
+        ...(hasVoiceover ? { is_profile_visible: false } : {}), updated_at: now,
+      } });
+      await tx.user_metadata.upsert({
+        where: { user_id_key: { user_id: userId, key: 'membership_downgraded_at' } },
+        create: { id: randomBytes(12).toString('base64url'), user_id: userId,
+          key: 'membership_downgraded_at', value: now.toISOString(), updated_at: now },
+        update: { value: now.toISOString(), updated_at: now },
       });
-
-      if (studioId) {
-        // 2. Check for VOICEOVER type before profile update
-        const studioTypes = await tx.studio_studio_types.findMany({
-          where: { studio_id: studioId },
-          select: { studio_type: true },
-        });
-        const hasVoiceover = studioTypes.some((t) => t.studio_type === 'VOICEOVER');
-
-        // 3. Remove Premium visibility flags.
-        //    If VOICEOVER is being reverted, also hide the profile so the user
-        //    must manually re-enable visibility as a Home Studio.
-        await tx.studio_profiles.update({
-          where: { id: studioId },
-          data: {
-            show_phone: false,
-            show_directions: false,
-            is_verified: false,
-            is_featured: false,
-            featured_until: null,
-            is_premium: false,
-            ...(hasVoiceover && { is_profile_visible: false }),
-            updated_at: now,
-          },
-        });
-
-        // 4. Revert VOICEOVER to HOME if needed
-        if (hasVoiceover) {
-          voiceoverRemoved = true;
-
-          await tx.studio_studio_types.deleteMany({
-            where: {
-              studio_id: studioId,
-              studio_type: 'VOICEOVER',
-            },
-          });
-          const remaining = studioTypes.filter((t) => t.studio_type !== 'VOICEOVER');
-          if (remaining.length === 0) {
-            const { randomBytes } = await import('crypto');
-            await tx.studio_studio_types.create({
-              data: {
-                id: randomBytes(12).toString('base64url'),
-                studio_id: studioId,
-                studio_type: 'HOME',
-              },
-            });
-          }
-        }
-      }
-
-      // 5. Clear custom meta title (Premium advanced SEO feature)
-      await tx.user_metadata.deleteMany({
-        where: {
-          user_id: userId,
-          key: 'custom_meta_title',
-        },
-      });
+      return { email: user.email, displayName: user.display_name,
+        visible: !!studio && studio.status === 'ACTIVE' && studio.is_profile_visible && !hasVoiceover,
+        voiceoverRemoved: hasVoiceover, expiredAt: expiry };
     });
-
-    // 5. Send downgrade confirmation email (outside transaction)
-    // Non-critical: a failed email must not mask the successful downgrade,
-    // otherwise enforcement skips setting the studio back to ACTIVE.
-    try {
-      const baseUrl = getBaseUrl();
-      const renewUrl = `${baseUrl}/dashboard/settings?section=membership`;
-
-      await sendTemplatedEmail({
-        to: user.email,
-        templateKey: 'downgrade-confirmation',
-        variables: {
-          displayName: user.display_name || 'there',
-          renewUrl,
-        },
-        skipMarketingCheck: true,
-      });
-    } catch (emailError) {
-      console.error('[Downgrade] Confirmation email failed (downgrade still applied):', emailError);
+    if (!result) return { downgraded: false };
+    // Recovery and historic catch-up never send bulk expiry mail. Only a recent transition winner can send.
+    if (options.sendEmail !== false && now.getTime() - result.expiredAt.getTime() <= 48 * 60 * 60 * 1000) {
+      try {
+        const sent = await sendTemplatedEmail({
+          to: result.email, templateKey: 'downgrade-confirmation',
+          variables: { displayName: result.displayName || 'there',
+            visibilityMessage: result.visible
+              ? 'Your studio remains live and searchable on the Basic plan.'
+              : 'Your profile is not currently public. Review its visibility and studio category in your dashboard. Basic does not include Voiceover artist listings.',
+            renewUrl: `${getBaseUrl()}/dashboard/settings?section=membership` },
+          skipMarketingCheck: true,
+        });
+        if (!sent.success) console.error('[Downgrade] Confirmation delivery failed');
+      } catch { console.error('[Downgrade] Confirmation delivery failed'); }
     }
-
-    console.log(`[Downgrade] User ${userId} downgraded to BASIC${voiceoverRemoved ? ' (VOICEOVER removed, profile hidden)' : ''}`);
-    return { downgraded: true, voiceoverRemoved };
+    return { downgraded: true, voiceoverRemoved: result.voiceoverRemoved };
   } catch (error) {
-    console.error('[Downgrade] Error:', error);
-    return {
-      downgraded: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    console.error('[Downgrade] Transition failed', error);
+    return { downgraded: false, error: 'Membership transition failed' };
   }
 }

@@ -8,16 +8,26 @@ import { Check, Loader2 } from 'lucide-react';
 import { SignupProgressIndicator } from './SignupProgressIndicator';
 import { usePreventBackNavigation } from '@/hooks/usePreventBackNavigation';
 import { getSignupData, storeSignupData } from '@/lib/signup-recovery';
+import { validateUsername } from '@/lib/utils/username';
 
 interface UsernameSuggestion {
   username: string;
   available: boolean;
 }
 
-export function UsernameSelectionForm() {
+interface UsernameSelectionFormProps {
+  initialEmail?: string;
+  initialDisplayName?: string;
+}
+
+export function UsernameSelectionForm({
+  initialEmail = '',
+  initialDisplayName = '',
+}: UsernameSelectionFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const display_name = searchParams?.get('display_name') || '';
+  const display_name = initialDisplayName || searchParams?.get('display_name') || '';
+  const emailFromQuery = initialEmail || searchParams?.get('email') || '';
 
   const [suggestions, setSuggestions] = useState<UsernameSuggestion[]>([]);
   const [selectedUsername, setSelectedUsername] = useState('');
@@ -26,6 +36,7 @@ export function UsernameSelectionForm() {
   const [customAvailable, setCustomAvailable] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [owner, setOwner] = useState<{ userId: string; email: string; displayName: string } | null>(null);
 
   // Enable back button protection
   usePreventBackNavigation({
@@ -37,69 +48,84 @@ export function UsernameSelectionForm() {
   });
 
   useEffect(() => {
-    // Check sessionStorage first - if missing, redirect to signup
-    const signupData = getSignupData();
-    
-    if (!signupData) {
-      console.warn('[WARNING] No signup data found in sessionStorage');
-      setError('Session expired. Please start the signup process again.');
-      setTimeout(() => {
-        router.push('/auth/signup');
-      }, 2000);
-      return;
-    }
-    
-    // Store/update data as backup
-    if (display_name && signupData) {
-      storeSignupData({
-        ...signupData,
-        display_name: display_name || signupData.display_name,
-      });
-    }
-    
-    if (display_name) {
-      fetchSuggestions();
-    }
-    
-    // Check if username already reserved (resume scenario)
-    const checkExistingUsername = async () => {
-      if (!signupData) return;
+    let cancelled = false;
+
+    const resume = async () => {
+      const signupData = getSignupData();
+      const email = emailFromQuery || signupData?.email || '';
+
+      if (!email) {
+        setError('Session expired. Please start the signup process again.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (display_name) {
+        fetchSuggestions();
+      } else if (!cancelled) {
+        setIsLoading(false);
+      }
 
       try {
-        const userId = signupData.userId;
-
-        if (!userId) return;
-
-        // Check user's current username
         const response = await fetch('/api/auth/check-signup-status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: signupData.email }),
+          body: JSON.stringify({ email }),
         });
+        const statusData = await response.json();
+        if (cancelled) return;
 
-        if (response.ok) {
-          const statusData = await response.json();
-          if (statusData.canResume && statusData.hasUsername && statusData.user.username) {
-            // Username already reserved - skip to payment
-            console.log(`[SUCCESS] Username already reserved: @${statusData.user.username}`);
-            
+        if (response.ok && statusData.canResume && statusData.user?.id) {
+          const nextOwner = {
+            userId: statusData.user.id,
+            email: statusData.user.email,
+            displayName: display_name || statusData.user.display_name,
+          };
+          setOwner(nextOwner);
+          storeSignupData({
+            userId: nextOwner.userId,
+            email: nextOwner.email,
+            display_name: nextOwner.displayName,
+            username: statusData.user.username || undefined,
+            reservation_expires_at: statusData.user.reservation_expires_at,
+          });
+
+          if (statusData.hasUsername && statusData.user.username) {
             const params = new URLSearchParams();
-            params.set('userId', userId);
-            params.set('email', signupData.email);
-            params.set('name', signupData.display_name);
+            params.set('userId', nextOwner.userId);
+            params.set('email', nextOwner.email);
+            params.set('name', nextOwner.displayName);
             params.set('username', statusData.user.username);
-            
             router.push(`/auth/membership?${params.toString()}`);
           }
+          return;
         }
+
+        if (signupData?.userId) {
+          setOwner({
+            userId: signupData.userId,
+            email: signupData.email,
+            displayName: display_name || signupData.display_name,
+          });
+          return;
+        }
+
+        setError(statusData.error || statusData.message || 'Unable to resume username selection.');
       } catch (err) {
         console.error('Error checking existing username:', err);
+        if (!cancelled) {
+          setError('Unable to resume username selection.');
+        }
       }
     };
 
-    checkExistingUsername();
-    // router is stable and doesn't need to be in dependencies
-  }, [display_name, router]);
+    resume();
+    return () => {
+      cancelled = true;
+    };
+    // fetchSuggestions is recreated each render; resume runs when the identity inputs change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [display_name, emailFromQuery, router]);
 
   const fetchSuggestions = async () => {
     try {
@@ -155,41 +181,53 @@ export function UsernameSelectionForm() {
   };
 
   useEffect(() => {
-    if (customUsername) {
-      const timer = setTimeout(() => {
-        checkCustomUsername(customUsername);
-      }, 500);
-      return () => clearTimeout(timer);
+    if (!customUsername) {
+      setCustomAvailable(null);
+      return undefined;
     }
-    setCustomAvailable(null);
-    return undefined;
+
+    const validation = validateUsername(customUsername);
+    if (!validation.ok) {
+      setCustomAvailable(null);
+      setSelectedUsername((current) => (current === customUsername ? '' : current));
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      checkCustomUsername(validation.username);
+    }, 500);
+    return () => clearTimeout(timer);
   }, [customUsername]);
 
+  const customValidation = customUsername ? validateUsername(customUsername) : null;
+  const customFormatError = customValidation && !customValidation.ok ? customValidation.message : '';
+
   const handleContinue = async () => {
-    if (!selectedUsername) {
-      setError('Please select a username');
+    const validation = validateUsername(customUsername || selectedUsername);
+    if (!validation.ok) {
+      setError(validation.message);
       return;
     }
 
-    // Get signup data from session storage
-    const signupData = getSignupData();
-    if (!signupData) {
-      setError('Session expired. Please start over.');
-      setTimeout(() => {
-        router.push('/auth/signup');
-      }, 2000);
+    if (customUsername && (isCheckingCustom || customAvailable !== true || selectedUsername !== validation.username)) {
+      setError('Please wait for username availability to be confirmed.');
+      return;
+    }
+
+    const signupData = owner || (getSignupData()
+      ? {
+          userId: getSignupData()!.userId,
+          email: getSignupData()!.email,
+          displayName: getSignupData()!.display_name,
+        }
+      : null);
+
+    if (!signupData?.userId || !signupData.email) {
+      setError('Enter the email from your signup to continue.');
       return;
     }
 
     const userId = signupData.userId;
-
-    if (!userId) {
-      setError('Session data invalid. Please start over.');
-      setTimeout(() => {
-        router.push('/auth/signup');
-      }, 2000);
-      return;
-    }
 
     setIsLoading(true);
     setError(null);
@@ -201,7 +239,8 @@ export function UsernameSelectionForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          username: selectedUsername,
+          email: signupData.email,
+          username: validation.username,
         }),
       });
 
@@ -225,12 +264,13 @@ export function UsernameSelectionForm() {
         return;
       }
 
-      console.log(`[SUCCESS] Username reserved: @${selectedUsername}`);
+      console.log(`[SUCCESS] Username reserved: @${validation.username}`);
 
-      // Update signup data with username
       storeSignupData({
-        ...signupData,
-        username: selectedUsername,
+        userId,
+        email: signupData.email,
+        display_name: signupData.displayName,
+        username: validation.username,
       });
 
       // Navigate to email verification before payment
@@ -324,7 +364,7 @@ export function UsernameSelectionForm() {
               value={customUsername}
               onChange={(e) => setCustomUsername(e.target.value)}
               placeholder="YourUsername"
-              error=""
+              error={customFormatError}
             />
             {isCheckingCustom && (
               <Loader2 className="absolute right-3 top-9 w-5 h-5 animate-spin text-gray-400" />
@@ -345,7 +385,7 @@ export function UsernameSelectionForm() {
       <Button
         onClick={handleContinue}
         className="w-full bg-red-600 hover:bg-red-700"
-        disabled={!selectedUsername || Boolean(customUsername && !customAvailable)}
+        disabled={!selectedUsername || Boolean(customFormatError) || Boolean(customUsername && (isCheckingCustom || customAvailable !== true || selectedUsername !== customUsername.trim()))}
       >
         Continue to Membership
       </Button>

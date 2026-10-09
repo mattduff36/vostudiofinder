@@ -7,6 +7,8 @@ import { db } from './db';
 import { Role, UserStatus } from '@prisma/client';
 import { sendVerificationEmail } from '@/lib/email/email-service';
 import { getBaseUrl } from '@/lib/seo/site';
+import { isCanonicalUsername } from '@/lib/utils/username';
+import { usernameSelectionPath } from '@/lib/signup/username-routing';
 
 /**
  * Server-side authentication guard
@@ -132,6 +134,10 @@ export async function requireActiveAccount(callbackUrl?: string) {
   // the user explicitly chose the Basic tier (distinguishes from a brand-new
   // registrant who also defaults to BASIC but never finished the signup flow).
   if (user.membership_tier === 'BASIC' && user.payment_attempted_at) {
+    if (!isCanonicalUsername(user.username)) {
+      redirect(usernameSelectionPath(user.email, user.display_name));
+    }
+
     console.log(`[AUTH-GUARD] Activating BASIC user ${user.id} (payment_attempted_at set, no payment required)`);
     await db.users.update({
       where: { id: user.id },
@@ -150,13 +156,15 @@ export async function requireActiveAccount(callbackUrl?: string) {
   });
 
   if (!payment) {
+    if (!isCanonicalUsername(user.username)) {
+      redirect(usernameSelectionPath(user.email, user.display_name));
+    }
+
     const paymentParams = new URLSearchParams();
     paymentParams.set('userId', user.id);
     paymentParams.set('email', user.email);
     paymentParams.set('name', user.display_name);
-    if (user.username && !user.username.startsWith('temp_')) {
-      paymentParams.set('username', user.username);
-    }
+    paymentParams.set('username', user.username);
     redirect(`/auth/membership?${paymentParams.toString()}`);
   }
 

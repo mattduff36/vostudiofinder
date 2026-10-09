@@ -23,6 +23,8 @@ import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { useAutosizeTextarea } from '@/hooks/useAutosizeTextarea';
 import { showSuccess, showError, showInfo, showWarning } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
+import { isCanonicalUsername } from '@/lib/utils/username';
+import { UsernameCompletion } from '@/components/dashboard/UsernameCompletion';
 import { buildProfileMetaTitle } from '@/lib/seo/profile-title';
 
 import { adminProfileToProfileData, profileDataToAdminPayload } from '@/lib/profile/adminProfileAdapter';
@@ -1010,6 +1012,13 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       case 'basic':
         return (
           <div className="space-y-6">
+            {!isAdminUI && dataSource !== 'admin' && !isCanonicalUsername(profile.user.username) && (
+              <UsernameCompletion
+                currentUsername={profile.user.username}
+                onCompleted={(username) => updateUser('username', username)}
+              />
+            )}
+
             {/* Username field - Hidden from view but retained in data */}
             <input 
               type="hidden" 

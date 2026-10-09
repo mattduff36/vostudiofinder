@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError } from '@/lib/error-logging';
 import { UserStatus } from '@prisma/client';
+import { isCanonicalUsername } from '@/lib/utils/username';
 
 export async function POST(request: NextRequest) {
   try {
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Reservation still valid - check signup progress
-    const hasRealUsername = user.username && !user.username.startsWith('temp_');
+    const hasRealUsername = isCanonicalUsername(user.username);
 
     // Check if payment exists
     const payment = await db.payments.findFirst({

@@ -1,3 +1,4 @@
+import { applyPublicTierLimits, effectivePublicTier, publicMembershipSelect, publicOwner } from '@/lib/subscriptions/public-entitlements';
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { studioSearchSchema } from '@/lib/validations/studio';
@@ -122,7 +123,7 @@ export async function GET(request: NextRequest) {
     // Generate cache key based on search parameters
     const cacheKey = crypto
       .createHash('md5')
-      .update(JSON.stringify(validatedParams))
+      .update('membership-v2:' + JSON.stringify(validatedParams))
       .digest('hex');
 
     // Skip caching for page 1 to ensure random results on each load
@@ -136,117 +137,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Lazy enforcement: DISABLED for performance
-    // This should be run as a scheduled cron job instead of on every search request
-    // Throttled to run at most once every 5 minutes to prevent performance issues
-    const now = new Date();
-    const shouldRunEnforcement = false; // DISABLED - use cron job instead
-    
-    // const lazyEnforcementStart = Date.now();
-    
-    if (shouldRunEnforcement) {
-      try {
-        // lastEnforcementRun = Date.now();
-      
-        // Find studios with expired memberships that are still ACTIVE (exclude admin emails)
-        const expiredStudios = await db.studio_profiles.findMany({
-        where: {
-          status: 'ACTIVE',
-          users: {
-            email: {
-              notIn: ['admin@mpdee.co.uk', 'guy@voiceoverguy.co.uk']
-            },
-            subscriptions: {
-              some: {
-                current_period_end: {
-                  lt: now
-                }
-              }
-            }
-          }
-        },
-        select: {
-          id: true,
-          users: {
-            select: {
-              subscriptions: {
-                orderBy: { created_at: 'desc' },
-                take: 1,
-                select: {
-                  current_period_end: true
-                }
-              }
-            }
-          }
-        }
-      });
-
-
-      // Filter to only include studios whose latest subscription is expired
-      const studiesToDeactivate = expiredStudios.filter(studio => {
-        const latestSub = studio.users?.subscriptions[0];
-        return latestSub && latestSub.current_period_end && latestSub.current_period_end < now;
-      });
-
-
-      // Batch update expired studios to INACTIVE
-      if (studiesToDeactivate.length > 0) {
-        await db.studio_profiles.updateMany({
-          where: {
-            id: {
-              in: studiesToDeactivate.map(s => s.id)
-            }
-          },
-          data: {
-            status: 'INACTIVE',
-            updated_at: now
-          }
-        });
-        logger.log(`🔄 Search: Updated ${studiesToDeactivate.length} expired studios to INACTIVE`);
-      }
-      
-      
-      // Lazy enforcement: unfeature expired featured studios
-      const expiredFeaturedStudios = await db.studio_profiles.findMany({
-        where: {
-          is_featured: true,
-          featured_until: {
-            lt: now
-          }
-        },
-        select: {
-          id: true
-        }
-      });
-
-      if (expiredFeaturedStudios.length > 0) {
-        await db.studio_profiles.updateMany({
-          where: {
-            id: {
-              in: expiredFeaturedStudios.map(s => s.id)
-            }
-          },
-          data: {
-            is_featured: false,
-            updated_at: now
-          }
-        });
-        logger.log(`🔄 Search: Unfeatured ${expiredFeaturedStudios.length} expired featured studios`);
-      }
-        // const lazyEnforcementEnd = Date.now();
-      } catch (enforcementError) {
-        // Log but don't fail the search if enforcement fails
-        logger.error('Search lazy enforcement error:', enforcementError);
-      }
-    } else {
-    }
-
+    let requestedPublicTypes: string[] = [];
     // Build where clause
     // - latitude/longitude use DecimalNullableFilter (accepts null in `not`)
     // - city is a non-nullable String (default ""), so only exclude empty strings
     const where: Prisma.studio_profilesWhereInput = {
       status: 'ACTIVE',
       is_profile_visible: true, // Only show visible profiles
+      admin_review: false,
+      users: { status: 'ACTIVE', deletion_status: 'ACTIVE', deletion_requested_at: null, deletion_scheduled_for: null },
       latitude: { not: null },  // Exclude studios without coordinates
       longitude: { not: null },
       city: { not: '' },        // Exclude studios without a public location label
@@ -379,6 +278,7 @@ export async function GET(request: NextRequest) {
         .map(type => studioTypeMapping[type.toLowerCase()] || type.toUpperCase())
         .filter(type => type); // Remove any undefined values
 
+      requestedPublicTypes = mappedTypes;
       if (mappedTypes.length > 0) {
         (where.AND as Prisma.studio_profilesWhereInput[]).push({
           studio_studio_types: {
@@ -481,7 +381,7 @@ export async function GET(request: NextRequest) {
     // Cap at 500 studios max to accommodate all active studios (~483 currently)
     const MAX_STUDIOS_TO_FETCH = 500;
     
-    const fetchedStudios = await db.studio_profiles.findMany({
+    const savedStudios = await db.studio_profiles.findMany({
       where,
       take: MAX_STUDIOS_TO_FETCH,
       select: {
@@ -503,6 +403,7 @@ export async function GET(request: NextRequest) {
         updated_at: true,
         users: {
           select: {
+            ...publicMembershipSelect,
             id: true,
             display_name: true,
             username: true,
@@ -533,6 +434,9 @@ export async function GET(request: NextRequest) {
         },
       },
     });
+    const matchesPublicTypes = (studio: { studio_studio_types: Array<{ studio_type: string }> }) =>
+      studio.studio_studio_types.length > 0 && (!requestedPublicTypes.length || studio.studio_studio_types.some(t => requestedPublicTypes.includes(t.studio_type)));
+    const fetchedStudios = savedStudios.map(studio => applyPublicTierLimits(studio, effectivePublicTier(studio.users))).filter(matchesPublicTypes);
 
     // const dbQueryEndTime = Date.now();
 
@@ -604,7 +508,8 @@ export async function GET(request: NextRequest) {
       address: studio.city || '', // Use city (region) for public display
       latitude: studio.latitude !== null && studio.latitude !== undefined ? Number(studio.latitude) : null,
       longitude: studio.longitude !== null && studio.longitude !== undefined ? Number(studio.longitude) : null,
-      owner: studio.users, // Map users to owner for backward compatibility with studio cards
+      owner: publicOwner(studio.users),
+      users: publicOwner(studio.users),
       studio_images: studio.studio_images || [],
     }));
 
@@ -636,6 +541,7 @@ export async function GET(request: NextRequest) {
             is_verified: true,
             users: {
               select: {
+                ...publicMembershipSelect,
                 username: true,
                 avatar_url: true,
               },
@@ -683,6 +589,7 @@ export async function GET(request: NextRequest) {
             is_verified: true,
             users: {
               select: {
+                ...publicMembershipSelect,
                 username: true,
                 avatar_url: true,
               },
@@ -719,6 +626,7 @@ export async function GET(request: NextRequest) {
           is_verified: true,
           users: {
             select: {
+              ...publicMembershipSelect,
               username: true,
               avatar_url: true,
             },
@@ -742,6 +650,8 @@ export async function GET(request: NextRequest) {
         where: {
           status: 'ACTIVE',
           is_profile_visible: true,
+          admin_review: false,
+          users: { status: 'ACTIVE', deletion_status: 'ACTIVE', deletion_requested_at: null, deletion_scheduled_for: null },
           latitude: { not: null },
           longitude: { not: null },
         },
@@ -760,6 +670,7 @@ export async function GET(request: NextRequest) {
           is_verified: true,
           users: {
             select: {
+              ...publicMembershipSelect,
               username: true,
               avatar_url: true,
             },
@@ -782,11 +693,12 @@ export async function GET(request: NextRequest) {
     // Serialize map markers - filter out studios without coordinates
     const serializedMapMarkers = mapMarkers
       .filter(studio => studio.latitude !== null && studio.longitude !== null)
-      .map(studio => ({
+      .map(saved => applyPublicTierLimits(saved, effectivePublicTier(saved.users))).filter(matchesPublicTypes).map(studio => ({
         ...studio,
         latitude: Number(studio.latitude),
         longitude: Number(studio.longitude),
         show_exact_location: studio.show_exact_location,
+        users: publicOwner(studio.users),
       }));
 
     // const serializeEndTime = Date.now();
