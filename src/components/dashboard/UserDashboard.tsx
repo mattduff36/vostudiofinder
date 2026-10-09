@@ -29,7 +29,7 @@ import { ShareProfileButton } from '@/components/profile/ShareProfileButton';
 import { logger } from '@/lib/logger';
 import { showError } from '@/lib/toast';
 import { getBaseUrl } from '@/lib/seo/site';
-import { isCanonicalUsername } from '@/lib/utils/username';
+import { isSystemUsername } from '@/lib/utils/username';
 import { UsernameCompletion } from '@/components/dashboard/UsernameCompletion';
 import { useProfileAnimation } from '@/hooks/useProfileAnimation';
 import { calculateCompletionStats } from '@/lib/utils/profile-completion';
@@ -132,7 +132,7 @@ interface UserDashboardProps {
 export function UserDashboard({ data, initialProfileData }: UserDashboardProps) {
   const { user } = data;
   const [profileUsername, setProfileUsername] = useState(user.username);
-  const needsUsername = !isCanonicalUsername(profileUsername);
+  const needsUsername = isSystemUsername(profileUsername);
   const [profileData, setProfileData] = useState<ProfileData | null>(() => initialProfileData ?? null);
   const [loading, setLoading] = useState<boolean>(() => !initialProfileData);
   const [isProfileVisible, setIsProfileVisible] = useState<boolean>(() => {
