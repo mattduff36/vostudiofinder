@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { nanoid } from 'nanoid';
-import crypto from 'crypto';
+import { assessSentryHookSignature } from '@/lib/admin/error-log/webhook-signature';
+import { redactSentryEvent } from '@/lib/admin/error-log/redaction';
 
 /**
  * Sentry Webhook Handler
@@ -16,7 +17,7 @@ import crypto from 'crypto';
  * - issue.ignored: Issue marked as ignored
  * - issue.reopened: Resolved issue reoccurred
  * 
- * Security: Validates Sentry-Hook-Signature header using HMAC-SHA256
+ * Security: Requires a well-formed Sentry-Hook-Signature HMAC-SHA256 over the raw body.
  * 
  * Webhook configuration in Sentry:
  * 1. Go to Settings > Developer Settings > Internal Integrations
@@ -44,22 +45,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify Sentry signature
-    if (signature) {
-      const hmac = crypto.createHmac('sha256', webhookSecret);
-      hmac.update(body, 'utf8');
-      const expectedSignature = hmac.digest('hex');
-
-      if (signature !== expectedSignature) {
-        console.error('❌ [SENTRY_WEBHOOK] Invalid signature');
-        return NextResponse.json(
-          { error: 'Invalid signature' },
-          { status: 401 }
-        );
-      }
-      console.log('✅ [SENTRY_WEBHOOK] Signature verified');
-    } else {
-      console.warn('⚠️  [SENTRY_WEBHOOK] No signature provided - accepting anyway for testing');
+    const signatureAssessment = assessSentryHookSignature(body, signature, webhookSecret);
+    if (signatureAssessment !== 'ok') {
+      console.error('❌ [SENTRY_WEBHOOK] Rejected webhook signature');
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      );
     }
 
     const payload = JSON.parse(body);
@@ -98,12 +90,11 @@ export async function POST(request: NextRequest) {
           message: `Action ${action} not handled` 
         });
     }
-  } catch (error) {
-    console.error('❌ [SENTRY_WEBHOOK] Error processing webhook:', error);
+  } catch {
+    console.error('[SENTRY_WEBHOOK] Processing failed; no request or exception payload logged.');
     return NextResponse.json(
       {
         error: 'Webhook processing failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -137,7 +128,6 @@ async function handleIssueOrEvent(payload: any): Promise<NextResponse> {
   // Get sample event data if available
   let sampleEventJson: any = null;
   if (event) {
-    // Sanitize event data - remove sensitive information
     sampleEventJson = {
       eventId: event.id,
       message: event.message,
@@ -149,22 +139,18 @@ async function handleIssueOrEvent(payload: any): Promise<NextResponse> {
       platform: event.platform,
       timestamp: event.timestamp,
       level: event.level,
-      // Explicitly exclude sensitive data
-      request: event.request ? {
-        url: event.request.url,
-        method: event.request.method,
-        // Exclude headers, cookies, data
-      } : null,
+      request: event.request ?? null,
     };
 
-    // Include sanitized user context if available
+    // Stored samples keep id/username only; email and IP stay out of the cache.
     if (event.user) {
       sampleEventJson.user = {
         id: event.user.id,
         username: event.user.username,
-        // Exclude email and IP
       };
     }
+
+    sampleEventJson = redactSentryEvent(sampleEventJson);
   }
 
   // Upsert error log group

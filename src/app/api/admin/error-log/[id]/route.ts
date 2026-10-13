@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/auth-guards';
 import { Role } from '@prisma/client';
 import { db } from '@/lib/db';
+import { redactSentryEvent } from '@/lib/admin/error-log/redaction';
 
 /**
  * Admin API: Error Log Group Details
@@ -10,80 +11,6 @@ import { db } from '@/lib/db';
  * Query params:
  * - live=1: Fetch live data from Sentry API (issue + latest event)
  */
-
-/**
- * Redact sensitive fields from headers, even in "max" detail mode
- * to prevent exposing tokens, session cookies, etc.
- */
-function redactSensitiveHeaders(headers: any): any {
-  if (!headers || typeof headers !== 'object') return headers;
-  
-  const redacted = { ...headers };
-  const sensitiveKeys = [
-    'cookie',
-    'authorization',
-    'x-csrf-token',
-    'x-api-key',
-    'api-key',
-    'x-auth-token',
-    'session',
-    'set-cookie'
-  ];
-  
-  for (const key of Object.keys(redacted)) {
-    if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk))) {
-      redacted[key] = '[REDACTED]';
-    }
-  }
-  
-  return redacted;
-}
-
-/**
- * Apply privacy redaction to Sentry event data
- * Redacts: cookies, authorization headers, request body (if sensitive)
- * Keeps: URL, method, most headers, user data (as admin selected "max" detail)
- */
-function redactEventData(event: any): any {
-  if (!event) return event;
-  
-  const redacted = { ...event };
-  
-  // Redact sensitive request data
-  if (redacted.request) {
-    redacted.request = {
-      ...redacted.request,
-      headers: redactSensitiveHeaders(redacted.request.headers),
-      cookies: '[REDACTED]', // Always redact cookies
-      // Keep body but redact if it contains sensitive patterns
-      data: redacted.request.data && typeof redacted.request.data === 'object'
-        ? sanitizeRequestBody(redacted.request.data)
-        : redacted.request.data,
-    };
-  }
-  
-  return redacted;
-}
-
-/**
- * Sanitize request body by redacting fields that look like passwords, tokens, etc.
- */
-function sanitizeRequestBody(body: any): any {
-  if (!body || typeof body !== 'object') return body;
-  
-  const sanitized = Array.isArray(body) ? [...body] : { ...body };
-  const sensitivePatterns = ['password', 'token', 'secret', 'key', 'auth', 'credential'];
-  
-  for (const [key, value] of Object.entries(sanitized)) {
-    if (sensitivePatterns.some(pattern => key.toLowerCase().includes(pattern))) {
-      sanitized[key] = '[REDACTED]';
-    } else if (value && typeof value === 'object') {
-      sanitized[key] = sanitizeRequestBody(value);
-    }
-  }
-  
-  return sanitized;
-}
 
 export async function GET(
   request: NextRequest,
@@ -138,7 +65,6 @@ export async function GET(
       if (sentryAuthToken && sentryOrgSlug && sentryProjectSlug) {
         try {
           console.log(`[ERROR_LOG_API] Fetching Sentry data for issue ${errorLogGroup.sentry_issue_id}`);
-          console.log(`[ERROR_LOG_API] Config: org=${sentryOrgSlug}, project=${sentryProjectSlug}, token=${sentryAuthToken.substring(0, 10)}...`);
           
           // Fetch issue details
           // Try organization-scoped endpoint first (required for some token types)
@@ -154,11 +80,10 @@ export async function GET(
           );
 
           if (issueResponse.ok) {
-            sentryIssue = await issueResponse.json();
+            sentryIssue = redactSentryEvent(await issueResponse.json());
             console.log(`[ERROR_LOG_API] ✅ Successfully fetched Sentry issue`);
           } else {
-            const errorBody = await issueResponse.text();
-            console.warn(`[ERROR_LOG_API] ❌ Failed to fetch Sentry issue: ${issueResponse.status} - ${errorBody}`);
+            console.warn(`[ERROR_LOG_API] ❌ Failed to fetch Sentry issue: ${issueResponse.status}`);
             sentryError = `Sentry API returned ${issueResponse.status}`;
           }
 
@@ -177,18 +102,16 @@ export async function GET(
 
           if (eventResponse.ok) {
             const rawEvent = await eventResponse.json();
-            // Apply privacy redaction before sending to client
-            sentryLatestEvent = redactEventData(rawEvent);
+            sentryLatestEvent = redactSentryEvent(rawEvent);
             console.log(`[ERROR_LOG_API] ✅ Successfully fetched Sentry latest event`);
           } else {
-            const errorBody = await eventResponse.text();
-            console.warn(`[ERROR_LOG_API] ❌ Failed to fetch Sentry latest event: ${eventResponse.status} - ${errorBody}`);
+            console.warn(`[ERROR_LOG_API] ❌ Failed to fetch Sentry latest event: ${eventResponse.status}`);
             const eventError = `Failed to fetch latest event (HTTP ${eventResponse.status})`;
             sentryError = sentryError ? `${sentryError}; ${eventError}` : eventError;
           }
         } catch (error) {
-          console.error('[ERROR_LOG_API] Error fetching from Sentry:', error);
-          sentryError = error instanceof Error ? error.message : 'Unknown Sentry API error';
+          console.error('[ERROR_LOG_API] Error fetching from Sentry');
+          sentryError = error instanceof Error && error.name === 'TimeoutError' ? 'Sentry request timed out' : 'Sentry data could not be fetched';
         }
       } else {
         sentryError = 'Sentry API credentials not configured';
@@ -196,13 +119,20 @@ export async function GET(
     }
 
     return NextResponse.json({
-      errorLogGroup,
+      errorLogGroup: {
+        ...errorLogGroup,
+        sample_event_json: redactSentryEvent(errorLogGroup.sample_event_json),
+      },
       sentryIssue,
       sentryLatestEvent,
       sentryError,
     });
   } catch (error) {
-    console.error('[ERROR_LOG_API] Error fetching error log details:', error);
+    console.error('[ERROR_LOG_API] Error fetching error log details');
+
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     
     if (error instanceof Error && error.message === 'Insufficient permissions') {
       return NextResponse.json(
@@ -214,7 +144,6 @@ export async function GET(
     return NextResponse.json(
       {
         error: 'Failed to fetch error log details',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
