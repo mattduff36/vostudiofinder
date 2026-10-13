@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { UserStatus } from '@prisma/client';
+import { UserStatus, type Prisma } from '@prisma/client';
+import { z } from 'zod';
 
 /**
  * GET /api/admin/reservations
@@ -18,47 +19,13 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') as UserStatus | null;
-    const search = searchParams.get('search');
-
-    // Build where clause
-    const where: any = {};
-
-    // Status filter
-    const statusFilter = status
-      ? { status }
-      : {
-          status: {
-            in: [UserStatus.PENDING, UserStatus.EXPIRED],
-          },
-        };
-
-    // Search filter
-    const searchFilter = search
-      ? {
-          OR: [
-            {
-              email: {
-                contains: search,
-                mode: 'insensitive',
-              },
-            },
-            {
-              username: {
-                contains: search,
-                mode: 'insensitive',
-              },
-            },
-          ],
-        }
-      : {};
-
-    // Combine filters properly with AND logic
-    if (search) {
-      where.AND = [statusFilter, searchFilter];
-    } else {
-      Object.assign(where, statusFilter);
-    }
+    const parsed = z.object({ status: z.enum(['PENDING', 'EXPIRED']).optional(), search: z.string().trim().max(250).default('') }).safeParse(Object.fromEntries(searchParams));
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid reservation filters' }, { status: 400 });
+    const { status, search } = parsed.data;
+    const where: Prisma.usersWhereInput = {
+      status: status ?? { in: [UserStatus.PENDING, UserStatus.EXPIRED] },
+      ...(search ? { OR: [{ email: { contains: search, mode: 'insensitive' } }, { username: { contains: search, mode: 'insensitive' } }] } : {}),
+    };
 
     // Get users with payment counts
     const users = await db.users.findMany({
@@ -82,6 +49,7 @@ export async function GET(request: NextRequest) {
       orderBy: [
         { reservation_expires_at: 'asc' }, // Expiring soon first
         { created_at: 'desc' },
+        { id: 'asc' },
       ],
     });
 

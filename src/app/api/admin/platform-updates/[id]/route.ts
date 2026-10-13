@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { PlatformUpdateCategory } from '@prisma/client';
+import { platformUpdateFields } from '@/lib/admin/content-validation';
+import { parseContent, contentError } from '@/lib/admin/content-api';
 
 // PATCH - Update platform update (admin only)
 export async function PATCH(
@@ -20,34 +21,9 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await request.json();
-    const { title, description, category, release_date, is_highlighted } = body;
-
-    const updateData: {
-      title?: string | null;
-      description?: string;
-      category?: PlatformUpdateCategory;
-      release_date?: Date;
-      is_highlighted?: boolean;
-      updated_at: Date;
-    } = {
-      updated_at: new Date(),
-    };
-
-    if (title !== undefined) updateData.title = title || null;
-    if (description !== undefined) updateData.description = description;
-    if (category !== undefined) {
-      const validCategories: PlatformUpdateCategory[] = ['FEATURE', 'IMPROVEMENT', 'FIX', 'SECURITY'];
-      if (!validCategories.includes(category)) {
-        return NextResponse.json(
-          { error: 'Invalid category. Must be one of: FEATURE, IMPROVEMENT, FIX, SECURITY' },
-          { status: 400 }
-        );
-      }
-      updateData.category = category;
-    }
-    if (release_date !== undefined) updateData.release_date = new Date(release_date);
-    if (is_highlighted !== undefined) updateData.is_highlighted = is_highlighted;
+    const { release_date, title, ...fields } = await parseContent(request, platformUpdateFields.partial().strict().refine(value => Object.keys(value).length > 0));
+    const updateData = { ...(fields.description !== undefined ? { description: fields.description } : {}), ...(fields.category !== undefined ? { category: fields.category } : {}), ...(fields.is_highlighted !== undefined ? { is_highlighted: fields.is_highlighted } : {}), ...(title !== undefined ? { title: title || null } : {}),
+      ...(release_date !== undefined ? { release_date: new Date(`${release_date}T00:00:00.000Z`) } : {}), updated_at: new Date() };
 
     const update = await db.platform_updates.update({
       where: { id },
@@ -60,11 +36,7 @@ export async function PATCH(
       message: 'Platform update updated successfully',
     });
   } catch (error) {
-    console.error('Error updating platform update:', error);
-    return NextResponse.json(
-      { error: 'Failed to update platform update' },
-      { status: 500 }
-    );
+    return contentError(error, 'Failed to update platform update');
   }
 }
 
@@ -94,10 +66,6 @@ export async function DELETE(
       message: 'Platform update deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting platform update:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete platform update' },
-      { status: 500 }
-    );
+    return contentError(error, 'Failed to delete platform update');
   }
 }

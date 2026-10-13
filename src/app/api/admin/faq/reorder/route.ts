@@ -2,52 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { faqReorderInput } from '@/lib/admin/content-validation';
+import { parseContent, ContentError, contentError } from '@/lib/admin/content-api';
 
-// POST - Reorder FAQs (admin only)
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const body = await request.json();
-    const { faqs } = body; // Array of { id, sort_order }
-
-    if (!Array.isArray(faqs)) {
-      return NextResponse.json(
-        { error: 'Invalid request format' },
-        { status: 400 }
-      );
-    }
-
-    // Update all FAQs in a transaction
-    await db.$transaction(
-      faqs.map((faq: { id: string; sort_order: number }) =>
-        db.faq.update({
-          where: { id: faq.id },
-          data: { 
-            sort_order: faq.sort_order,
-            updated_at: new Date()
-          }
-        })
-      )
-    );
-
-    return NextResponse.json({ 
-      success: true,
-      message: 'FAQs reordered successfully'
+    if (session?.user?.role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: session ? 403 : 401 });
+    const input = await parseContent(request, faqReorderInput);
+    const faqs = await db.$transaction(async tx => {
+      // Create, delete and reorder share this lock, including an empty FAQ list.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(44657829)`;
+      const current = await tx.faq.findMany({ orderBy: [{ sort_order: 'asc' }, { id: 'asc' }] });
+      if (current.length !== input.expectedOrder.length || current.some((faq, index) => faq.id !== input.expectedOrder[index])) {
+        throw new ContentError('The FAQ list changed. Reload it before reordering.', 409);
+      }
+      for (const faq of input.faqs) await tx.faq.update({ where: { id: faq.id }, data: { sort_order: faq.sort_order, updated_at: new Date() } });
+      return tx.faq.findMany({ orderBy: [{ sort_order: 'asc' }, { id: 'asc' }] });
     });
-  } catch (error) {
-    console.error('Error reordering FAQs:', error);
-    return NextResponse.json(
-      { error: 'Failed to reorder FAQs' },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({ success: true, faqs });
+  } catch (error) { return contentError(error, 'Failed to reorder FAQs'); }
 }
-

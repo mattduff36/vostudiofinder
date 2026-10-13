@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { encodeCsv } from '@/lib/csv';
 import { showSuccess, showError } from '@/lib/toast';
 import { showConfirm } from '@/components/ui/ConfirmDialog';
 
@@ -22,8 +23,11 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'GENERAL' | 'FEATURED'>('ALL');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const inFlight = useRef(false);
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+  const currentEntries = entries.filter(entry => !removedIds.has(entry.id));
 
-  const filteredEntries = entries.filter(
+  const filteredEntries = currentEntries.filter(
     (entry) => {
       const matchesSearch = entry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         entry.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -43,6 +47,8 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
   };
 
   const handleDelete = async (id: string, name: string) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     const confirmed = await showConfirm({
       title: 'Delete Waitlist Entry?',
       message: `Are you sure you want to delete ${name} from the waitlist? This action cannot be undone.`,
@@ -50,7 +56,7 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
       isDangerous: true,
     });
     
-    if (!confirmed) return;
+    if (!confirmed) { inFlight.current = false; return; }
 
     setDeletingId(id);
     try {
@@ -64,31 +70,30 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
         throw new Error(data.error || 'Failed to delete entry');
       }
 
-      // Refresh the page to show updated list
+      setRemovedIds(previous => new Set([...previous, id]));
+      // Revalidate server counts while preserving the local filters and remaining rows.
       showSuccess(`${name} has been removed from the waitlist`);
       router.refresh();
     } catch (error) {
       console.error('Error deleting entry:', error);
       showError(`Failed to delete entry: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
+      inFlight.current = false;
       setDeletingId(null);
     }
   };
 
   const exportToCSV = () => {
     const headers = ['Name', 'Email', 'Joined Date'];
-    const rows = entries.map((entry) => [
+    const rows = currentEntries.map((entry) => [
       entry.name,
       entry.email,
       new Date(entry.created_at).toISOString(),
     ]);
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
-    ].join('\n');
+    const csvContent = encodeCsv([headers, ...rows]);
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -109,6 +114,7 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
               <input
                 type="text"
                 placeholder="Search by name or email..."
+                aria-label="Search waitlist entries"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
@@ -116,6 +122,7 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
             </div>
             <div className="flex gap-2">
               <select
+                aria-label="Filter waitlist by type"
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as 'ALL' | 'GENERAL' | 'FEATURED')}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
@@ -131,12 +138,12 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                Export CSV
+                Export All CSV
               </button>
             </div>
           </div>
           <p className="text-xs md:text-sm text-gray-500">
-            Showing {filteredEntries.length} of {entries.length} entries
+            Showing {filteredEntries.length} of {currentEntries.length} entries
           </p>
         </div>
       </div>
@@ -168,7 +175,7 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
               </p>
               <button
                 onClick={() => handleDelete(entry.id, entry.name)}
-                disabled={deletingId === entry.id}
+                disabled={deletingId !== null}
                 className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-300 rounded-lg hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {deletingId === entry.id ? (
@@ -246,7 +253,7 @@ export function WaitlistTable({ entries }: WaitlistTableProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <button
                       onClick={() => handleDelete(entry.id, entry.name)}
-                      disabled={deletingId === entry.id}
+                      disabled={deletingId !== null}
                       className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       title="Delete entry"
                     >

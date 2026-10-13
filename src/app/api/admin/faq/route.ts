@@ -3,12 +3,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { randomBytes } from 'crypto';
+import { faqFields } from '@/lib/admin/content-validation';
+import { parseContent, contentError } from '@/lib/admin/content-api';
 
 // GET - Fetch all FAQs (public endpoint, no auth required)
 export async function GET() {
   try {
     const faqs = await db.faq.findMany({
-      orderBy: { sort_order: 'asc' }
+      orderBy: [{ sort_order: 'asc' }, { id: 'asc' }]
     });
 
     return NextResponse.json({ faqs });
@@ -33,33 +35,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { question, answer, sort_order } = body;
-
-    if (!question || !answer) {
-      return NextResponse.json(
-        { error: 'Question and answer are required' },
-        { status: 400 }
-      );
-    }
-
-    // Get the highest sort_order to append new FAQ at the end
-    const lastFaq = await db.faq.findFirst({
-      orderBy: { sort_order: 'desc' }
-    });
-
-    const newSortOrder = sort_order !== undefined 
-      ? sort_order 
-      : (lastFaq?.sort_order ?? 0) + 1;
-
-    const faq = await db.faq.create({
-      data: {
-        id: randomBytes(12).toString('base64url'),
-        question,
-        answer,
-        sort_order: newSortOrder,
-        updated_at: new Date()
-      }
+    const input = await parseContent(request, faqFields.omit({ sort_order: true }).strict());
+    const faq = await db.$transaction(async tx => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(44657829)`;
+      const lastFaq = await tx.faq.findFirst({ orderBy: { sort_order: 'desc' } });
+      return tx.faq.create({ data: {
+        id: randomBytes(12).toString('base64url'), ...input,
+        sort_order: (lastFaq?.sort_order ?? 0) + 1, updated_at: new Date(),
+      } });
     });
 
     return NextResponse.json({ 
@@ -68,10 +51,6 @@ export async function POST(request: NextRequest) {
       message: 'FAQ created successfully'
     });
   } catch (error) {
-    console.error('Error creating FAQ:', error);
-    return NextResponse.json(
-      { error: 'Failed to create FAQ' },
-      { status: 500 }
-    );
+    return contentError(error, 'Failed to create FAQ');
   }
 }

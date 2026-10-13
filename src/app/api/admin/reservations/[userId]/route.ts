@@ -26,32 +26,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Find the user
-    const user = await db.users.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        status: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Only allow deletion of PENDING or EXPIRED users
-    if (user.status !== UserStatus.PENDING && user.status !== UserStatus.EXPIRED) {
-      return NextResponse.json(
-        { error: 'Can only delete PENDING or EXPIRED reservations' },
-        { status: 400 }
-      );
-    }
-
     // Delete user and all associated data in a transaction
     // Order matters to avoid foreign key constraint violations
     await db.$transaction(async (tx) => {
+      // Activation and paid-benefit writers take the same user-first lock.
+      await tx.$queryRaw`SELECT id FROM users WHERE id = ${userId} FOR UPDATE`;
+      const user = await tx.users.findUnique({ where: { id: userId }, select: { id: true, status: true } });
+      if (!user) throw new ReservationDeletionError('User not found', 404);
+      if (user.status !== UserStatus.PENDING && user.status !== UserStatus.EXPIRED) throw new ReservationDeletionError('This reservation is no longer PENDING or EXPIRED. Reload before taking another action.', 409);
+      const [financialHistory, activeMembership] = await Promise.all([
+        tx.payments.count({ where: { user_id: userId, status: { in: ['SUCCEEDED', 'REFUNDED', 'PARTIALLY_REFUNDED', 'PENDING'] }, amount: { gt: 0 } } }),
+        tx.subscriptions.count({ where: { user_id: userId, OR: [{ stripe_subscription_id: { not: null } }, { status: 'ACTIVE' }] } }),
+      ]);
+      if (financialHistory || activeMembership) throw new ReservationDeletionError('This account has settled/unresolved payments or membership records. Review it separately; reservation deletion is unavailable.', 409);
       // 1. Get studio profiles first (needed for reviews deletion)
       const studioProfiles = await tx.studio_profiles.findMany({
         where: { user_id: userId },
@@ -212,13 +199,14 @@ export async function DELETE(
       });
     });
 
-    console.log(`✅ Admin permanently deleted user ${user.email} (@${user.username}) and all associated data`);
+    console.log('[Reservations] Confirmed reservation deleted', { userId });
 
     return NextResponse.json({
       success: true,
       message: 'User reservation deleted permanently. All data and reminder emails removed.',
     });
   } catch (error) {
+    if (error instanceof ReservationDeletionError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error('Error deleting reservation:', error);
     return NextResponse.json(
       { error: 'Failed to delete reservation' },
@@ -227,3 +215,5 @@ export async function DELETE(
   }
 }
 
+
+class ReservationDeletionError extends Error { constructor(message: string, public status: number) { super(message); } }

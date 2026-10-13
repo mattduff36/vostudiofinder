@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
@@ -31,6 +31,11 @@ export default function AdminReservationsPage() {
   const [users, setUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [readError, setReadError] = useState('');
+  const requestOwner = useRef<{ generation: number; controller?: AbortController }>({ generation: 0 });
+  const latestRefresh = useRef<() => Promise<void>>(async () => {});
+  const deleting = useRef(new Set<string>());
   const [statusFilter, setStatusFilter] = useState<'PENDING' | 'EXPIRED' | ''>(''); // Default to all statuses
   const [stats, setStats] = useState({
     pending: 0,
@@ -51,40 +56,50 @@ export default function AdminReservationsPage() {
 
   // Fetch pending users
   const fetchUsers = useCallback(async () => {
-    setLoading(true);
+    requestOwner.current.controller?.abort();
+    const controller = new AbortController();
+    const generation = ++requestOwner.current.generation;
+    requestOwner.current.controller = controller;
+    setLoading(true); setReadError('');
     try {
       const params = new URLSearchParams();
-      if (searchTerm) {
-        params.append('search', searchTerm);
+      if (appliedSearch) {
+        params.append('search', appliedSearch);
       }
       if (statusFilter) {
         params.append('status', statusFilter);
       }
 
-      const response = await fetch(`/api/admin/reservations?${params}`);
+      const response = await fetch(`/api/admin/reservations?${params}`, { signal: controller.signal });
       if (!response.ok) throw new Error('Failed to fetch reservations');
 
       const data = await response.json();
+      if (controller.signal.aborted || generation !== requestOwner.current.generation) return;
       setUsers(data.users);
       setStats(data.stats);
     } catch (error) {
-      console.error('Error fetching reservations:', error);
+      if (!controller.signal.aborted && generation === requestOwner.current.generation) setReadError(error instanceof Error ? error.message : 'Failed to load reservations');
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted && generation === requestOwner.current.generation) setLoading(false);
     }
-  }, [searchTerm, statusFilter]);
+  }, [appliedSearch, statusFilter]);
+  useEffect(() => { latestRefresh.current = fetchUsers; }, [fetchUsers]);
 
   useEffect(() => {
     if (session?.user?.role === 'ADMIN') {
       fetchUsers();
     }
-  }, [session, fetchUsers]);
+    return () => { requestOwner.current.controller?.abort(); requestOwner.current.generation++; };
+  }, [session?.user?.role, fetchUsers]);
 
   const handleSearch = () => {
-    fetchUsers();
+    if (appliedSearch === searchTerm) void fetchUsers();
+    else setAppliedSearch(searchTerm);
   };
 
   const handleDeleteReservation = async (userId: string, email: string, username: string) => {
+    if (deleting.current.has(userId)) return;
+    deleting.current.add(userId);
     const confirmed = await showConfirm({
       title: 'Permanent Deletion Warning',
       message: `Are you sure you want to permanently delete ${email} (@${username})?\n\nThis will:\n• Delete the user account completely\n• Delete all payment records\n• Delete any studio profiles\n• Cancel all pending reminder emails\n\nTHIS ACTION CANNOT BE UNDONE!`,
@@ -92,7 +107,7 @@ export default function AdminReservationsPage() {
       isDangerous: true,
     });
     
-    if (!confirmed) return;
+    if (!confirmed) { deleting.current.delete(userId); return; }
 
     setDeletingUserId(userId);
 
@@ -108,12 +123,14 @@ export default function AdminReservationsPage() {
 
       showSuccess(`User ${email} has been permanently deleted along with all associated data.`);
       
-      // Refresh the list
-      fetchUsers();
+      requestOwner.current.controller?.abort(); requestOwner.current.generation++;
+      setUsers(previous => previous.filter(user => user.id !== userId));
+      void latestRefresh.current();
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Failed to delete reservation');
     } finally {
-      setDeletingUserId(null);
+      deleting.current.delete(userId);
+      setDeletingUserId(current => current === userId ? null : current);
     }
   };
 
@@ -158,7 +175,7 @@ export default function AdminReservationsPage() {
     const days = getDaysRemaining(expiresAt);
     if (days === null) return null;
 
-    if (days < 0) {
+    if (expiresAt && new Date(expiresAt).getTime() <= Date.now()) {
       return <span className="text-red-600 font-semibold">Expired</span>;
     } else if (days === 0) {
       return <span className="text-red-600 font-semibold">Expires today</span>;
@@ -169,7 +186,7 @@ export default function AdminReservationsPage() {
     }
   };
 
-  if (sessionStatus === 'loading' || loading) {
+  if (sessionStatus === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
@@ -195,6 +212,8 @@ export default function AdminReservationsPage() {
           </p>
         </div>
 
+        {readError && <div role="alert" className="mb-4 rounded bg-red-50 p-3 text-sm text-red-700">{readError} <Button size="sm" onClick={fetchUsers}>Retry</Button></div>}
+        {loading && <p role="status" className="mb-3 text-sm text-gray-500">Loading reservations…</p>}
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
@@ -254,6 +273,7 @@ export default function AdminReservationsPage() {
               <div className="flex h-10">
                 <input
                   type="text"
+                  aria-label="Search reservations"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}

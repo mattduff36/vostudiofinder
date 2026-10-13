@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { useContentMutation } from '@/components/admin/useContentMutation';
+import { readContentResponse, platformUpdateFields } from '@/lib/admin/content-validation';
 import { Button } from '@/components/ui/Button';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { showSuccess, showError, showWarning } from '@/lib/toast';
@@ -54,167 +56,93 @@ export default function AdminPlatformUpdatesPage() {
     is_highlighted: false,
   });
 
+  const { busy, run, allowDiscard } = useContentMutation();
+  const editorBaseline = useRef(JSON.stringify(editForm));
+  const draftIsDirty = (editingId !== null || isAddingNew) && JSON.stringify(editForm) !== editorBaseline.current;
+  const readEpoch = useRef(0);
+  const readController = useRef<AbortController | null>(null);
   const fetchUpdates = async () => {
+    const epoch = ++readEpoch.current;
+    readController.current?.abort();
+    const controller = new AbortController(); readController.current = controller;
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const response = await fetch('/api/admin/platform-updates');
-      if (!response.ok) throw new Error('Failed to fetch platform updates');
-      const data = await response.json();
-      setUpdates(data.updates || []);
+      const response = await fetch('/api/admin/platform-updates', { signal: controller.signal });
+      const body = await readContentResponse(response);
+      if (epoch !== readEpoch.current || controller.signal.aborted) return;
+      setUpdates(body.updates as PlatformUpdate[]); setError(null);
+    } catch (error) {
+      if (epoch === readEpoch.current && !controller.signal.aborted) setError(error instanceof Error ? error.message : 'Unable to load this list');
+    } finally { if (epoch === readEpoch.current && !controller.signal.aborted) setIsLoading(false); }
+  };
+  useEffect(() => { void fetchUpdates(); return () => { readController.current?.abort(); readEpoch.current++; }; }, []);
+  useEffect(() => { if (editingId || isAddingNew) document.getElementById('platform-title')?.focus(); }, [editingId, isAddingNew]);
+  const resetEditor = () => {
+    const blank = { title: '', description: '', category: 'IMPROVEMENT' as PlatformUpdateCategory, release_date: new Date().toISOString().slice(0, 10), is_highlighted: false };
+    editorBaseline.current = JSON.stringify(blank);
+    setEditForm(blank); setEditingId(null); setIsAddingNew(false);
+  };
+  const startNew = async () => {
+    if (isLoading || !await allowDiscard(draftIsDirty)) return;
+    resetEditor(); setIsAddingNew(true);
+  };
+  const startEdit = async (item: PlatformUpdate) => {
+    if (isLoading || !await allowDiscard(draftIsDirty)) return;
+    const form = { title: item.title || '', description: item.description, category: item.category, release_date: item.release_date.slice(0, 10), is_highlighted: item.is_highlighted };
+    editorBaseline.current = JSON.stringify(form);
+    setEditForm(form); setEditingId(item.id); setIsAddingNew(false);
+  };
+  const cancelEdit = async () => {
+    if (isLoading || !await allowDiscard(draftIsDirty)) return;
+    resetEditor(); document.getElementById('platform-updates-add')?.focus();
+  };
+  const save = async (id?: string) => {
+    if (isLoading) return;
+    if (!platformUpdateFields.safeParse(editForm).success) { showWarning('Enter a description and a valid release date'); return; }
+    await run(async () => {
+      const submitted = { ...editForm, title: editForm.title.trim() || null };
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load platform updates');
-    } finally {
-      setIsLoading(false);
-    }
+      try {
+        const response = await fetch(id ? `/api/admin/platform-updates/${id}` : '/api/admin/platform-updates', {
+          method: id ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(submitted),
+        });
+        const body = await readContentResponse(response);
+        const saved = body.update as PlatformUpdate;
+        setUpdates(previous => (id ? previous.map(item => item.id === id ? saved : item) : [...previous, saved]).sort((a, b) => b.release_date.localeCompare(a.release_date) || a.id.localeCompare(b.id)));
+        resetEditor(); showSuccess('Platform update saved successfully');
+        document.getElementById('platform-updates-add')?.focus();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to save platform update';
+        setError(message); showError(message);
+      }
+    });
   };
-
-  useEffect(() => {
-    fetchUpdates();
-  }, []);
-
-  const handleCreate = async () => {
-    if (!editForm.description.trim()) {
-      showWarning('Please fill in the description');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/admin/platform-updates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: editForm.title.trim() || null,
-          description: editForm.description.trim(),
-          category: editForm.category,
-          release_date: editForm.release_date,
-          is_highlighted: editForm.is_highlighted,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to create platform update');
-
-      await fetchUpdates();
-      setIsAddingNew(false);
-      setEditForm({
-        title: '',
-        description: '',
-        category: 'IMPROVEMENT',
-        release_date: new Date().toISOString().split('T')[0] ?? '',
-        is_highlighted: false,
-      });
-      showSuccess('Platform update created successfully');
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to create platform update');
-    }
-  };
-
-  const handleUpdate = async (id: string) => {
-    if (!editForm.description.trim()) {
-      showWarning('Please fill in the description');
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/admin/platform-updates/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: editForm.title.trim() || null,
-          description: editForm.description.trim(),
-          category: editForm.category,
-          release_date: editForm.release_date,
-          is_highlighted: editForm.is_highlighted,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to update platform update');
-
-      await fetchUpdates();
-      setEditingId(null);
-      setEditForm({
-        title: '',
-        description: '',
-        category: 'IMPROVEMENT',
-        release_date: new Date().toISOString().split('T')[0] ?? '',
-        is_highlighted: false,
-      });
-      showSuccess('Platform update updated successfully');
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to update platform update');
-    }
-  };
-
+  const handleCreate = () => save();
+  const handleUpdate = (id: string) => save(id);
   const handleDelete = async (id: string) => {
-    const confirmed = await showConfirm({
-      title: 'Delete platform update?',
-      message: 'Are you sure you want to delete this update? This action cannot be undone.',
-      confirmText: 'Delete',
-      isDangerous: true,
-    });
-
-    if (!confirmed) return;
-
-    try {
-      const response = await fetch(`/api/admin/platform-updates/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete platform update');
-
-      await fetchUpdates();
-      showSuccess('Platform update deleted successfully');
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to delete platform update');
-    }
-  };
-
-  const startEdit = (update: PlatformUpdate) => {
-    setEditingId(update.id);
-    const datePart = update.release_date.split('T')[0] ?? new Date().toISOString().split('T')[0] ?? '';
-    setEditForm({
-      title: update.title || '',
-      description: update.description,
-      category: update.category,
-      release_date: datePart,
-      is_highlighted: update.is_highlighted,
-    });
-    setIsAddingNew(false);
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setIsAddingNew(false);
-    setEditForm({
-      title: '',
-      description: '',
-      category: 'IMPROVEMENT',
-      release_date: new Date().toISOString().split('T')[0] ?? '',
-      is_highlighted: false,
+    if (isLoading) return;
+    await run(async () => {
+      const confirmed = await showConfirm({ title: 'Delete Platform update?', message: 'Are you sure you want to delete this platform update? This action cannot be undone.', confirmText: 'Delete', isDangerous: true });
+      if (!confirmed) return;
+      try {
+        await readContentResponse(await fetch(`/api/admin/platform-updates/${id}`, { method: 'DELETE' }));
+        setUpdates(previous => previous.filter(item => item.id !== id));
+        showSuccess('Platform update deleted successfully');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to delete platform update';
+        setError(message); showError(message);
+      }
     });
   };
 
   const getCategoryLabel = (category: PlatformUpdateCategory) =>
     CATEGORIES.find((c) => c.value === category)?.label ?? category;
 
-  if (isLoading) {
-    return (
-      <>
-        <AdminTabs activeTab="platform_updates" />
-        <div className="p-8">
-          <div className="max-w-5xl mx-auto">
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-gray-600">Loading platform updates...</p>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
       <AdminTabs activeTab="platform_updates" />
+      {isLoading && <p role="status" className="px-4 py-2 text-sm text-gray-500">Loading…</p>}
       <div className="px-4 py-4 md:p-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
@@ -227,18 +155,9 @@ export default function AdminPlatformUpdatesPage() {
               </p>
             </div>
             <Button
-              onClick={() => {
-                setIsAddingNew(true);
-                setEditingId(null);
-              setEditForm({
-                title: '',
-                description: '',
-                category: 'IMPROVEMENT',
-                release_date: new Date().toISOString().split('T')[0] ?? '',
-                is_highlighted: false,
-              });
-            }}
-              disabled={isAddingNew}
+              onClick={startNew}
+            id="platform-updates-add"
+            disabled={isAddingNew || busy || isLoading}
               className="flex items-center gap-2 w-full md:w-auto justify-center"
             >
               <Plus size={20} />
@@ -248,7 +167,7 @@ export default function AdminPlatformUpdatesPage() {
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-800">{error}</p>
+              <p role="alert" className="text-red-800">{error}</p><Button size="sm" disabled={busy || isLoading} onClick={fetchUpdates}>Retry loading</Button>
             </div>
           )}
 
@@ -256,6 +175,7 @@ export default function AdminPlatformUpdatesPage() {
             <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
               <h3 className="text-lg font-semibold mb-4 text-blue-900">Add New Update</h3>
               <PlatformUpdateForm
+                busy={busy || isLoading}
                 form={editForm}
                 setForm={setEditForm}
                 onSubmit={handleCreate}
@@ -277,7 +197,8 @@ export default function AdminPlatformUpdatesPage() {
                     {editingId === update.id ? (
                       <div className="space-y-4">
                         <PlatformUpdateForm
-                          form={editForm}
+                          busy={busy || isLoading}
+                form={editForm}
                           setForm={setEditForm}
                           onSubmit={() => handleUpdate(update.id)}
                           onCancel={cancelEdit}
@@ -309,6 +230,7 @@ export default function AdminPlatformUpdatesPage() {
                         </div>
                         <div className="flex-shrink-0 flex flex-col md:flex-row gap-2">
                           <button
+                          disabled={busy || isLoading}
                             onClick={() => startEdit(update)}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                             title="Edit"
@@ -316,6 +238,7 @@ export default function AdminPlatformUpdatesPage() {
                             <Edit2 size={18} />
                           </button>
                           <button
+                          disabled={busy || isLoading}
                             onClick={() => handleDelete(update.id)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                             title="Delete"
@@ -355,6 +278,7 @@ interface PlatformUpdateFormState {
 }
 
 interface PlatformUpdateFormProps {
+  busy: boolean;
   form: PlatformUpdateFormState;
   setForm: React.Dispatch<React.SetStateAction<PlatformUpdateFormState>>;
   onSubmit: () => void;
@@ -363,6 +287,7 @@ interface PlatformUpdateFormProps {
 }
 
 function PlatformUpdateForm({
+  busy,
   form,
   setForm,
   onSubmit,
@@ -372,9 +297,11 @@ function PlatformUpdateForm({
   return (
     <>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Title (optional)</label>
+        <label htmlFor="platform-title" className="block text-sm font-medium text-gray-700 mb-2">Title (optional)</label>
         <input
+                  disabled={busy}
           type="text"
+          id="platform-title"
           value={form.title}
           onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -382,10 +309,12 @@ function PlatformUpdateForm({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="platform-description" className="block text-sm font-medium text-gray-700 mb-2">
           Description (one line per bullet)
         </label>
         <textarea
+                  disabled={busy}
+          id="platform-description"
           value={form.description}
           onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
           rows={6}
@@ -394,8 +323,10 @@ function PlatformUpdateForm({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+        <label htmlFor="platform-category" className="block text-sm font-medium text-gray-700 mb-2">Category</label>
         <select
+                  disabled={busy}
+          id="platform-category"
           value={form.category}
           onChange={(e) =>
             setForm((f) => ({ ...f, category: e.target.value as PlatformUpdateCategory }))
@@ -410,9 +341,11 @@ function PlatformUpdateForm({
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Release date</label>
+        <label htmlFor="platform-release_date" className="block text-sm font-medium text-gray-700 mb-2">Release date</label>
         <input
+                  disabled={busy}
           type="date"
+          id="platform-release_date"
           value={form.release_date}
           onChange={(e) => setForm((f) => ({ ...f, release_date: e.target.value }))}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -420,6 +353,7 @@ function PlatformUpdateForm({
       </div>
       <div className="flex items-center gap-2">
         <input
+                  disabled={busy}
           type="checkbox"
           id="is_highlighted"
           checked={form.is_highlighted}
@@ -431,11 +365,12 @@ function PlatformUpdateForm({
         </label>
       </div>
       <div className="flex flex-col md:flex-row gap-3">
-        <Button onClick={onSubmit} className="flex items-center gap-2 justify-center w-full md:w-auto">
+        <Button disabled={busy} onClick={onSubmit} className="flex items-center gap-2 justify-center w-full md:w-auto">
           <Save size={16} />
           {submitLabel}
         </Button>
         <Button
+          disabled={busy}
           onClick={onCancel}
           variant="outline"
           className="flex items-center gap-2 justify-center w-full md:w-auto"

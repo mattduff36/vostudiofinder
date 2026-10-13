@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { PlatformUpdateCategory } from '@prisma/client';
+import { platformUpdateFields } from '@/lib/admin/content-validation';
+import { parseContent, contentError } from '@/lib/admin/content-api';
 
 // GET - Fetch all platform updates (admin only)
 export async function GET() {
@@ -17,16 +18,12 @@ export async function GET() {
     }
 
     const updates = await db.platform_updates.findMany({
-      orderBy: { release_date: 'desc' },
+      orderBy: [{ release_date: 'desc' }, { id: 'asc' }],
     });
 
     return NextResponse.json({ updates });
   } catch (error) {
-    console.error('Error fetching platform updates:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch platform updates' },
-      { status: 500 }
-    );
+    return contentError(error, 'Failed to fetch platform updates');
   }
 }
 
@@ -42,30 +39,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { title, description, category, release_date, is_highlighted } = body;
-
-    if (!description || !category || !release_date) {
-      return NextResponse.json(
-        { error: 'Description, category, and release_date are required' },
-        { status: 400 }
-      );
-    }
-
-    const validCategories: PlatformUpdateCategory[] = ['FEATURE', 'IMPROVEMENT', 'FIX', 'SECURITY'];
-    if (!validCategories.includes(category)) {
-      return NextResponse.json(
-        { error: 'Invalid category. Must be one of: FEATURE, IMPROVEMENT, FIX, SECURITY' },
-        { status: 400 }
-      );
-    }
+    const { title, description, category, release_date, is_highlighted } = await parseContent(request, platformUpdateFields.strict());
 
     const update = await db.platform_updates.create({
       data: {
         title: title || null,
         description,
         category,
-        release_date: new Date(release_date),
+        release_date: new Date(`${release_date}T00:00:00.000Z`),
         is_highlighted: is_highlighted ?? false,
       },
     });
@@ -76,10 +57,6 @@ export async function POST(request: NextRequest) {
       message: 'Platform update created successfully',
     });
   } catch (error) {
-    console.error('Error creating platform update:', error);
-    return NextResponse.json(
-      { error: 'Failed to create platform update' },
-      { status: 500 }
-    );
+    return contentError(error, 'Failed to create platform update');
   }
 }

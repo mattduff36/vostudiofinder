@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { faqFields } from '@/lib/admin/content-validation';
+import { parseContent, contentError } from '@/lib/admin/content-api';
 
 // PATCH - Update FAQ (admin only)
 export async function PATCH(
@@ -19,21 +21,8 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await request.json();
-    const { question, answer, sort_order } = body;
-
-    const updateData: any = {
-      updated_at: new Date()
-    };
-
-    if (question !== undefined) updateData.question = question;
-    if (answer !== undefined) updateData.answer = answer;
-    if (sort_order !== undefined) updateData.sort_order = sort_order;
-
-    const faq = await db.faq.update({
-      where: { id },
-      data: updateData
-    });
+    const input = await parseContent(request, faqFields.omit({ sort_order: true }).partial().strict().refine(value => Object.keys(value).length > 0));
+    const faq = await db.faq.update({ where: { id }, data: { ...(input.question !== undefined ? { question: input.question } : {}), ...(input.answer !== undefined ? { answer: input.answer } : {}), updated_at: new Date() } });
 
     return NextResponse.json({ 
       success: true, 
@@ -41,11 +30,7 @@ export async function PATCH(
       message: 'FAQ updated successfully'
     });
   } catch (error) {
-    console.error('Error updating FAQ:', error);
-    return NextResponse.json(
-      { error: 'Failed to update FAQ' },
-      { status: 500 }
-    );
+    return contentError(error, 'Failed to update FAQ');
   }
 }
 
@@ -66,8 +51,9 @@ export async function DELETE(
 
     const { id } = await params;
 
-    await db.faq.delete({
-      where: { id }
+    await db.$transaction(async tx => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(44657829)`;
+      await tx.faq.delete({ where: { id } });
     });
 
     return NextResponse.json({ 
@@ -75,11 +61,7 @@ export async function DELETE(
       message: 'FAQ deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting FAQ:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete FAQ' },
-      { status: 500 }
-    );
+    return contentError(error, 'Failed to delete FAQ');
   }
 }
 
