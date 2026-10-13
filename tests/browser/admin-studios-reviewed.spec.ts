@@ -154,14 +154,16 @@ test('expand, checklist, clean close, save, dirty-close protection and independe
   await expect(page.locator('#studio-desktop-fixture_studio_1')).toBeVisible();
   await page.screenshot({ path: info.outputPath('revised-expanded-desktop.png') });
   const detail = page.locator('#studio-desktop-fixture_studio_1');
-  await detail.getByRole('button', { name: 'Edit Email', exact: true }).click();
+  await expect(detail.getByRole('button', { name: /^Edit/ })).toHaveCount(0);
+  const rowEdit = page.locator('tr[data-studio-id="fixture_studio_1"]').getByRole('button', { name: 'Edit', exact: true });
+  await rowEdit.click();
   const modal = page.getByRole('dialog', { name: 'Edit Profile', exact: true });
-  await expect(modal.getByRole('heading', { name: 'Admin Only Section' })).toBeVisible();
+  await expect(modal.getByLabel('Studio Name', { exact: true })).toBeVisible();
   await modal.getByRole('button', { name: 'Close profile editor' }).click();
   await expect(modal).toHaveCount(0); expect(reads.length).toBe(before); expect(writes).toHaveLength(0);
   await expect(page.locator('#studio-desktop-fixture_studio_1')).toBeVisible();
 
-  await detail.getByRole('button', { name: 'Edit Studio Name', exact: true }).click();
+  await rowEdit.click();
   await modal.getByLabel('Studio Name', { exact: true }).fill('Fixture Studio amended');
   await modal.getByRole('button', { name: 'Close profile editor' }).click();
   const decision = page.getByRole('dialog', { name: /unsaved/i });

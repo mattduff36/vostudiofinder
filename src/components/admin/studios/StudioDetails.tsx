@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { CheckCircle, Circle, Copy, Pencil } from 'lucide-react';
+import { CheckCircle, Circle, Copy } from 'lucide-react';
 import type { Studio } from './types';
-import { completionEditSection, type ProfileSectionId } from '@/lib/profile/completion-sections';
 import { COMPLETION_CONNECTION_FIELDS } from '@/lib/utils/profile-completion';
 import { formatDate } from '@/lib/date-format';
 
@@ -28,7 +27,7 @@ function DetailFact({ label, children }: { label: string; children: ReactNode })
   );
 }
 
-export function StudioDetails({ studio, onEdit }: { studio: Studio; onEdit: (section: ProfileSectionId) => void }) {
+export function StudioDetails({ studio }: { studio: Studio }) {
   const [copyResult, setCopyResult] = useState<'copied' | 'fallback' | null>(null);
   const text = outstandingStudioText(studio);
   const copyOutstanding = async () => {
@@ -46,7 +45,6 @@ export function StudioDetails({ studio, onEdit }: { studio: Studio; onEdit: (sec
         </div>
         <div className="flex flex-wrap gap-3">
           <button type="button" onClick={copyOutstanding} className="inline-flex items-center gap-1 text-gray-700 hover:underline"><Copy className="h-4 w-4" />Copy outstanding items</button>
-          <button type="button" onClick={() => onEdit('basic')} className="inline-flex items-center gap-1 text-blue-700 hover:underline"><Pencil className="h-4 w-4" />Edit Profile</button>
         </div>
       </div>
       {copyResult === 'copied' && <p role="status" className="mb-3 text-green-700">Outstanding items copied.</p>}
@@ -56,7 +54,6 @@ export function StudioDetails({ studio, onEdit }: { studio: Studio; onEdit: (sec
           <ul className="space-y-1">{studio.completion.items.filter(item => item.required === required).map(item => <li key={item.id} className="flex items-start gap-2 min-w-0">
             {item.completed ? <CheckCircle aria-hidden className="w-4 h-4 shrink-0 mt-0.5 text-green-600" /> : <Circle aria-hidden className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />}
             <span className={`min-w-0 break-words ${item.completed ? 'text-gray-600' : 'font-medium text-gray-900'}`}>{item.label}<span className="sr-only"> — {item.completed ? 'Complete' : 'Outstanding'}</span></span>
-            <button type="button" onClick={() => onEdit(completionEditSection(item.id, 'admin'))} className="ml-auto shrink-0 text-xs text-blue-700 hover:underline" aria-label={`Edit ${item.label}`}>Edit</button>
           </li>)}</ul>
         </div>)}
         <div className="min-w-0">
