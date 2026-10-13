@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect, Fragment, useCallback } from 'react';
+import { useState, useEffect, Fragment, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AdminTabs } from '@/components/admin/AdminTabs';
+import { RefundForm } from '@/components/admin/payments/RefundForm';
+import type { RefundOperationSummary } from '@/lib/payments/refunds/contracts';
 import { AdminDrawer } from '@/components/admin/AdminDrawer';
 import { Button } from '@/components/ui/Button';
 import {
   Search, RefreshCw, Filter, ChevronDown, ChevronUp,
-  Banknote, AlertCircle, Check, PoundSterling, CreditCard,
+  Banknote, Check, PoundSterling, CreditCard,
   RotateCcw, Users,
 } from 'lucide-react';
 import { formatDate, formatDateTime } from '@/lib/date-format';
@@ -78,9 +80,7 @@ interface Subscription {
 }
 
 interface RevenueSummary {
-  totalRevenue: number;
-  oneTimeRevenue: number;
-  subscriptionRevenue: number;
+  currencies: Record<string, { totalRevenue: number; oneTimeRevenue: number; subscriptionRevenue: number }>;
   activeSubscriptions: number;
 }
 
@@ -100,16 +100,20 @@ export default function AdminPaymentsPage() {
 
   // One-time payments state
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [subscriptionsLoading, setSubscriptionsLoading] = useState(true);
+  const [paymentsError, setPaymentsError] = useState('');
+  const [subscriptionsError, setSubscriptionsError] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [appliedSubSearch, setAppliedSubSearch] = useState('');
+  const paymentRequest = useRef<{ generation: number; controller?: AbortController }>({ generation: 0 });
+  const subscriptionRequest = useRef<{ generation: number; controller?: AbortController }>({ generation: 0 });
+  const latestPaymentRefresh = useRef<() => Promise<void>>(async () => {});
+  const [paymentCache, setPaymentCache] = useState<Record<string, Payment>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [expandedPaymentId, setExpandedPaymentId] = useState<string | null>(null);
   const [refundModalPaymentId, setRefundModalPaymentId] = useState<string | null>(null);
-  const [refundAmount, setRefundAmount] = useState('');
-  const [refundReason, setRefundReason] = useState<'duplicate' | 'fraudulent' | 'requested_by_customer' | '' | null>(null);
-  const [refundComment, setRefundComment] = useState('');
-  const [refunding, setRefunding] = useState(false);
-  const [refundError, setRefundError] = useState('');
   const [refundSuccess, setRefundSuccess] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     page: 1, limit: 50, total: 0, totalPages: 0,
@@ -125,8 +129,12 @@ export default function AdminPaymentsPage() {
   const [expandedSubId, setExpandedSubId] = useState<string | null>(null);
 
   // Mobile drawer state
-  const [mobileSelectedPayment, setMobileSelectedPayment] = useState<Payment | null>(null);
-  const [mobileSelectedSub, setMobileSelectedSub] = useState<Subscription | null>(null);
+  const [mobileSelectedPaymentId, setMobileSelectedPaymentId] = useState<string | null>(null);
+  const mobileSelectedPayment = mobileSelectedPaymentId ? paymentCache[mobileSelectedPaymentId] ?? payments.find(p => p.id === mobileSelectedPaymentId) ?? null : null;
+  const [mobileSelectedSubId, setMobileSelectedSubId] = useState<string | null>(null);
+  const mobileSelectedSub = subscriptions.find(s => s.id === mobileSelectedSubId) ?? null;
+  const loading = activeTab === 'one-time' ? paymentsLoading : subscriptionsLoading;
+  const readError = activeTab === 'one-time' ? paymentsError : subscriptionsError;
 
   // ── Auth redirect ──────────────────────────────────────────────────
   useEffect(() => {
@@ -137,148 +145,82 @@ export default function AdminPaymentsPage() {
     }
   }, [session, sessionStatus, router]);
 
-  // ── Fetch one-time payments ────────────────────────────────────────
-  const fetchPayments = useCallback(async (overridePage?: number) => {
-    setLoading(true);
+  const fetchPayments = useCallback(async () => {
+    paymentRequest.current.controller?.abort();
+    const controller = new AbortController();
+    const generation = ++paymentRequest.current.generation;
+    paymentRequest.current.controller = controller;
+    setPaymentsLoading(true); setPaymentsError('');
     try {
-      const params = new URLSearchParams({
-        tab: 'one-time',
-        page: (overridePage ?? pagination.page).toString(),
-        limit: pagination.limit.toString(),
-      });
-      if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter) params.append('status', statusFilter);
-
-      const response = await fetch(`/api/admin/payments?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch payments');
-
+      const query = new URLSearchParams({ tab: 'one-time', page: String(pagination.page), limit: String(pagination.limit), search: appliedSearch, status: statusFilter });
+      const response = await fetch(`/api/admin/payments?${query}`, { signal: controller.signal });
       const data = await response.json();
-      setPayments(data.payments || []);
-      setPagination(data.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 });
-      if (data.summary) setSummary(data.summary);
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch payments');
+      if (controller.signal.aborted || generation !== paymentRequest.current.generation) return;
+      setPayments(data.payments); setPagination(data.pagination); setSummary(data.summary);
+      setPaymentCache(prev => ({ ...prev, ...Object.fromEntries((data.payments as Payment[]).map(p => [p.id, p])) }));
     } catch (error) {
-      console.error('Error fetching payments:', error);
-      setPayments([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [pagination.page, pagination.limit, searchTerm, statusFilter]);
+      if (!controller.signal.aborted && generation === paymentRequest.current.generation) setPaymentsError(error instanceof Error ? error.message : 'Failed to fetch payments');
+    } finally { if (!controller.signal.aborted && generation === paymentRequest.current.generation) setPaymentsLoading(false); }
+  }, [pagination.page, pagination.limit, appliedSearch, statusFilter]);
+  useEffect(() => { latestPaymentRefresh.current = fetchPayments; }, [fetchPayments]);
 
-  // ── Fetch subscriptions ────────────────────────────────────────────
-  const fetchSubscriptions = useCallback(async (overridePage?: number) => {
-    setLoading(true);
+  const fetchSubscriptions = useCallback(async () => {
+    subscriptionRequest.current.controller?.abort();
+    const controller = new AbortController();
+    const generation = ++subscriptionRequest.current.generation;
+    subscriptionRequest.current.controller = controller;
+    setSubscriptionsLoading(true); setSubscriptionsError('');
     try {
-      const params = new URLSearchParams({
-        tab: 'subscriptions',
-        page: (overridePage ?? subPagination.page).toString(),
-        limit: subPagination.limit.toString(),
-      });
-      if (subSearchTerm) params.append('search', subSearchTerm);
-      if (subStatusFilter) params.append('status', subStatusFilter);
-
-      const response = await fetch(`/api/admin/payments?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch subscriptions');
-
+      const query = new URLSearchParams({ tab: 'subscriptions', page: String(subPagination.page), limit: String(subPagination.limit), search: appliedSubSearch, status: subStatusFilter });
+      const response = await fetch(`/api/admin/payments?${query}`, { signal: controller.signal });
       const data = await response.json();
-      setSubscriptions(data.subscriptions || []);
-      setSubPagination(data.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 });
-      if (data.summary) setSummary(data.summary);
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch subscriptions');
+      if (controller.signal.aborted || generation !== subscriptionRequest.current.generation) return;
+      setSubscriptions(data.subscriptions); setSubPagination(data.pagination); setSummary(data.summary);
     } catch (error) {
-      console.error('Error fetching subscriptions:', error);
-      setSubscriptions([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [subPagination.page, subPagination.limit, subSearchTerm, subStatusFilter]);
-
-  // Reset to page 1 when filters change
+      if (!controller.signal.aborted && generation === subscriptionRequest.current.generation) setSubscriptionsError(error instanceof Error ? error.message : 'Failed to fetch subscriptions');
+    } finally { if (!controller.signal.aborted && generation === subscriptionRequest.current.generation) setSubscriptionsLoading(false); }
+  }, [subPagination.page, subPagination.limit, appliedSubSearch, subStatusFilter]);
   useEffect(() => {
-    if (pagination.page !== 1) setPagination((prev) => ({ ...prev, page: 1 }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
-
+    if (session?.user?.role === 'ADMIN' && activeTab === 'one-time') void fetchPayments();
+    return () => { paymentRequest.current.controller?.abort(); paymentRequest.current.generation++; };
+  }, [session?.user?.role, activeTab, fetchPayments]);
   useEffect(() => {
-    if (subPagination.page !== 1) setSubPagination((prev) => ({ ...prev, page: 1 }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subStatusFilter]);
-
-  // Fetch data when dependencies change
-  useEffect(() => {
-    if (session?.user?.role !== 'ADMIN') return;
-    if (activeTab === 'one-time') fetchPayments();
-    else fetchSubscriptions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user?.role, activeTab, pagination.page, statusFilter, subPagination.page, subStatusFilter]);
-
-  // ── Handlers ───────────────────────────────────────────────────────
+    if (session?.user?.role === 'ADMIN' && activeTab === 'subscriptions') void fetchSubscriptions();
+    return () => { subscriptionRequest.current.controller?.abort(); subscriptionRequest.current.generation++; };
+  }, [session?.user?.role, activeTab, fetchSubscriptions]);
   const handleSearch = () => {
     if (activeTab === 'one-time') {
-      fetchPayments(1);
+      if (appliedSearch === searchTerm && pagination.page === 1) void fetchPayments();
+      setAppliedSearch(searchTerm); setPagination(prev => ({ ...prev, page: 1 }));
     } else {
-      fetchSubscriptions(1);
+      if (appliedSubSearch === subSearchTerm && subPagination.page === 1) void fetchSubscriptions();
+      setAppliedSubSearch(subSearchTerm); setSubPagination(prev => ({ ...prev, page: 1 }));
     }
   };
-
-  const handleRefresh = () => {
-    if (activeTab === 'one-time') fetchPayments();
-    else fetchSubscriptions();
+  const handleRefresh = () => { if (activeTab === 'one-time') void fetchPayments(); else void fetchSubscriptions(); };
+  const handlePaymentPersisted = async (operation: RefundOperationSummary) => {
+    paymentRequest.current.controller?.abort(); paymentRequest.current.generation++;
+    if (operation.moneyStatus === 'SUCCEEDED') setRefundSuccess(operation.paymentId);
+    try {
+      const response = await fetch(`/api/admin/payments/${operation.paymentId}`);
+      if (!response.ok) throw new Error('Payment saved; refreshed details could not be loaded.');
+      const body = await response.json();
+      setPaymentCache(prev => ({ ...prev, [body.payment.id]: body.payment }));
+      setPayments(prev => prev.map(p => p.id === body.payment.id ? body.payment : p));
+      await latestPaymentRefresh.current();
+    } catch { setPaymentsError('Refund state was recorded. Retry to refresh the payment details.'); }
   };
 
   const togglePaymentExpand = (paymentId: string) => {
     setExpandedPaymentId(expandedPaymentId === paymentId ? null : paymentId);
   };
 
-  const handleRefund = async (payment: Payment) => {
-    if (!refundAmount || parseFloat(refundAmount) <= 0) {
-      setRefundError('Please enter a valid refund amount');
-      return;
-    }
-    if (!refundReason) {
-      setRefundError('Please select a reason for the refund');
-      return;
-    }
-    const amountInCents = Math.round(parseFloat(refundAmount) * 100);
-    const maxRefundable = payment.amount - payment.refunded_amount;
-    if (amountInCents > maxRefundable) {
-      setRefundError(`Amount exceeds available balance (${(maxRefundable / 100).toFixed(2)})`);
-      return;
-    }
-    setRefunding(true);
-    setRefundError('');
-    try {
-      const response = await fetch(`/api/admin/payments/${payment.id}/refund`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: amountInCents,
-          reason: refundReason || null,
-          comment: refundComment.trim() || null,
-        }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Refund failed');
-      }
-      setRefundSuccess(payment.id);
-      setRefundModalPaymentId(null);
-      setRefundAmount('');
-      setRefundReason(null);
-      setRefundComment('');
-      await fetchPayments();
-      setTimeout(() => setRefundSuccess(null), 3000);
-    } catch (error: any) {
-      setRefundError(error.message);
-    } finally {
-      setRefunding(false);
-    }
-  };
-
   // ── Format helpers ─────────────────────────────────────────────────
   const formatAmount = (amount: number, currency: string) =>
     `${(amount / 100).toFixed(2)} ${currency.toUpperCase()}`;
 
-  const formatGBP = (pence: number) =>
-    new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(pence / 100);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -319,25 +261,26 @@ export default function AdminPaymentsPage() {
           <p className="mt-1 text-sm text-gray-600">View and manage all membership payments and subscriptions</p>
         </div>
 
-        {/* Revenue Summary */}
+        {readError && <div role="alert" className="mb-4 rounded bg-red-50 p-3 text-sm text-red-700">{readError} <Button size="sm" variant="outline" onClick={handleRefresh}>Retry</Button></div>}
+      {/* Revenue Summary */}
         {summary && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
             <SummaryCard
               icon={<PoundSterling className="w-5 h-5 text-red-600" />}
               label="Total Revenue"
-              value={formatGBP(summary.totalRevenue)}
+              value={Object.entries(summary.currencies).map(([currency, values]) => formatAmount(values.totalRevenue, currency)).join(' · ') || '—'}
               accent="red"
             />
             <SummaryCard
               icon={<CreditCard className="w-5 h-5 text-blue-600" />}
               label="One-time Revenue"
-              value={formatGBP(summary.oneTimeRevenue)}
+              value={Object.entries(summary.currencies).map(([currency, values]) => formatAmount(values.oneTimeRevenue, currency)).join(' · ') || '—'}
               accent="blue"
             />
             <SummaryCard
               icon={<RotateCcw className="w-5 h-5 text-purple-600" />}
               label="Subscription Revenue"
-              value={formatGBP(summary.subscriptionRevenue)}
+              value={Object.entries(summary.currencies).map(([currency, values]) => formatAmount(values.subscriptionRevenue, currency)).join(' · ') || '—'}
               accent="purple"
             />
             <SummaryCard
@@ -384,26 +327,28 @@ export default function AdminPaymentsPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Search by Email or Username</label>
+                  <label htmlFor="payment-search" className="block text-sm font-medium text-gray-700 mb-2">Search by Email or Username</label>
                   <div className="flex h-10">
                     <input
                       type="text"
+                      id="payment-search"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                       placeholder="user@example.com or username"
                       className="flex-1 h-10 px-3 rounded-l-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
                     />
-                    <Button onClick={handleSearch} className="h-10 rounded-l-none bg-red-600 hover:bg-red-700 px-4">
+                    <Button aria-label="Apply search" onClick={handleSearch} className="h-10 rounded-l-none bg-red-600 hover:bg-red-700 px-4">
                       <Search className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <label htmlFor="payment-status" className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                   <select
+                    id="payment-status"
                     value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
+                    onChange={(e) => { setStatusFilter(e.target.value); setPagination(prev => ({ ...prev, page: 1 })); }}
                     className="w-full h-10 px-3 rounded-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
                   >
                     <option value="">All Statuses</option>
@@ -426,7 +371,7 @@ export default function AdminPaymentsPage() {
               </div>
             </div>
 
-            {loading ? (
+            {loading && payments.length === 0 ? (
               <div className="flex items-center justify-center py-20">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
               </div>
@@ -443,11 +388,11 @@ export default function AdminPaymentsPage() {
                   ) : (
                     payments.map((payment) => {
                       const maxRefundable = payment.amount - payment.refunded_amount;
-                      const canRefund = maxRefundable > 0 && payment.status !== 'FAILED';
+                      const canRefund = maxRefundable > 0 && !!payment.stripe_payment_intent_id && ['SUCCEEDED', 'PARTIALLY_REFUNDED'].includes(payment.status);
                       return (
                         <div
                           key={payment.id}
-                          onClick={() => setMobileSelectedPayment(payment)}
+                          onClick={() => setMobileSelectedPaymentId(payment.id)}
                           className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 active:bg-gray-50 transition-colors"
                         >
                           {refundSuccess === payment.id && (
@@ -458,7 +403,7 @@ export default function AdminPaymentsPage() {
                           )}
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-base font-semibold text-gray-900 truncate">{payment.users.display_name}</h3>
+                              <h3 className="text-base font-semibold text-gray-900 truncate"><button type="button" onClick={event => { event.stopPropagation(); setMobileSelectedPaymentId(payment.id); }}>{payment.users.display_name}</button></h3>
                               <p className="text-sm text-gray-600">{payment.users.email}</p>
                               <p className="text-xs text-gray-500">@{payment.users.username}</p>
                               <div className="mt-1">
@@ -513,7 +458,7 @@ export default function AdminPaymentsPage() {
                           payments.map((payment) => {
                             const isExpanded = expandedPaymentId === payment.id;
                             const maxRefundable = payment.amount - payment.refunded_amount;
-                            const canRefund = maxRefundable > 0 && payment.status !== 'FAILED';
+                            const canRefund = maxRefundable > 0 && !!payment.stripe_payment_intent_id && ['SUCCEEDED', 'PARTIALLY_REFUNDED'].includes(payment.status);
                             const isRefundModalOpen = refundModalPaymentId === payment.id;
                             return (
                               <Fragment key={payment.id}>
@@ -529,7 +474,7 @@ export default function AdminPaymentsPage() {
                                 )}
                                 <tr onClick={() => togglePaymentExpand(payment.id)} className="border-t border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
                                   <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900">{payment.users.display_name}</div>
+                                    <button type="button" className="text-sm font-medium text-gray-900" aria-expanded={isExpanded} aria-controls={`payment-details-${payment.id}`} onClick={event => { event.stopPropagation(); togglePaymentExpand(payment.id); }}>{payment.users.display_name}</button>
                                     <div className="text-sm text-gray-500">{payment.users.email}</div>
                                     <div className="text-xs text-gray-400">@{payment.users.username}</div>
                                   </td>
@@ -555,7 +500,7 @@ export default function AdminPaymentsPage() {
 
                                 {/* Expanded Details */}
                                 {isExpanded && (
-                                  <tr>
+                                  <tr id={`payment-details-${payment.id}`}>
                                     <td colSpan={7} className="px-6 py-4 bg-gray-50 border-t border-gray-200">
                                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         <div className="bg-white rounded-lg border border-gray-200 p-3">
@@ -582,7 +527,7 @@ export default function AdminPaymentsPage() {
                                               </div>
                                             )}
                                           </div>
-                                          {canRefund && (
+                                          {(canRefund || isRefundModalOpen || payment.refunds.length > 0) && (
                                             <div className="border-t border-gray-200 pt-3 mt-3">
                                               {!isRefundModalOpen ? (
                                                 <div>
@@ -592,10 +537,6 @@ export default function AdminPaymentsPage() {
                                                   <Button
                                                     onClick={(e) => {
                                                       e.stopPropagation();
-                                                      setRefundAmount('');
-                                                      setRefundReason(null);
-                                                      setRefundComment('');
-                                                      setRefundError('');
                                                       setRefundModalPaymentId(payment.id);
                                                     }}
                                                     className="w-full bg-red-600 hover:bg-red-700"
@@ -606,26 +547,7 @@ export default function AdminPaymentsPage() {
                                                   </Button>
                                                 </div>
                                               ) : (
-                                                <RefundForm
-                                                  payment={payment}
-                                                  maxRefundable={maxRefundable}
-                                                  refundAmount={refundAmount}
-                                                  setRefundAmount={setRefundAmount}
-                                                  refundReason={refundReason}
-                                                  setRefundReason={setRefundReason}
-                                                  refundComment={refundComment}
-                                                  setRefundComment={setRefundComment}
-                                                  refundError={refundError}
-                                                  refunding={refunding}
-                                                  onConfirm={() => handleRefund(payment)}
-                                                  onCancel={() => {
-                                                    setRefundModalPaymentId(null);
-                                                    setRefundAmount('');
-                                                    setRefundReason(null);
-                                                    setRefundComment('');
-                                                    setRefundError('');
-                                                  }}
-                                                />
+                                                <RefundForm key={payment.id} paymentId={payment.id} onPersisted={handlePaymentPersisted} onCancel={() => setRefundModalPaymentId(null)} />
                                               )}
                                             </div>
                                           )}
@@ -718,22 +640,24 @@ export default function AdminPaymentsPage() {
                   <div className="flex h-10">
                     <input
                       type="text"
+                      id="subscription-search"
                       value={subSearchTerm}
                       onChange={(e) => setSubSearchTerm(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                       placeholder="user@example.com, name, or username"
                       className="flex-1 h-10 px-3 rounded-l-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
                     />
-                    <Button onClick={handleSearch} className="h-10 rounded-l-none bg-red-600 hover:bg-red-700 px-4">
+                    <Button aria-label="Apply search" onClick={handleSearch} className="h-10 rounded-l-none bg-red-600 hover:bg-red-700 px-4">
                       <Search className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <label htmlFor="subscription-status" className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                   <select
+                    id="subscription-status"
                     value={subStatusFilter}
-                    onChange={(e) => setSubStatusFilter(e.target.value)}
+                    onChange={(e) => { setSubStatusFilter(e.target.value); setSubPagination(prev => ({ ...prev, page: 1 })); }}
                     className="w-full h-10 px-3 rounded-md border border-gray-300 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
                   >
                     <option value="">All Statuses</option>
@@ -757,7 +681,7 @@ export default function AdminPaymentsPage() {
               </div>
             </div>
 
-            {loading ? (
+            {loading && subscriptions.length === 0 ? (
               <div className="flex items-center justify-center py-20">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
               </div>
@@ -775,12 +699,12 @@ export default function AdminPaymentsPage() {
                     subscriptions.map((sub) => (
                       <div
                         key={sub.id}
-                        onClick={() => setMobileSelectedSub(sub)}
+                        onClick={() => setMobileSelectedSubId(sub.id)}
                         className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 active:bg-gray-50 transition-colors"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-base font-semibold text-gray-900 truncate">{sub.users.display_name}</h3>
+                            <h3 className="text-base font-semibold text-gray-900 truncate"><button type="button" onClick={event => { event.stopPropagation(); setMobileSelectedSubId(sub.id); }}>{sub.users.display_name}</button></h3>
                             <p className="text-sm text-gray-600">{sub.users.email}</p>
                             <p className="text-xs text-gray-500">@{sub.users.username}</p>
                           </div>
@@ -840,7 +764,7 @@ export default function AdminPaymentsPage() {
                                   className="border-t border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
                                 >
                                   <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900">{sub.users.display_name}</div>
+                                    <button type="button" className="text-sm font-medium text-gray-900" aria-expanded={isExpanded} aria-controls={`subscription-details-${sub.id}`} onClick={event => { event.stopPropagation(); setExpandedSubId(isExpanded ? null : sub.id); }}>{sub.users.display_name}</button>
                                     <div className="text-sm text-gray-500">{sub.users.email}</div>
                                     <div className="text-xs text-gray-400">@{sub.users.username}</div>
                                   </td>
@@ -875,7 +799,7 @@ export default function AdminPaymentsPage() {
                                   </td>
                                 </tr>
                                 {isExpanded && (
-                                  <tr>
+                                  <tr id={`subscription-details-${sub.id}`}>
                                     <td colSpan={7} className="px-6 py-4 bg-gray-50 border-t border-gray-200">
                                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         <div className="bg-white rounded-lg border border-gray-200 p-3">
@@ -962,12 +886,8 @@ export default function AdminPaymentsPage() {
         <AdminDrawer
           isOpen={!!mobileSelectedPayment}
           onClose={() => {
-            setMobileSelectedPayment(null);
+            setMobileSelectedPaymentId(null);
             setRefundModalPaymentId(null);
-            setRefundAmount('');
-            setRefundReason(null);
-            setRefundComment('');
-            setRefundError('');
           }}
           title="Payment Details"
           showBackButton
@@ -1032,9 +952,9 @@ export default function AdminPaymentsPage() {
             </div>
             {(() => {
               const maxRefundable = mobileSelectedPayment.amount - mobileSelectedPayment.refunded_amount;
-              const canRefund = maxRefundable > 0 && mobileSelectedPayment.status !== 'FAILED';
+              const canRefund = maxRefundable > 0 && !!mobileSelectedPayment.stripe_payment_intent_id && ['SUCCEEDED', 'PARTIALLY_REFUNDED'].includes(mobileSelectedPayment.status);
               const isRefundModalOpen = refundModalPaymentId === mobileSelectedPayment.id;
-              return canRefund ? (
+              return canRefund || isRefundModalOpen || mobileSelectedPayment.refunds.length > 0 ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-4">
                   <h3 className="text-sm font-semibold text-gray-900 mb-3">Issue Refund</h3>
                   {!isRefundModalOpen ? (
@@ -1044,10 +964,6 @@ export default function AdminPaymentsPage() {
                       </p>
                       <Button
                         onClick={() => {
-                          setRefundAmount('');
-                          setRefundReason(null);
-                          setRefundComment('');
-                          setRefundError('');
                           setRefundModalPaymentId(mobileSelectedPayment.id);
                         }}
                         className="w-full bg-red-600 hover:bg-red-700"
@@ -1057,26 +973,7 @@ export default function AdminPaymentsPage() {
                       </Button>
                     </div>
                   ) : (
-                    <RefundForm
-                      payment={mobileSelectedPayment}
-                      maxRefundable={maxRefundable}
-                      refundAmount={refundAmount}
-                      setRefundAmount={setRefundAmount}
-                      refundReason={refundReason}
-                      setRefundReason={setRefundReason}
-                      refundComment={refundComment}
-                      setRefundComment={setRefundComment}
-                      refundError={refundError}
-                      refunding={refunding}
-                      onConfirm={() => handleRefund(mobileSelectedPayment)}
-                      onCancel={() => {
-                        setRefundModalPaymentId(null);
-                        setRefundAmount('');
-                        setRefundReason(null);
-                        setRefundComment('');
-                        setRefundError('');
-                      }}
-                    />
+                    <RefundForm key={mobileSelectedPayment.id} paymentId={mobileSelectedPayment.id} onPersisted={handlePaymentPersisted} onCancel={() => setRefundModalPaymentId(null)} />
                   )}
                 </div>
               ) : null;
@@ -1111,7 +1008,7 @@ export default function AdminPaymentsPage() {
       {mobileSelectedSub && (
         <AdminDrawer
           isOpen={!!mobileSelectedSub}
-          onClose={() => setMobileSelectedSub(null)}
+          onClose={() => setMobileSelectedSubId(null)}
           title="Subscription Details"
           showBackButton
         >
@@ -1215,89 +1112,6 @@ function SummaryCard({ icon, label, value, accent }: {
         <span className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide truncate">{label}</span>
       </div>
       <p className="text-lg md:text-2xl font-bold text-gray-900">{value}</p>
-    </div>
-  );
-}
-
-function RefundForm({
-  payment,
-  maxRefundable,
-  refundAmount,
-  setRefundAmount,
-  refundReason,
-  setRefundReason,
-  refundComment,
-  setRefundComment,
-  refundError,
-  refunding,
-  onConfirm,
-  onCancel,
-}: {
-  payment: Payment;
-  maxRefundable: number;
-  refundAmount: string;
-  setRefundAmount: (v: string) => void;
-  refundReason: string | null;
-  setRefundReason: (v: 'duplicate' | 'fraudulent' | 'requested_by_customer' | '' | null) => void;
-  refundComment: string;
-  setRefundComment: (v: string) => void;
-  refundError: string;
-  refunding: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Amount ({payment.currency.toUpperCase()})</label>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          max={maxRefundable / 100}
-          value={refundAmount}
-          onChange={(e) => setRefundAmount(e.target.value)}
-          placeholder="0.00"
-          className="flex h-10 w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Reason</label>
-        <select
-          value={refundReason || ''}
-          onChange={(e) => setRefundReason(e.target.value ? (e.target.value as 'duplicate' | 'fraudulent' | 'requested_by_customer') : null)}
-          className="flex h-10 w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="" disabled className="text-gray-400">Select a reason...</option>
-          <option value="requested_by_customer">Requested by customer</option>
-          <option value="duplicate">Duplicate payment</option>
-          <option value="fraudulent">Fraudulent transaction</option>
-        </select>
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Comment (Optional)</label>
-        <textarea
-          value={refundComment}
-          onChange={(e) => setRefundComment(e.target.value)}
-          placeholder="Add a note or comment about this refund..."
-          rows={3}
-          className="flex w-full rounded-md border border-form-border bg-transparent px-3 py-2 text-sm text-black ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-form-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-        />
-      </div>
-      {refundError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-start">
-          <AlertCircle className="w-4 h-4 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
-          <span className="text-xs text-red-800">{refundError}</span>
-        </div>
-      )}
-      <div className="flex space-x-2">
-        <Button onClick={onConfirm} disabled={refunding} loading={refunding} className="flex-1 bg-red-600 hover:bg-red-700" size="sm">
-          Confirm
-        </Button>
-        <Button onClick={onCancel} variant="outline" disabled={refunding} size="sm">
-          Cancel
-        </Button>
-      </div>
     </div>
   );
 }

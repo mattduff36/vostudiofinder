@@ -1,4 +1,4 @@
-import { applyPublicTierLimits, effectivePublicTier, publicMembershipSelect, publicOwner } from '@/lib/subscriptions/public-entitlements';
+import { applyPublicTierLimits, effectivePublicTier, publicMembershipSelect, publicOwner, resolvePublicTiers } from '@/lib/subscriptions/public-entitlements';
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { studioSearchSchema } from '@/lib/validations/studio';
@@ -436,7 +436,8 @@ export async function GET(request: NextRequest) {
     });
     const matchesPublicTypes = (studio: { studio_studio_types: Array<{ studio_type: string }> }) =>
       studio.studio_studio_types.length > 0 && (!requestedPublicTypes.length || studio.studio_studio_types.some(t => requestedPublicTypes.includes(t.studio_type)));
-    const fetchedStudios = savedStudios.map(studio => applyPublicTierLimits(studio, effectivePublicTier(studio.users))).filter(matchesPublicTypes);
+    const studioTiers = await resolvePublicTiers(savedStudios.map(studio => studio.users));
+    const fetchedStudios = savedStudios.map(studio => applyPublicTierLimits(studio, studioTiers.get(studio.users.id) ?? effectivePublicTier(studio.users))).filter(matchesPublicTypes);
 
     // const dbQueryEndTime = Date.now();
 
@@ -691,9 +692,10 @@ export async function GET(request: NextRequest) {
 
 
     // Serialize map markers - filter out studios without coordinates
+    const markerTiers = await resolvePublicTiers(mapMarkers.map(studio => studio.users));
     const serializedMapMarkers = mapMarkers
       .filter(studio => studio.latitude !== null && studio.longitude !== null)
-      .map(saved => applyPublicTierLimits(saved, effectivePublicTier(saved.users))).filter(matchesPublicTypes).map(studio => ({
+      .map(saved => applyPublicTierLimits(saved, markerTiers.get(saved.users.id) ?? effectivePublicTier(saved.users))).filter(matchesPublicTypes).map(studio => ({
         ...studio,
         latitude: Number(studio.latitude),
         longitude: Number(studio.longitude),

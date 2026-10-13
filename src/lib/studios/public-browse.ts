@@ -1,4 +1,4 @@
-import { applyPublicTierLimits, effectivePublicTier, publicMembershipSelect } from '@/lib/subscriptions/public-entitlements';
+import { applyPublicTierLimits, effectivePublicTier, publicMembershipSelect, resolvePublicTiers } from '@/lib/subscriptions/public-entitlements';
 import { db } from '@/lib/db';
 import {
   StudioSearchMapMarker,
@@ -141,7 +141,8 @@ export async function getPublicStudiosBrowsePage({
     },
   });
 
-  const serializedStudios: PrioritizableStudio[] = fetchedStudios.map(saved => applyPublicTierLimits(saved, effectivePublicTier(saved.users))).filter(studio => studio.studio_studio_types.length > 0).map(studio => ({
+  const studioTiers = await resolvePublicTiers(fetchedStudios.map(studio => studio.users));
+  const serializedStudios: PrioritizableStudio[] = fetchedStudios.map(saved => applyPublicTierLimits(saved, studioTiers.get(saved.users.id) ?? effectivePublicTier(saved.users))).filter(studio => studio.studio_studio_types.length > 0).map(studio => ({
     id: studio.id,
     name: studio.name,
     description: studio.short_about || '',
@@ -229,7 +230,8 @@ export async function getPublicStudiosBrowsePage({
     },
   });
 
-  const mapMarkers: StudioSearchMapMarker[] = mapMarkersRaw.map(saved => applyPublicTierLimits(saved, effectivePublicTier(saved.users))).filter(studio => studio.studio_studio_types.length > 0).map(studio => ({
+  const markerTiers = await resolvePublicTiers(mapMarkersRaw.map(studio => studio.users));
+  const mapMarkers: StudioSearchMapMarker[] = mapMarkersRaw.map(saved => applyPublicTierLimits(saved, markerTiers.get(saved.users.id) ?? effectivePublicTier(saved.users))).filter(studio => studio.studio_studio_types.length > 0).map(studio => ({
     id: studio.id,
     name: studio.name,
     latitude: studio.latitude !== null ? Number(studio.latitude) : null,

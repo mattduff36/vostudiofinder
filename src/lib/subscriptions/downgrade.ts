@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto';
 import { db } from '@/lib/db';
 import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { getBaseUrl } from '@/lib/seo/site';
+import { refundAdjustedMembershipEnd } from '@/lib/payments/refunds/membership-projection';
 
 interface DowngradeOptions {
   sendEmail?: boolean;
@@ -21,6 +22,8 @@ export async function performDowngrade(userId: string, options: DowngradeOptions
       if (!user || user.membership_tier === 'BASIC' || user.role === 'ADMIN'
         || user.status !== 'ACTIVE' || user.deletion_status !== 'ACTIVE'
         || user.deletion_requested_at || user.deletion_scheduled_for) return null;
+      // A refunded latest purchase cannot hide an independently surviving overlap.
+      if ((await refundAdjustedMembershipEnd(userId, now, tx))?.expiresAt) return null;
       const expiry = user.subscriptions[0]?.current_period_end;
       // Missing entitlement records require review; do not guess that a grant expired.
       if (!expiry || expiry > now) return null;

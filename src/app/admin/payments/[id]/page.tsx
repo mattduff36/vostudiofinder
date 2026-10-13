@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
+import { RefundForm } from '@/components/admin/payments/RefundForm';
 import { Button } from '@/components/ui/Button';
-import { ArrowLeft, DollarSign, AlertCircle, Check } from 'lucide-react';
+import { ArrowLeft, DollarSign, Check } from 'lucide-react';
 import {
   describePaymentPackage,
   getPaymentPackageBadgeClass,
@@ -41,7 +42,7 @@ interface PaymentDetails {
       users_refunds_processed_byTousers: {
         email: string;
         display_name: string;
-      };
+      } | null;
     }>;
   };
   subscriptions: Array<{
@@ -53,7 +54,7 @@ interface PaymentDetails {
 }
 
 export default function PaymentDetailPage() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
   const params = useParams();
   const paymentId = params.id as string;
@@ -61,80 +62,30 @@ export default function PaymentDetailPage() {
   const [details, setDetails] = useState<PaymentDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundAmount, setRefundAmount] = useState('');
-  const [refundReason, setRefundReason] = useState('');
-  const [refunding, setRefunding] = useState(false);
-  const [refundError, setRefundError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const requestOwner = useRef<{ generation: number; controller?: AbortController }>({ generation: 0 });
   const [refundSuccess, setRefundSuccess] = useState(false);
 
   const fetchPaymentDetails = useCallback(async () => {
+    requestOwner.current.controller?.abort();
+    const controller = new AbortController();
+    requestOwner.current.controller = controller;
+    const generation = ++requestOwner.current.generation;
+    setLoading(true); setLoadError('');
     try {
-      const response = await fetch(`/api/admin/payments/${paymentId}`);
-      if (!response.ok) throw new Error('Failed to fetch payment details');
-
+      const response = await fetch(`/api/admin/payments/${paymentId}`, { signal: controller.signal });
       const data = await response.json();
-      setDetails(data);
+      if (!response.ok) throw new Error(response.status === 404 ? 'Payment not found' : response.status === 403 ? 'You do not have permission to view this payment.' : data.error || 'Failed to fetch payment details');
+      if (generation === requestOwner.current.generation && !controller.signal.aborted) setDetails(data);
     } catch (error) {
-      console.error('Error fetching payment details:', error);
-    } finally {
-      setLoading(false);
-    }
+      if (generation === requestOwner.current.generation && !controller.signal.aborted) setLoadError(error instanceof Error ? error.message : 'Unable to load payment');
+    } finally { if (generation === requestOwner.current.generation && !controller.signal.aborted) setLoading(false); }
   }, [paymentId]);
-
   useEffect(() => {
-    if (session?.user?.role === 'ADMIN') {
-      fetchPaymentDetails();
-    }
-  }, [session, fetchPaymentDetails]);
-
-  const handleRefund = async () => {
-    if (!refundAmount || parseFloat(refundAmount) <= 0) {
-      setRefundError('Please enter a valid refund amount');
-      return;
-    }
-
-    const amountInCents = Math.round(parseFloat(refundAmount) * 100);
-    const maxRefundable = details!.payment.amount - details!.payment.refunded_amount;
-
-    if (amountInCents > maxRefundable) {
-      setRefundError(`Amount exceeds available balance (${(maxRefundable / 100).toFixed(2)})`);
-      return;
-    }
-
-    setRefunding(true);
-    setRefundError('');
-
-    try {
-      const response = await fetch(`/api/admin/payments/${paymentId}/refund`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: amountInCents,
-          reason: refundReason || null,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Refund failed');
-      }
-
-      setRefundSuccess(true);
-      setRefundModalOpen(false);
-      setRefundAmount('');
-      setRefundReason('');
-
-      // Refresh payment details
-      await fetchPaymentDetails();
-
-      // Reset success message after 3 seconds
-      setTimeout(() => setRefundSuccess(false), 3000);
-    } catch (error: any) {
-      setRefundError(error.message);
-    } finally {
-      setRefunding(false);
-    }
-  };
+    if (session?.user?.role === 'ADMIN') void fetchPaymentDetails();
+    else if (sessionStatus !== 'loading') { setLoading(false); setLoadError('You do not have permission to view this payment.'); }
+    return () => { requestOwner.current.controller?.abort(); requestOwner.current.generation++; };
+  }, [session?.user?.role, sessionStatus, fetchPaymentDetails]);
 
   const formatAmount = (amount: number, currency: string) => {
     return `${(amount / 100).toFixed(2)} ${currency.toUpperCase()}`;
@@ -153,7 +104,7 @@ export default function PaymentDetailPage() {
     }
   };
 
-  if (loading) {
+  if (loading && (!details || details.payment.id !== paymentId)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
@@ -161,11 +112,11 @@ export default function PaymentDetailPage() {
     );
   }
 
-  if (!details) {
+  if (!details || details.payment.id !== paymentId) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <p className="text-gray-600">Payment not found</p>
+          <p role="alert" className="text-gray-600">{loadError || 'Payment not found'}</p><Button onClick={fetchPaymentDetails} className="mt-4">Retry</Button>
           <Button onClick={() => router.push('/admin/payments')} className="mt-4">
             Back to Payments
           </Button>
@@ -175,7 +126,7 @@ export default function PaymentDetailPage() {
   }
 
   const maxRefundable = details.payment.amount - details.payment.refunded_amount;
-  const canRefund = maxRefundable > 0 && details.payment.status !== 'FAILED';
+  const canRefund = !!details.payment.stripe_payment_intent_id && ['SUCCEEDED', 'PARTIALLY_REFUNDED', 'REFUNDED'].includes(details.payment.status);
   const paymentPackage = describePaymentPackage(details.payment.metadata);
 
   return (
@@ -195,6 +146,7 @@ export default function PaymentDetailPage() {
         <p className="text-gray-600 text-sm break-all">ID: {details.payment.id}</p>
       </div>
 
+      {loadError && <p role="alert" className="mb-4 text-sm text-red-700">{loadError} <Button size="sm" variant="outline" onClick={fetchPaymentDetails}>Retry</Button></p>}
       {/* Success Message */}
       {refundSuccess && (
         <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
@@ -310,7 +262,7 @@ export default function PaymentDetailPage() {
                     )}
 
                     <p className="text-sm text-gray-500">
-                      Processed by {refund.users_refunds_processed_byTousers.display_name} on{' '}
+                      Processed by {refund.users_refunds_processed_byTousers?.display_name || 'Provider / unknown historical actor'} on{' '}
                       {new Date(refund.created_at).toLocaleString('en-GB')}
                     </p>
 
@@ -344,66 +296,7 @@ export default function PaymentDetailPage() {
                   Issue Refund
                 </Button>
               ) : (
-                <div className="space-y-3 md:space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Amount ({details.payment.currency.toUpperCase()})
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max={maxRefundable / 100}
-                      value={refundAmount}
-                      onChange={(e) => setRefundAmount(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Reason (Optional)
-                    </label>
-                    <textarea
-                      value={refundReason}
-                      onChange={(e) => setRefundReason(e.target.value)}
-                      placeholder="Enter reason for refund..."
-                      rows={3}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                    />
-                  </div>
-
-                  {refundError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start">
-                      <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-red-800">{refundError}</span>
-                    </div>
-                  )}
-
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={handleRefund}
-                      disabled={refunding}
-                      loading={refunding}
-                      className="flex-1 bg-red-600 hover:bg-red-700"
-                    >
-                      Confirm Refund
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setRefundModalOpen(false);
-                        setRefundAmount('');
-                        setRefundReason('');
-                        setRefundError('');
-                      }}
-                      variant="outline"
-                      disabled={refunding}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
+                <RefundForm key={paymentId} paymentId={paymentId} onCancel={() => setRefundModalOpen(false)} onPersisted={async operation => { setRefundSuccess(operation.moneyStatus === 'SUCCEEDED'); await fetchPaymentDetails(); }} />
               )}
             </div>
           )}

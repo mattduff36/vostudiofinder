@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       currency: existingPayment.currency,
     } : 'NULL (not found)');
 
-    if (existingPayment && existingPayment.status === 'SUCCEEDED') {
+    if (existingPayment && ['SUCCEEDED', 'REFUNDED', 'PARTIALLY_REFUNDED'].includes(existingPayment.status)) {
       console.log(`[DEBUG ${verifyTimestamp}] ✅ Payment already processed successfully`);
       const metadata = existingPayment.metadata as any || {};
       console.log(`[DEBUG ${verifyTimestamp}] Returning existing payment data:`, {
@@ -131,8 +131,8 @@ export async function POST(request: NextRequest) {
     // If payment exists but status is not SUCCEEDED, update it
     if (existingPayment) {
       console.log(`[DEBUG ${verifyTimestamp}] Updating payment status from ${existingPayment.status} to SUCCEEDED...`);
-      await db.payments.update({
-        where: { id: existingPayment.id },
+      await db.payments.updateMany({
+        where: { id: existingPayment.id, status: { in: ['PENDING', 'FAILED'] }, refunded_amount: 0 },
         data: {
           status: 'SUCCEEDED',
           updated_at: new Date(),

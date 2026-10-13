@@ -1,4 +1,4 @@
-import { applyPublicTierLimits, effectivePublicTier, publicMembershipSelect } from '@/lib/subscriptions/public-entitlements';
+import { applyPublicTierLimits, effectivePublicTier, publicMembershipSelect, resolvePublicTiers } from '@/lib/subscriptions/public-entitlements';
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
@@ -82,7 +82,6 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const user = await db.users.findFirst({
     where: { username: { equals: username, mode: 'insensitive' } },
     select: {
-      id: true,
       username: true,
       display_name: true,
       status: true,
@@ -132,7 +131,7 @@ export async function generateMetadata({ params }: UsernamePageProps): Promise<M
   const canonicalUsername = user.username ?? username;
   const pageUrl = `${baseUrl}/${canonicalUsername}`;
   const savedStudio = getPrimaryRelationItem(user.studio_profiles);
-  const publicTier = effectivePublicTier(user);
+  const publicTier = (await resolvePublicTiers([user])).get(user.id) ?? effectivePublicTier(user);
   const studio = savedStudio ? applyPublicTierLimits(savedStudio, publicTier) : null;
   const isOwner = session?.user?.id === user.id;
   const isAdmin = session?.user?.role === 'ADMIN';
@@ -340,7 +339,7 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
   const studioProfile = getPrimaryRelationItem(user.studio_profiles);
   
   if (studioProfile) {
-    const studio = applyPublicTierLimits(studioProfile, effectivePublicTier(user));
+    const studio = applyPublicTierLimits(studioProfile, (await resolvePublicTiers([user])).get(user.id) ?? effectivePublicTier(user));
     
     if (!studio) {
       return <div>Studio not found</div>;

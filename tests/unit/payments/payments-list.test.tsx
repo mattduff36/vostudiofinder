@@ -1,0 +1,36 @@
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import PaymentsPage from '@/app/admin/payments/page';
+jest.mock('next-auth/react', () => ({ useSession: () => ({ data: { user: { role: 'ADMIN' } }, status: 'authenticated' }) }));
+jest.mock('@/components/admin/AdminTabs', () => ({ AdminTabs: () => <nav>Admin navigation</nav> }));
+jest.mock('@/components/admin/AdminDrawer', () => ({ AdminDrawer: ({ isOpen, onClose, children }: any) => isOpen ? <section role="dialog"><button onClick={onClose}>Close drawer</button>{children}</section> : null }));
+const response = (body: unknown, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
+const payment = (id: string, name: string) => ({ id, user_id: id, users: { display_name: name, username: name, email: `${id}@example.invalid` }, amount: 3000, currency: 'gbp', status: 'SUCCEEDED', refunded_amount: 0, created_at: '2026-10-12', metadata: { purpose: 'membership' }, refunds: [], stripe_payment_intent_id: `pi_${id}` });
+const data = (payments: unknown[], page = 1) => ({ payments, pagination: { page, limit: 50, total: 60, totalPages: 2 }, summary: { currencies: { gbp: { totalRevenue: 3000, oneTimeRevenue: 3000, subscriptionRevenue: 0 }, usd: { totalRevenue: 5000, oneTimeRevenue: 5000, subscriptionRevenue: 0 } }, activeSubscriptions: 0 } });
+let fetcher: jest.Mock;
+beforeEach(() => { fetcher = jest.fn(); global.fetch = fetcher; });
+it('typing is a draft, submitted searches abort earlier responses and only the accepted query wins', async () => {
+  let first!: (value: ReturnType<typeof response>) => void; let second!: (value: ReturnType<typeof response>) => void;
+  fetcher.mockImplementationOnce(() => new Promise(resolve => { first = resolve; })).mockImplementationOnce(() => new Promise(resolve => { second = resolve; }));
+  render(<PaymentsPage />);
+  const search = screen.getByLabelText('Search by Email or Username');
+  fireEvent.change(search, { target: { value: 'new-query' } }); expect(fetcher).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('button', { name: 'Apply search' }));
+  await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+  expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true);
+  expect(new URL(fetcher.mock.calls[1][0], 'http://localhost').searchParams.get('page')).toBe('1');
+  await act(async () => { second(response(data([payment('b', 'New result')]))); });
+  await act(async () => { first(response(data([payment('a', 'Old result')]))); });
+  expect(screen.getAllByText('New result').length).toBeGreaterThan(0); expect(screen.queryByText('Old result')).not.toBeInTheDocument();
+  expect(screen.getAllByText('30.00 GBP · 50.00 USD').length).toBeGreaterThan(0);
+});
+it('refresh keeps existing rows/navigation mounted, and closing details performs no list reload', async () => {
+  fetcher.mockResolvedValueOnce(response(data([payment('a', 'Existing result')])));
+  let refresh!: (value: ReturnType<typeof response>) => void; fetcher.mockImplementationOnce(() => new Promise(resolve => { refresh = resolve; }));
+  render(<PaymentsPage />); await screen.findAllByText('Existing result');
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+  expect(screen.getAllByText('Existing result').length).toBeGreaterThan(0); expect(screen.getByText('Admin navigation')).toBeInTheDocument();
+  await act(async () => { refresh(response(data([payment('a', 'Existing result')]))); });
+  fireEvent.click(screen.getAllByRole('button', { name: 'Existing result' })[0]!);
+  expect(screen.getByRole('dialog')).toBeInTheDocument(); fireEvent.click(screen.getByRole('button', { name: 'Close drawer' }));
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument(); expect(fetcher).toHaveBeenCalledTimes(2);
+});

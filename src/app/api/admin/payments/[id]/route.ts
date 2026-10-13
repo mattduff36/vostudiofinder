@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { metadataRecord } from '@/lib/payments/refunds/identity';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -56,20 +57,11 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
     }
 
-    // Get associated subscription(s)
-    let subscriptions = null;
-    if (payment.user_id !== 'PENDING') {
-      subscriptions = await db.subscriptions.findMany({
-        where: {
-          user_id: payment.user_id,
-          created_at: {
-            gte: payment.created_at,
-            lte: new Date(payment.created_at.getTime() + 60000), // Within 1 minute of payment
-          },
-        },
-        orderBy: { created_at: 'desc' },
-      });
-    }
+    // A provider identifier is evidence. Creation-time proximity is not.
+    const metadata = metadataRecord(payment.metadata);
+    const subscriptions = typeof metadata.subscription_id === 'string'
+      ? await db.subscriptions.findMany({ where: { user_id: payment.user_id, stripe_subscription_id: metadata.subscription_id } })
+      : [];
 
     return NextResponse.json({
       payment,

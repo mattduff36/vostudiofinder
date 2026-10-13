@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Prisma } from '@prisma/client';
+import { paymentListQuery } from '@/lib/admin/payments/contracts';
 
 /**
  * GET /api/admin/payments
@@ -17,12 +18,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const tab = searchParams.get('tab') || 'one-time';
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const status = searchParams.get('status');
-    const userId = searchParams.get('user_id');
-    const search = searchParams.get('search');
+    const parsed = paymentListQuery.safeParse(Object.fromEntries(searchParams));
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid payment filters', fields: parsed.error.flatten().fieldErrors }, { status: 400 });
+    const { tab, page, limit, status, search, user_id: userId } = parsed.data;
 
     // ── Revenue summary (always returned) ────────────────────────────
     const summary = await computeRevenueSummary();
@@ -34,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ── One-time payments tab (default) ──────────────────────────────
-    const result = await fetchOneTimePayments({ page, limit, search, status, userId });
+    const result = await fetchOneTimePayments({ page, limit, search, status, userId: userId ?? null });
     return NextResponse.json({ ...result, summary });
   } catch (error) {
     console.error('Error fetching payments:', error);
@@ -50,30 +48,24 @@ export async function GET(request: NextRequest) {
 async function computeRevenueSummary() {
   const allSucceeded = await db.payments.findMany({
     where: { status: { in: ['SUCCEEDED', 'REFUNDED', 'PARTIALLY_REFUNDED'] } },
-    select: { amount: true, refunded_amount: true, metadata: true },
+    select: { amount: true, refunded_amount: true, currency: true, metadata: true },
   });
 
-  let totalRevenue = 0;
-  let oneTimeRevenue = 0;
-  let subscriptionRevenue = 0;
-
-  for (const p of allSucceeded) {
-    const net = p.amount - p.refunded_amount;
-    totalRevenue += net;
-
-    const meta = p.metadata as Record<string, unknown> | null;
-    if (meta && typeof meta === 'object' && 'subscription_id' in meta) {
-      subscriptionRevenue += net;
-    } else {
-      oneTimeRevenue += net;
-    }
+  const currencies: Record<string, { totalRevenue: number; oneTimeRevenue: number; subscriptionRevenue: number }> = {};
+  for (const payment of allSucceeded) {
+    const group = currencies[payment.currency] ??= { totalRevenue: 0, oneTimeRevenue: 0, subscriptionRevenue: 0 };
+    const net = payment.amount - payment.refunded_amount;
+    group.totalRevenue += net;
+    const metadata = payment.metadata as Record<string, unknown> | null;
+    if (typeof metadata?.subscription_id === 'string' && metadata.subscription_id) group.subscriptionRevenue += net;
+    else group.oneTimeRevenue += net;
   }
 
   const activeSubscriptions = await db.subscriptions.count({
     where: { status: 'ACTIVE', stripe_subscription_id: { not: null } },
   });
 
-  return { totalRevenue, oneTimeRevenue, subscriptionRevenue, activeSubscriptions };
+  return { currencies, activeSubscriptions };
 }
 
 // ─── One-time payments ────────────────────────────────────────────────────────
@@ -94,7 +86,7 @@ async function fetchOneTimePayments(opts: {
   // Handle search
   if (search) {
     const users = await db.users.findMany({
-      where: { email: { contains: search, mode: 'insensitive' } },
+      where: { OR: [{ email: { contains: search, mode: 'insensitive' } }, { username: { contains: search, mode: 'insensitive' } }, { display_name: { contains: search, mode: 'insensitive' } }] },
       select: { id: true },
     });
     const ids = users.map((u) => u.id);
@@ -133,7 +125,7 @@ async function fetchOneTimePayments(opts: {
           },
         },
       },
-      orderBy: { created_at: 'desc' },
+      orderBy: [{ created_at: 'desc' }, { id: 'asc' }],
       skip,
       take: limit,
     }),
@@ -194,7 +186,7 @@ async function fetchSubscriptions(opts: {
           },
         },
       },
-      orderBy: { created_at: 'desc' },
+      orderBy: [{ created_at: 'desc' }, { id: 'asc' }],
       skip,
       take: limit,
     }),
@@ -211,12 +203,11 @@ async function fetchSubscriptions(opts: {
       status: 'SUCCEEDED',
     },
     select: { user_id: true, amount: true, currency: true, metadata: true, created_at: true },
-    orderBy: { created_at: 'desc' },
+    orderBy: [{ created_at: 'desc' }, { id: 'asc' }],
   });
 
   // Build lookup: stripe_subscription_id -> payment
   const paymentBySubId = new Map<string, { amount: number; currency: string }>();
-  const paymentByUserId = new Map<string, { amount: number; currency: string }>();
 
   for (const p of relatedPayments) {
     const meta = p.metadata as Record<string, unknown> | null;
@@ -226,19 +217,13 @@ async function fetchSubscriptions(opts: {
         paymentBySubId.set(subId, { amount: p.amount, currency: p.currency });
       }
     }
-    // Fallback: map by user_id for subscriptions without stripe_subscription_id
-    if (!paymentByUserId.has(p.user_id)) {
-      paymentByUserId.set(p.user_id, { amount: p.amount, currency: p.currency });
-    }
+
   }
 
   const enrichedSubscriptions = subscriptions.map((sub) => {
-    let paymentInfo = sub.stripe_subscription_id
+    const paymentInfo = sub.stripe_subscription_id
       ? paymentBySubId.get(sub.stripe_subscription_id)
       : undefined;
-    if (!paymentInfo) {
-      paymentInfo = paymentByUserId.get(sub.user_id);
-    }
     return {
       ...sub,
       payment_amount: paymentInfo?.amount ?? null,

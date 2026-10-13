@@ -139,6 +139,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/cron/reconcile-refunds",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/sentry-sync",
       "schedule": "*/5 * * * *"
     },

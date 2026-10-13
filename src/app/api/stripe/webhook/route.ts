@@ -6,12 +6,17 @@ import { headers } from 'next/headers';
 import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { randomBytes } from 'crypto';
 import type Stripe from 'stripe';
-import { UserStatus, type Prisma } from '@prisma/client';
+import { UserStatus } from '@prisma/client';
 import {
   calculateEarlyRenewalExpiry,
   calculateStandardRenewalExpiry,
   calculate5YearRenewalExpiry,
 } from '@/lib/membership-renewal';
+import { ingestRefundEvent, isRefundEvent } from '@/lib/payments/refunds/service';
+import { refundLifecycleEnabled } from '@/lib/payments/refunds/contracts';
+import { providerId, metadataRecord } from '@/lib/payments/refunds/identity';
+import { grantPurchasedFeatured, grantPurchasedMembership, renewPurchasedMembership, recordRecurringInvoice } from '@/lib/payments/purchased-benefits';
+import { initializeCheckoutBilling } from '@/lib/payments/subscription-checkout-billing';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
@@ -29,7 +34,7 @@ async function ensureEventIdempotency(eventId: string, eventType: string, payloa
 
     if (existing) {
       console.log(`[INFO] Event ${eventId} already processed, skipping`);
-      return false; // Already processed
+      return !existing.processed && ['checkout.session.completed', 'invoice.payment_succeeded', 'customer.subscription.updated'].includes(eventType) && refundLifecycleEnabled();
     }
 
     // Record event
@@ -111,8 +116,8 @@ async function handleFeaturedUpgradePaymentSuccess(session: Stripe.Checkout.Sess
     console.log(`[DEBUG ${timestamp}] 💰 Zero-amount checkout (100% discount applied)`);
     
     const zeroPaymentId = randomBytes(12).toString('base64url');
-    await db.payments.create({
-      data: {
+    await db.payments.upsert({
+      where: { stripe_checkout_session_id: session.id }, update: {}, create: {
         id: zeroPaymentId,
         user_id: user_id,
         stripe_checkout_session_id: session.id,
@@ -122,7 +127,7 @@ async function handleFeaturedUpgradePaymentSuccess(session: Stripe.Checkout.Sess
         currency: expandedSession.currency || 'gbp',
         status: 'SUCCEEDED',
         refunded_amount: 0,
-        metadata: session.metadata || {},
+        metadata: { ...session.metadata, ...(refundLifecycleEnabled() ? { grant_model: 'payment_benefit_v1' } : {}) },
         created_at: new Date(session.created * 1000),
         updated_at: new Date(),
       },
@@ -157,7 +162,7 @@ async function handleFeaturedUpgradePaymentSuccess(session: Stripe.Checkout.Sess
         currency: paymentIntent.currency,
         status: 'SUCCEEDED',
         refunded_amount: 0,
-        metadata: session.metadata || {},
+        metadata: { ...session.metadata, ...(refundLifecycleEnabled() ? { grant_model: 'payment_benefit_v1' } : {}) },
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -192,15 +197,15 @@ async function handleFeaturedUpgradePaymentSuccess(session: Stripe.Checkout.Sess
     throw new Error('All featured studio slots are taken');
   }
 
-  // Update studio to featured
-  await db.studio_profiles.update({
-    where: { id: studio_id },
-    data: {
-      is_featured: true,
-      featured_until: featuredUntil,
-      updated_at: now,
-    },
-  });
+  if (refundLifecycleEnabled()) {
+    const payment = await db.payments.findUnique({ where: { stripe_checkout_session_id: session.id } });
+    if (!payment || metadataRecord(payment.metadata).grant_model !== 'payment_benefit_v1') throw new Error('Historical Featured purchase requires reviewed attribution');
+    const known = await db.payment_benefit_grants.findUnique({ where: { source_key: `payment/${payment.id}` } });
+    if (known) return;
+    await grantPurchasedFeatured(user_id, studio_id, payment.id, now, featuredUntil);
+  } else {
+    await db.studio_profiles.update({ where: { id: studio_id }, data: { is_featured: true, featured_until: featuredUntil, updated_at: now } });
+  }
 
   console.log(`[DEBUG ${timestamp}] ✅ Studio ${studio_id} marked as featured until ${featuredUntil.toISOString()}`);
   console.log(`[SUCCESS] Featured status granted to studio ${studio_id} until ${featuredUntil.toISOString()}`);
@@ -324,8 +329,8 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
     
     // Still activate the membership, but create a special payment record
     const zeroPaymentId = randomBytes(12).toString('base64url');
-    await db.payments.create({
-      data: {
+    const zeroPayment = await db.payments.upsert({
+      where: { stripe_checkout_session_id: session.id }, update: {}, create: {
         id: zeroPaymentId,
         user_id: user_id,
         stripe_checkout_session_id: session.id,
@@ -335,12 +340,23 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
         currency: expandedSession.currency || 'gbp',
         status: 'SUCCEEDED',
         refunded_amount: 0,
-        metadata: session.metadata || {},
+        metadata: { ...session.metadata, ...(refundLifecycleEnabled() ? { grant_model: 'payment_benefit_v1' } : {}) },
         created_at: new Date(session.created * 1000),
         updated_at: new Date(),
       },
     });
     console.log(`[DEBUG ${timestamp}] ✅ Created zero-amount payment record: ${zeroPaymentId}`);
+    if (refundLifecycleEnabled()) {
+      if (metadataRecord(zeroPayment.metadata).grant_model !== 'payment_benefit_v1') throw new Error('Historical free purchase requires review');
+      if (isRenewal) await renewPurchasedMembership(user_id, zeroPayment.id, renewal_type as 'early' | 'standard' | '5year');
+      else await grantPurchasedMembership(user_id, zeroPayment.id, membershipMonths, providerId(session.customer));
+      if (membershipMonths >= 12) {
+        const { setLegacyVoiceoverUnlocked } = await import('@/lib/membership');
+        await setLegacyVoiceoverUnlocked(user_id);
+      }
+      return;
+    }
+
     
     // Grant membership immediately (bypass payment intent processing)
     const user = await db.users.findUnique({
@@ -484,13 +500,8 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   });
 
   if (existingPayment) {
-    console.log(`[DEBUG ${timestamp}] ⚠️ Payment record already exists:`);
-    console.log(`[DEBUG ${timestamp}]   - Payment ID: ${existingPayment.id}`);
-    console.log(`[DEBUG ${timestamp}]   - Status: ${existingPayment.status}`);
-    console.log(`[DEBUG ${timestamp}]   - User ID: ${existingPayment.user_id}`);
-    console.log(`[DEBUG ${timestamp}]   - Amount: ${existingPayment.amount} ${existingPayment.currency}`);
-    console.log(`💳 Payment record already exists for session ${session.id}`);
-    return; // Already processed
+    if (!refundLifecycleEnabled() || metadataRecord(existingPayment.metadata).grant_model !== 'payment_benefit_v1') return;
+    if (await db.payment_benefit_grants.findUnique({ where: { source_key: `payment/${existingPayment.id}` } })) return;
   }
 
   console.log(`[DEBUG ${timestamp}] No existing payment found, creating new payment record...`);
@@ -506,7 +517,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   console.log(`[DEBUG ${timestamp}]   - Amount: ${paymentIntent.amount} ${paymentIntent.currency}`);
   console.log(`[DEBUG ${timestamp}]   - Status: SUCCEEDED`);
 
-  const payment = await db.payments.create({
+  const payment = existingPayment ?? await db.payments.create({
     data: {
       id: paymentId,
       user_id: user.id,
@@ -517,7 +528,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
       currency: paymentIntent.currency,
       status: 'SUCCEEDED',
       refunded_amount: 0,
-      metadata: session.metadata || {},
+      metadata: { ...session.metadata, ...(refundLifecycleEnabled() ? { grant_model: 'payment_benefit_v1' } : {}) },
       created_at: new Date(),
       updated_at: new Date(),
     },
@@ -534,7 +545,7 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
   try {
     if (isRenewal) {
       console.log(`[DEBUG ${timestamp}] Processing ${renewal_type} renewal for user ${user.id}...`);
-      await handleMembershipRenewal(user.id, renewal_type as 'early' | 'standard' | '5year', current_expiry);
+      await handleMembershipRenewal(user.id, renewal_type as 'early' | 'standard' | '5year', current_expiry, payment.id);
       console.log(`[DEBUG ${timestamp}] ✅ Membership renewal processed successfully`);
       // All renewals are 12+ months — unlock legacy VOICEOVER restriction
       const { setLegacyVoiceoverUnlocked } = await import('@/lib/membership');
@@ -560,7 +571,9 @@ async function handleMembershipPaymentSuccess(session: Stripe.Checkout.Session) 
     console.error(`[ERROR ${timestamp}] Will attempt to send notification email before re-throwing error`);
   }
 
-  // Send confirmation email (even if membership processing failed)
+  if (refundLifecycleEnabled() && membershipProcessingError) throw membershipProcessingError;
+
+  // The legacy fallback remains available only while the new lifecycle is disabled.
   if (customer?.email || user_email) {
     try {
       // Fetch actual expiry date from database after processing
@@ -664,6 +677,20 @@ async function handleMembershipSubscriptionCompleted(session: Stripe.Checkout.Se
   }
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  if (refundLifecycleEnabled()) {
+    // A retried checkout must use its original invoice, not a later renewal.
+    const invoiceId = providerId(session.invoice);
+    if (!invoiceId) throw new Error('Subscription invoice identity is required');
+    const purchase = await recordRecurringInvoice(invoiceId, subscription, user_id, session);
+    await initializeCheckoutBilling({ userId: user_id, checkoutId: session.id,
+      checkoutCreatedAt: new Date(session.created * 1000), invoiceId, subscriptionId,
+      wantsRenewal: auto_renew === 'true', periodEnd: purchase.periodEnd });
+    // The purchased-benefit transaction creates missing profiles without changing existing visibility.
+    const { setLegacyVoiceoverUnlocked } = await import('@/lib/membership');
+    await setLegacyVoiceoverUnlocked(user_id);
+    return;
+  }
+
   const periodEndTs = (subscription as { current_period_end?: number }).current_period_end;
   const periodEnd = periodEndTs
     ? new Date(periodEndTs * 1000)
@@ -778,6 +805,11 @@ async function grantMembership(
   membershipMonths: number = 12,
   stripeCustomerId?: string | null,
 ) {
+  if (refundLifecycleEnabled()) {
+    const subscription = await grantPurchasedMembership(userId, _paymentId, membershipMonths, stripeCustomerId, paymentTracking);
+    // Existing status/visibility was preserved by the purchased-benefit transaction.
+    return subscription;
+  }
   const now = new Date();
   const expiryDate = new Date(now);
   expiryDate.setMonth(expiryDate.getMonth() + membershipMonths);
@@ -836,8 +868,13 @@ async function grantMembership(
 async function handleMembershipRenewal(
   userId: string,
   renewalType: 'early' | 'standard' | '5year',
-  currentExpiryIso?: string
+  currentExpiryIso?: string,
+  paymentId?: string,
 ) {
+  if (refundLifecycleEnabled()) {
+    if (!paymentId) throw new Error('Renewal payment identity is required');
+    return renewPurchasedMembership(userId, paymentId, renewalType);
+  }
   console.log(`[INFO] Processing ${renewalType} renewal for user ${userId}`);
 
   // Find existing subscription
@@ -978,8 +1015,8 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   
   if (existingPayment) {
     console.log(`Payment ${paymentIntent.id} already recorded, updating status to FAILED`);
-    await db.payments.update({
-      where: { id: existingPayment.id },
+    await db.payments.updateMany({
+      where: { id: existingPayment.id, status: 'PENDING', refunded_amount: 0 },
       data: {
         status: 'FAILED',
         updated_at: new Date(),
@@ -1082,36 +1119,11 @@ export async function POST(request: NextRequest) {
       throw err;
     }
 
-    // Refund containment runs before generic idempotency/processed bookkeeping.
-    // A signed receipt is evidence to reconcile; it is not a settled refund or
-    // permission to alter any membership, placement, visibility or renewal.
-    if (['charge.refunded', 'refund.created', 'refund.updated', 'refund.failed'].includes(event.type)) {
-      try {
-        const receipt = await db.stripe_webhook_events.upsert({
-          where: { stripe_event_id: event.id },
-          create: {
-            id: randomBytes(12).toString('base64url'),
-            stripe_event_id: event.id,
-            type: event.type,
-            payload: event.data.object as unknown as Prisma.InputJsonValue,
-            processed: false,
-            error: 'Refund processing paused; provider and access reconciliation required.',
-          },
-          // Preserve any earlier receipt and its recorded processing history.
-          update: {},
-          // Existing columns only: this slice needs no expanded schema/client.
-          select: { id: true, processed: true },
-        });
-        return NextResponse.json({
-          received: true,
-          refund_processing_paused: true,
-          reconciliation_required: true,
-          receipt_state: receipt.processed ? 'previously_processed' : 'pending_review',
-        });
-      } catch {
-        console.error('[Refund containment] Signed receipt could not be retained');
-        return NextResponse.json({ error: 'Refund receipt could not be retained. Retry delivery.' }, { status: 503 });
-      }
+    // Refund receipts remain durable even while lifecycle activation is paused.
+    // An existing row is not proof of a settled provider outcome.
+    if (isRefundEvent(event.type)) {
+      const result = await ingestRefundEvent(event);
+      return NextResponse.json({ received: true, reconciliation_pending: result.pending }, { status: result.pending ? 202 : 200 });
     }
 
     // Ensure idempotency
@@ -1189,16 +1201,18 @@ export async function POST(request: NextRequest) {
           const sub = event.data.object as Stripe.Subscription & SubscriptionWithPeriod;
           const dbSub = await db.subscriptions.findFirst({
             where: { stripe_subscription_id: sub.id },
-            select: { user_id: true },
+            select: { id: true, user_id: true },
           });
           if (dbSub) {
             const updates: Record<string, unknown> = {
               updated_at: new Date(),
             };
-            if (sub.current_period_end) {
+            // Paid invoice/grant transactions own access dates for mapped purchases.
+            const grantManaged = refundLifecycleEnabled() && !!await db.payment_benefit_grants.findFirst({ where: { subscription_id: dbSub.id }, select: { id: true } });
+            if (!grantManaged && sub.current_period_end) {
               updates.current_period_end = new Date(sub.current_period_end * 1000);
             }
-            if (sub.current_period_start) {
+            if (!grantManaged && sub.current_period_start) {
               updates.current_period_start = new Date(sub.current_period_start * 1000);
             }
             await db.subscriptions.updateMany({
@@ -1224,6 +1238,14 @@ export async function POST(request: NextRequest) {
 
         case 'invoice.payment_succeeded': {
           const invoice = event.data.object as Stripe.Invoice & { subscription?: string; billing_reason?: string };
+          if (refundLifecycleEnabled() && invoice.billing_reason === 'subscription_cycle') {
+            const subscriptionId = providerId(invoice.parent?.subscription_details?.subscription) ?? invoice.subscription;
+            if (!subscriptionId) throw new Error('Renewal invoice subscription is unknown');
+            const target = await db.subscriptions.findUnique({ where: { stripe_subscription_id: subscriptionId } });
+            if (!target) throw new Error('Renewal subscription mapping is missing');
+            await recordRecurringInvoice(invoice.id, await stripe.subscriptions.retrieve(subscriptionId), target.user_id);
+            break;
+          }
           if (invoice.subscription && invoice.billing_reason === 'subscription_cycle') {
             // Renewal invoice - extend membership
             const sub = await stripe.subscriptions.retrieve(invoice.subscription) as Stripe.Subscription & SubscriptionWithPeriod;

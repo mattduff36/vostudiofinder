@@ -12,6 +12,19 @@ export function effectivePublicTier(user: EntitlementOwner, now = new Date()): '
     && sub.status === 'ACTIVE' ? 'PREMIUM' : 'BASIC';
 }
 
+/** Only refund-adjusted owners use surviving coverage; ordinary accounts retain their
+ * established latest-subscription rules. No studio visibility or publication is changed. */
+export async function resolvePublicTiers(owners: readonly (EntitlementOwner & { id: string })[], now = new Date()) {
+  const result = new Map<string, 'BASIC' | 'PREMIUM'>();
+  for (const owner of owners) result.set(owner.id, effectivePublicTier(owner, now));
+  const candidates = owners.filter(owner => owner.role !== 'ADMIN' && owner.membership_tier === 'PREMIUM');
+  if (!candidates.length) return result;
+  const { refundAdjustedMembershipEnds } = await import('@/lib/payments/refunds/membership-projection');
+  const adjusted = await refundAdjustedMembershipEnds(candidates.map(owner => owner.id), now);
+  for (const [userId, expiresAt] of adjusted) result.set(userId, expiresAt && expiresAt > now ? 'PREMIUM' : 'BASIC');
+  return result;
+}
+
 /** Project saved data into public entitlements; retain the originals for a later upgrade. */
 export function applyPublicTierLimits<T extends Record<string, unknown>>(studio: T, tier: string): T {
   if (tier === 'PREMIUM') return studio;
@@ -37,7 +50,7 @@ export function applyPublicTierLimits<T extends Record<string, unknown>>(studio:
 }
 
 export const publicMembershipSelect = {
-  role: true, membership_tier: true,
+  id: true, role: true, membership_tier: true,
   subscriptions: { orderBy: { created_at: 'desc' as const }, take: 1,
     select: { current_period_end: true, status: true } },
 } as const;

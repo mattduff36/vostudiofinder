@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { type MembershipTier, getTierLimits, type TierLimits } from '@/lib/membership-tiers';
+import { refundAdjustedMembershipEnd } from '@/lib/payments/refunds/membership-projection';
 
 export interface MembershipStatus {
   isActive: boolean;
@@ -28,6 +29,15 @@ export async function getMembershipStatus(userId: string): Promise<MembershipSta
 
   const tier = (user?.membership_tier as MembershipTier) || 'BASIC';
   const subscription = user?.subscriptions?.[0];
+  const now = new Date();
+  const adjusted = tier === 'PREMIUM' ? await refundAdjustedMembershipEnd(userId, now) : null;
+  if (adjusted) return {
+    isActive: adjusted.expiresAt !== null,
+    isExpired: adjusted.expiresAt === null,
+    expiresAt: adjusted.expiresAt,
+    daysRemaining: adjusted.expiresAt ? Math.ceil((adjusted.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0,
+    tier,
+  };
 
   if (!subscription || !subscription.current_period_end) {
     return {
@@ -39,7 +49,6 @@ export async function getMembershipStatus(userId: string): Promise<MembershipSta
     };
   }
 
-  const now = new Date();
   const expiresAt = subscription.current_period_end;
   const isExpired = expiresAt < now;
   const daysRemaining = isExpired
