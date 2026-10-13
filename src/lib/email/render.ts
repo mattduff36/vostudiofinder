@@ -5,10 +5,10 @@
  * and renders using the appropriate locked layout.
  */
 
-import { db } from '@/lib/db';
 import { renderStandardLayout } from './layouts/standard';
 import { renderHeroLayout } from './layouts/hero';
-import { getTemplateDefinition } from './template-registry';
+import { loadResolvedTemplate, EmailAdminError } from './template-store';
+import type { ResolvedEmailTemplate } from './template-contract';
 
 export interface RenderOptions {
   includeUnsubscribe?: boolean; // Add unsubscribe footer (for marketing emails)
@@ -18,7 +18,7 @@ export interface RenderOptions {
 /**
  * Substitute {{placeholder}} variables in text
  */
-function substituteVariables(text: string, variables: Record<string, any>): string {
+function substituteVariables(text: string, variables: Record<string, unknown>): string {
   return text.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
     const value = variables[key.trim()];
     return value !== undefined && value !== null ? String(value) : match;
@@ -30,7 +30,7 @@ function substituteVariables(text: string, variables: Record<string, any>): stri
  */
 function validateVariables(
   _templateKey: string,
-  variables: Record<string, any>,
+  variables: Record<string, unknown>,
   variableSchema: Record<string, string>
 ): { valid: boolean; missing: string[] } {
   const missing: string[] = [];
@@ -39,7 +39,14 @@ function validateVariables(
     const value = variables[key];
     if (value === undefined || value === null) {
       missing.push(key);
-    } else if ((type === 'url' || type === 'email') && String(value).trim() === '') {
+    } else if (type === 'number' && (String(value).trim() === '' || !Number.isFinite(Number(value)))) {
+      missing.push(key);
+    } else if (type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))) {
+      missing.push(key);
+    } else if (type === 'url') {
+      try { if (!['https:', 'http:'].includes(new URL(String(value)).protocol)) missing.push(key); }
+      catch { missing.push(key); }
+    } else if (type === 'date' && !Number.isFinite(Date.parse(String(value)))) {
       missing.push(key);
     }
   }
@@ -48,86 +55,27 @@ function validateVariables(
 }
 
 /**
- * Load template from database (or fall back to default)
- */
-async function loadTemplate(templateKey: string) {
-  // Try to load from DB first (gracefully handle table not existing)
-  try {
-    const dbTemplate = await db.email_templates.findUnique({
-      where: { key: templateKey },
-    });
-    
-    if (dbTemplate) {
-      return {
-        layout: dbTemplate.layout,
-        subject: dbTemplate.subject,
-        preheader: dbTemplate.preheader,
-        heading: dbTemplate.heading,
-        bodyParagraphs: dbTemplate.body_paragraphs,
-        bulletItems: dbTemplate.bullet_items,
-        ctaPrimaryLabel: dbTemplate.cta_primary_label,
-        ctaPrimaryUrl: dbTemplate.cta_primary_url,
-        ctaSecondaryLabel: dbTemplate.cta_secondary_label,
-        ctaSecondaryUrl: dbTemplate.cta_secondary_url,
-        footerText: dbTemplate.footer_text,
-        fromName: dbTemplate.from_name,
-        fromEmail: dbTemplate.from_email,
-        replyToEmail: dbTemplate.reply_to_email,
-        variableSchema: dbTemplate.variable_schema as Record<string, string>,
-      };
-    }
-  } catch (error) {
-    // If table doesn't exist or query fails, fall back to default template
-    console.warn(`Failed to load template from DB (falling back to default): ${error}`);
-  }
-  
-  // Fall back to default from registry
-  const defaultTemplate = getTemplateDefinition(templateKey);
-  if (!defaultTemplate) {
-    throw new Error(`Template not found: ${templateKey}`);
-  }
-  
-  return {
-    layout: defaultTemplate.layout,
-    subject: defaultTemplate.subject,
-    preheader: defaultTemplate.preheader,
-    heading: defaultTemplate.heading,
-    bodyParagraphs: defaultTemplate.bodyParagraphs,
-    bulletItems: defaultTemplate.bulletItems,
-    ctaPrimaryLabel: defaultTemplate.ctaPrimaryLabel,
-    ctaPrimaryUrl: defaultTemplate.ctaPrimaryUrl,
-    ctaSecondaryLabel: defaultTemplate.ctaSecondaryLabel,
-    ctaSecondaryUrl: defaultTemplate.ctaSecondaryUrl,
-    footerText: defaultTemplate.footerText,
-    fromName: defaultTemplate.fromName,
-    fromEmail: defaultTemplate.fromEmail,
-    replyToEmail: defaultTemplate.replyToEmail,
-    variableSchema: defaultTemplate.variableSchema,
-  };
-}
-
-/**
  * Render an email template with variables
  */
 export async function renderEmailTemplate(
   templateKey: string,
-  variables: Record<string, any>,
+  variables: Record<string, unknown>,
   options: RenderOptions = {}
-): Promise<{
-  html: string;
-  text: string;
-  subject: string;
-  fromName?: string;
-  fromEmail?: string;
-  replyToEmail?: string;
-}> {
-  // Load template
-  const template = await loadTemplate(templateKey);
-  
+) {
+  return renderResolvedEmailTemplate(await loadResolvedTemplate(templateKey), variables, options);
+}
+
+/** Render an immutable snapshot without consulting the current template/registry. */
+export function renderResolvedEmailTemplate(
+  template: ResolvedEmailTemplate,
+  variables: Record<string, unknown>,
+  options: RenderOptions = {}
+): { html: string; text: string; subject: string; fromName?: string; fromEmail?: string; replyToEmail?: string } {
+  const templateKey = template.key;
   // Validate variables
   const validation = validateVariables(templateKey, variables, template.variableSchema);
   if (!validation.valid) {
-    throw new Error(
+    throw new EmailAdminError(
       `Missing required variables for template '${templateKey}': ${validation.missing.join(', ')}`
     );
   }
@@ -144,7 +92,12 @@ export async function renderEmailTemplate(
   const ctaPrimaryUrl = template.ctaPrimaryUrl ? substituteVariables(template.ctaPrimaryUrl, variables) : undefined;
   const ctaSecondaryLabel = template.ctaSecondaryLabel ? substituteVariables(template.ctaSecondaryLabel, variables) : undefined;
   const ctaSecondaryUrl = template.ctaSecondaryUrl ? substituteVariables(template.ctaSecondaryUrl, variables) : undefined;
-  let footerText = template.footerText ? substituteVariables(template.footerText, variables) : undefined;
+  for (const url of [ctaPrimaryUrl, ctaSecondaryUrl]) {
+    if (!url) continue;
+    try { if (!['https:', 'http:'].includes(new URL(url).protocol)) throw new Error('protocol'); }
+    catch { throw new EmailAdminError('A button URL is invalid after substituting the variables'); }
+  }
+  const footerText = template.footerText ? substituteVariables(template.footerText, variables) : undefined;
   
   // Unsubscribe URL is passed separately to the layout renderer
   // so it can be displayed as a clean "Click here to unsubscribe" link
@@ -153,17 +106,14 @@ export async function renderEmailTemplate(
   let rendered: { html: string; text: string };
   
   if (template.layout === 'HERO') {
-    // Get hero-specific props from template definition
-    const defaultTemplate = getTemplateDefinition(templateKey);
-    
-    const heroProps: any = {
+    const heroProps: Parameters<typeof renderHeroLayout>[0] = {
       subject,
       heading,
       bodyParagraphs,
     };
     if (preheader) heroProps.preheader = preheader;
-    if (defaultTemplate?.heroImageUrl) heroProps.heroImageUrl = defaultTemplate.heroImageUrl;
-    if (defaultTemplate?.heroImageAlt) heroProps.heroImageAlt = defaultTemplate.heroImageAlt;
+    if (template.heroImageUrl) heroProps.heroImageUrl = template.heroImageUrl;
+    if (template.heroImageAlt) heroProps.heroImageAlt = template.heroImageAlt;
     // heroImageHeight intentionally omitted — image scales to natural aspect ratio
     if (bulletItems) heroProps.bulletItems = bulletItems;
     if (ctaPrimaryLabel) heroProps.ctaPrimaryLabel = ctaPrimaryLabel;
@@ -176,7 +126,7 @@ export async function renderEmailTemplate(
     rendered = renderHeroLayout(heroProps);
   } else {
     // Standard layout
-    const standardProps: any = {
+    const standardProps: Parameters<typeof renderStandardLayout>[0] = {
       subject,
       heading,
       bodyParagraphs,
@@ -193,7 +143,7 @@ export async function renderEmailTemplate(
     rendered = renderStandardLayout(standardProps);
   }
   
-  const result: any = {
+  const result: { html: string; text: string; subject: string; fromName?: string; fromEmail?: string; replyToEmail?: string } = {
     html: rendered.html,
     text: rendered.text,
     subject,

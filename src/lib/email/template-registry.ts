@@ -141,6 +141,8 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
       'We\'ve processed a {{refundType}} refund of {{refundAmount}} {{currency}} for your payment of {{paymentAmount}} {{currency}}.',
       'Refund Details:\nAmount: {{refundAmount}} {{currency}}\nDate: {{refundDate}}\nType: {{refundType}}',
       '{{comment}}',
+      '{{benefitOutcome}}',
+      '{{billingOutcome}}',
       'The refund will appear in your account within 5-10 business days, depending on your bank or card issuer.',
     ],
     ctaPrimaryLabel: 'View Dashboard',
@@ -154,6 +156,8 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
       isFullRefund: 'string',
       comment: 'string',
       refundDate: 'string',
+      benefitOutcome: 'string',
+      billingOutcome: 'string',
     },
   },
   

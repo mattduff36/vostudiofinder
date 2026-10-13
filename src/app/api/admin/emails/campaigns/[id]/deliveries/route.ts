@@ -8,6 +8,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Prisma } from '@prisma/client';
+import { z } from 'zod';
+import { emailAdminFailure } from '@/lib/email/admin-api';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -25,9 +27,10 @@ export async function GET(
 
     const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
-    const status = searchParams.get('status') as string | null;
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200);
+    const { status, page, limit } = z.object({
+      status: z.enum(['PENDING', 'SENDING', 'SENT', 'FAILED', 'BOUNCED', 'SKIPPED', 'UNCERTAIN']).optional(),
+      page: z.coerce.number().int().min(1).default(1), limit: z.coerce.number().int().min(1).max(200).default(50),
+    }).strict().parse(Object.fromEntries(searchParams));
 
     const campaign = await db.email_campaigns.findUnique({
       where: { id },
@@ -46,13 +49,16 @@ export async function GET(
     };
 
     if (status) {
-      where.status = status as any;
+      where.status = status;
     }
 
     const [deliveries, total] = await Promise.all([
       db.email_deliveries.findMany({
         where,
-        include: {
+        select: {
+          id: true, to_email: true, status: true, resend_id: true, error_message: true,
+          sent_at: true, failed_at: true, opened_at: true, clicked_at: true, created_at: true,
+          outcome_reason: true, attempt_count: true, retryable: true, next_attempt_at: true,
           user: {
             select: {
               display_name: true,
@@ -60,7 +66,7 @@ export async function GET(
             },
           },
         },
-        orderBy: { created_at: 'desc' },
+        orderBy: [{ created_at: 'desc' }, { id: 'asc' }],
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -77,10 +83,6 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching deliveries:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch deliveries' },
-      { status: 500 }
-    );
+    return emailAdminFailure(error, 'Failed to fetch deliveries');
   }
 }

@@ -1,7 +1,8 @@
 'use client';
 
 import { AdminTabs } from '@/components/admin/AdminTabs';
-import { useState, useEffect } from 'react';
+import { emailResponse } from '@/components/admin/emails/TemplatePlayground';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Mail, Send, Users, FileText, Edit, Eye, TestTube,
@@ -36,10 +37,10 @@ interface Campaign {
 }
 
 interface Stats {
-  templates: number;
-  campaigns: number;
-  sentToday: number;
-  optInUsers: number;
+  templates: number | null;
+  campaigns: number | null;
+  sentToday: number | null;
+  optInUsers: number | null;
 }
 
 export default function AdminEmailsPage() {
@@ -47,70 +48,52 @@ export default function AdminEmailsPage() {
   const [activeView, setActiveView] = useState<'overview' | 'templates' | 'campaigns'>('overview');
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [stats, setStats] = useState<Stats>({ templates: 0, campaigns: 0, sentToday: 0, optInUsers: 0 });
+  const [stats, setStats] = useState<Stats>({ templates: null, campaigns: null, sentToday: null, optInUsers: null });
   const [loading, setLoading] = useState(true);
+  const controllerRef = useRef<AbortController | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const changeView = (view: 'overview' | 'templates' | 'campaigns') => {
+    setActiveView(view);
+    window.history.replaceState(null, '', `/admin/emails?view=${view}`);
+  };
 
   useEffect(() => {
-    loadData();
+    const view = new URLSearchParams(window.location.search).get('view');
+    if (view === 'templates' || view === 'campaigns' || view === 'overview') setActiveView(view);
+    void loadData();
+    return () => controllerRef.current?.abort();
   }, []);
 
   const loadData = async () => {
-    try {
-      setLoading(true);
-
-      const [templatesRes, campaignsRes, statsRes] = await Promise.all([
-        fetch('/api/admin/emails/templates'),
-        fetch('/api/admin/emails/campaigns'),
-        fetch('/api/admin/emails/stats'),
-      ]);
-
-      let templateCount = 0;
-      if (templatesRes.ok) {
-        const data = await templatesRes.json();
-        const tpls = data.templates || [];
-        setTemplates(tpls);
-        templateCount = tpls.length;
-      }
-
-      if (campaignsRes.ok) {
-        const data = await campaignsRes.json();
-        setCampaigns(data.campaigns || []);
-      }
-
-      let campaignCount = 0;
-      let sentToday = 0;
-      let optInUsers = 0;
-
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        campaignCount = data.campaigns || 0;
-        sentToday = data.sentToday || 0;
-        optInUsers = data.optInUsers || 0;
-      }
-
-      setStats({
-        templates: templateCount,
-        campaigns: campaignCount,
-        sentToday,
-        optInUsers,
-      });
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
-    }
+    controllerRef.current?.abort();
+    const controller = new AbortController(); controllerRef.current = controller;
+    setLoading(true); setErrors({});
+    const sectionError = (section: string, cause: unknown) => {
+      if (!controller.signal.aborted) setErrors(current => ({ ...current, [section]: cause instanceof Error ? cause.message : 'Unavailable' }));
+    };
+    await Promise.allSettled([
+      fetch('/api/admin/emails/templates', { signal: controller.signal }).then(response => emailResponse<{ templates: EmailTemplate[] }>(response))
+        .then(data => { if (!controller.signal.aborted) { setTemplates(data.templates); setStats(current => ({ ...current, templates: data.templates.length })); } })
+        .catch(cause => sectionError('Templates', cause)),
+      fetch('/api/admin/emails/campaigns', { signal: controller.signal }).then(response => emailResponse<{ campaigns: Campaign[] }>(response))
+        .then(data => { if (!controller.signal.aborted) setCampaigns(data.campaigns); }).catch(cause => sectionError('Campaigns', cause)),
+      fetch('/api/admin/emails/stats', { signal: controller.signal }).then(response => emailResponse<Omit<Stats, 'templates'>>(response))
+        .then(data => { if (!controller.signal.aborted) setStats(current => ({ ...current, campaigns: data.campaigns, sentToday: data.sentToday, optInUsers: data.optInUsers })); })
+        .catch(cause => sectionError('Statistics', cause)),
+    ]);
+    if (!controller.signal.aborted) setLoading(false);
   };
 
   const handleEditTemplate = (templateKey: string) => {
-    window.location.href = `/admin/emails/template/${templateKey}`;
+    router.push(`/admin/emails/template/${encodeURIComponent(templateKey)}`);
   };
 
   const handlePreviewTemplate = (templateKey: string) => {
-    window.location.href = `/admin/emails/template/${templateKey}/preview`;
+    router.push(`/admin/emails/template/${encodeURIComponent(templateKey)}/preview`);
   };
 
   const handleTestSend = (templateKey: string) => {
-    window.location.href = `/admin/emails/template/${templateKey}/test`;
+    router.push(`/admin/emails/template/${encodeURIComponent(templateKey)}/test`);
   };
 
   return (
@@ -119,6 +102,7 @@ export default function AdminEmailsPage() {
 
       <div className="px-4 py-4 md:p-8">
       <div className="max-w-7xl mx-auto">
+        {Object.entries(errors).map(([section, message]) => <p key={section} role="alert" className="p-3 mb-3 bg-red-50 text-red-800 rounded-lg">{section}: {message}. Previous results, if any, remain visible. <button onClick={() => void loadData()} className="underline">Retry</button></p>)}
         {/* Page Header */}
         <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -137,7 +121,7 @@ export default function AdminEmailsPage() {
                 <FileText className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-medium text-blue-900">Templates</span>
               </div>
-              <div className="text-2xl font-bold text-blue-700">{stats.templates}</div>
+              <div className="text-2xl font-bold text-blue-700">{stats.templates ?? (loading ? '…' : 'Unavailable')}</div>
             </div>
 
             <div className="bg-green-50 p-4 rounded-lg">
@@ -145,15 +129,15 @@ export default function AdminEmailsPage() {
                 <Send className="w-5 h-5 text-green-600" />
                 <span className="text-sm font-medium text-green-900">Campaigns</span>
               </div>
-              <div className="text-2xl font-bold text-green-700">{stats.campaigns}</div>
+              <div className="text-2xl font-bold text-green-700">{stats.campaigns ?? (loading ? '…' : 'Unavailable')}</div>
             </div>
 
             <div className="bg-purple-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
                 <Mail className="w-5 h-5 text-purple-600" />
-                <span className="text-sm font-medium text-purple-900">Sent Today</span>
+                <span className="text-sm font-medium text-purple-900">Sent Today (UTC)</span>
               </div>
-              <div className="text-2xl font-bold text-purple-700">{stats.sentToday}</div>
+              <div className="text-2xl font-bold text-purple-700">{stats.sentToday ?? (loading ? '…' : 'Unavailable')}</div>
             </div>
 
             <div className="bg-yellow-50 p-4 rounded-lg">
@@ -161,7 +145,7 @@ export default function AdminEmailsPage() {
                 <Users className="w-5 h-5 text-yellow-600" />
                 <span className="text-sm font-medium text-yellow-900">Opt-In Users</span>
               </div>
-              <div className="text-2xl font-bold text-yellow-700">{stats.optInUsers}</div>
+              <div className="text-2xl font-bold text-yellow-700">{stats.optInUsers ?? (loading ? '…' : 'Unavailable')}</div>
             </div>
           </div>
         </div>
@@ -171,7 +155,7 @@ export default function AdminEmailsPage() {
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px">
               <button
-                onClick={() => setActiveView('overview')}
+                onClick={() => changeView('overview')}
                 className={`px-6 py-3 text-sm font-medium ${
                   activeView === 'overview'
                     ? 'border-b-2 border-red-600 text-red-600'
@@ -181,7 +165,7 @@ export default function AdminEmailsPage() {
                 Overview
               </button>
               <button
-                onClick={() => setActiveView('templates')}
+                onClick={() => changeView('templates')}
                 className={`px-6 py-3 text-sm font-medium ${
                   activeView === 'templates'
                     ? 'border-b-2 border-red-600 text-red-600'
@@ -191,7 +175,7 @@ export default function AdminEmailsPage() {
                 Templates ({templates.length})
               </button>
               <button
-                onClick={() => setActiveView('campaigns')}
+                onClick={() => changeView('campaigns')}
                 className={`px-6 py-3 text-sm font-medium ${
                   activeView === 'campaigns'
                     ? 'border-b-2 border-red-600 text-red-600'
@@ -211,7 +195,7 @@ export default function AdminEmailsPage() {
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button
-                      onClick={() => setActiveView('templates')}
+                      onClick={() => changeView('templates')}
                       className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
@@ -295,7 +279,7 @@ export default function AdminEmailsPage() {
                   </button>
                 </div>
 
-                {loading ? (
+                {loading && templates.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-600 border-t-transparent"></div>
                     <p className="mt-2 text-gray-600">Loading templates...</p>
@@ -303,7 +287,7 @@ export default function AdminEmailsPage() {
                 ) : templates.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p>No templates found</p>
+                    <p>{errors.Templates ? 'Templates are unavailable' : 'No templates found'}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -343,7 +327,7 @@ export default function AdminEmailsPage() {
                           <button
                             onClick={() => handleEditTemplate(template.key)}
                             className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                            title="Edit template"
+                            aria-label="Edit template" title="Edit template"
                           >
                             <Edit className="w-4 h-4" />
                             Edit
@@ -351,7 +335,7 @@ export default function AdminEmailsPage() {
                           <button
                             onClick={() => handlePreviewTemplate(template.key)}
                             className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                            title="Preview template"
+                            aria-label="Preview template" title="Preview template"
                           >
                             <Eye className="w-4 h-4" />
                             Preview
@@ -359,7 +343,7 @@ export default function AdminEmailsPage() {
                           <button
                             onClick={() => handleTestSend(template.key)}
                             className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                            title="Send test email"
+                            aria-label="Send test email" title="Send test email"
                           >
                             <TestTube className="w-4 h-4" />
                             Test

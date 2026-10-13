@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { cancelCampaign, campaignForAdmin } from '@/lib/email/campaigns';
+import { emailAdminFailure } from '@/lib/email/admin-api';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -65,16 +67,17 @@ export async function GET(
       sent: deliveryStats.find(s => s.status === 'SENT')?._count || 0,
       failed: deliveryStats.find(s => s.status === 'FAILED')?._count || 0,
       bounced: deliveryStats.find(s => s.status === 'BOUNCED')?._count || 0,
+      skipped: deliveryStats.find(s => s.status === 'SKIPPED')?._count || 0,
+      uncertain: deliveryStats.find(s => s.status === 'UNCERTAIN')?._count || 0,
+      retryable: await db.email_deliveries.count({ where: {
+        campaign_id: id, status: 'FAILED', retryable: true, resend_id: null,
+        attempt_count: { lt: campaign.max_retries + 1 },
+        OR: [{ next_attempt_at: null }, { next_attempt_at: { lte: new Date() } }],
+      } }),
     };
 
-    return NextResponse.json({ campaign, deliveryStats: stats });
-  } catch (error) {
-    console.error('Error fetching campaign:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch campaign' },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({ campaign: { ...campaignForAdmin(campaign), created_by: campaign.created_by, template: campaign.template }, deliveryStats: stats });
+  } catch (error) { return emailAdminFailure(error, 'Failed to fetch campaign'); }
 }
 
 export async function PATCH(
@@ -89,52 +92,7 @@ export async function PATCH(
 
     const { id } = await params;
 
-    const campaign = await db.email_campaigns.findUnique({
-      where: { id },
-    });
-
-    if (!campaign) {
-      return NextResponse.json(
-        { error: 'Campaign not found' },
-        { status: 404 }
-      );
-    }
-
-    if (campaign.status === 'SENT' || campaign.status === 'CANCELLED') {
-      return NextResponse.json(
-        { error: 'Campaign cannot be cancelled in its current state' },
-        { status: 400 }
-      );
-    }
-
-    await db.email_campaigns.update({
-      where: { id },
-      data: {
-        status: 'CANCELLED',
-        completed_at: new Date(),
-      },
-    });
-
-    if (campaign.status === 'SENDING') {
-      await db.email_deliveries.updateMany({
-        where: {
-          campaign_id: id,
-          status: 'PENDING',
-        },
-        data: {
-          status: 'FAILED',
-          failed_at: new Date(),
-          error_message: 'Campaign cancelled',
-        },
-      });
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error cancelling campaign:', error);
-    return NextResponse.json(
-      { error: 'Failed to cancel campaign' },
-      { status: 500 }
-    );
-  }
+    const campaign = await cancelCampaign(id);
+    return NextResponse.json({ success: true, campaign: campaignForAdmin(campaign) });
+  } catch (error) { return emailAdminFailure(error, 'Failed to cancel campaign'); }
 }

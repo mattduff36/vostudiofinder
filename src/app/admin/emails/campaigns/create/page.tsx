@@ -1,7 +1,10 @@
 'use client';
 
 import { AdminTabs } from '@/components/admin/AdminTabs';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { audienceSelectionSchema, parseRecipientQuery } from '@/lib/email/recipients';
+import { emailResponse } from '@/components/admin/emails/TemplatePlayground';
+import { runCampaignAttempt, describeCampaignExclusions, type CampaignReview, type StoredCampaignAttempt } from '@/lib/email/campaign-client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, Send, Users, FileText, Search,
@@ -17,21 +20,22 @@ interface EmailTemplate {
   isMarketing: boolean;
   isSystem: boolean;
   subject: string;
+  campaignSupported: boolean;
 }
 
 interface RecipientFilters {
-  status?: string;
-  emailVerified?: boolean;
-  hasStudio?: boolean;
-  studioVerified?: boolean;
-  studioFeatured?: boolean;
-  marketingOptIn?: boolean;
-  createdAfter?: string;
-  createdBefore?: string;
-  lastLoginAfter?: string;
-  lastLoginBefore?: string;
-  search?: string;
-  excludedEmails?: string[];
+  status?: string | undefined;
+  emailVerified?: boolean | undefined;
+  hasStudio?: boolean | undefined;
+  studioVerified?: boolean | undefined;
+  studioFeatured?: boolean | undefined;
+  marketingOptIn?: boolean | undefined;
+  createdAfter?: string | undefined;
+  createdBefore?: string | undefined;
+  lastLoginAfter?: string | undefined;
+  lastLoginBefore?: string | undefined;
+  search?: string | undefined;
+  excludedEmails?: string[] | undefined;
 }
 
 interface UserSearchResult {
@@ -41,41 +45,40 @@ interface UserSearchResult {
   display_name: string;
 }
 
-export default function CreateCampaignPage() {
+function CreateCampaignContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedTemplate = searchParams.get('template') || '';
+  const audienceHandoff = searchParams.get('audience');
 
-  const parseInitialFilters = (): RecipientFilters => {
-    const f: RecipientFilters = {};
-    const s = searchParams;
-    if (s.get('status')) f.status = s.get('status')!;
-    if (s.get('emailVerified')) f.emailVerified = s.get('emailVerified') === 'true';
-    if (s.get('hasStudio')) f.hasStudio = s.get('hasStudio') === 'true';
-    if (s.get('studioVerified')) f.studioVerified = s.get('studioVerified') === 'true';
-    if (s.get('studioFeatured')) f.studioFeatured = s.get('studioFeatured') === 'true';
-    if (s.get('marketingOptIn')) f.marketingOptIn = s.get('marketingOptIn') === 'true';
-    if (s.get('createdAfter')) f.createdAfter = s.get('createdAfter')!;
-    if (s.get('createdBefore')) f.createdBefore = s.get('createdBefore')!;
-    if (s.get('lastLoginAfter')) f.lastLoginAfter = s.get('lastLoginAfter')!;
-    if (s.get('lastLoginBefore')) f.lastLoginBefore = s.get('lastLoginBefore')!;
-    if (s.get('search')) f.search = s.get('search')!;
-    return f;
-  };
-
-  const initialFilters = parseInitialFilters();
+  const [initialState] = useState(() => {
+    try {
+      const query = new URLSearchParams(searchParams);
+      query.delete('template'); query.delete('audience');
+      return { filters: parseRecipientQuery(query).filters as RecipientFilters, error: null };
+    } catch { return { filters: {} as RecipientFilters, error: 'This campaign link contains invalid filters. Clear those filters or return to Recipients to select the audience again.' }; }
+  });
+  const initialFilters = initialState.filters;
   const hasInitialFilters = Object.keys(initialFilters).length > 0;
 
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialState.error);
+  const [invalidInitialFilters, setInvalidInitialFilters] = useState(!!initialState.error);
 
   const [name, setName] = useState('');
   const [templateKey, setTemplateKey] = useState(preselectedTemplate);
   const [filters, setFilters] = useState<RecipientFilters>(initialFilters);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(hasInitialFilters);
-  const [recipientCount, setRecipientCount] = useState<number | null>(null);
+  const [review, setReview] = useState<(CampaignReview & { inputKey: string }) | null>(null);
+  const [countError, setCountError] = useState<string | null>(null);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[] | null>(null);
+  const [handoffReady, setHandoffReady] = useState(false);
+  const [attempt, setAttempt] = useState<StoredCampaignAttempt | null>(null);
+  const createPending = useRef(false);
+  const attemptRef = useRef<StoredCampaignAttempt | null>(null);
+  const attemptStorageKey = `email-campaign-create:${audienceHandoff || preselectedTemplate || 'new'}`;
   const [countLoading, setCountLoading] = useState(false);
   const [autoRetry, setAutoRetry] = useState(false);
   const [maxRetries, setMaxRetries] = useState(3);
@@ -88,73 +91,82 @@ export default function CreateCampaignPage() {
   const [bulkExcludeText, setBulkExcludeText] = useState('');
   const [showBulkInput, setShowBulkInput] = useState(false);
 
+  const audience = selectedUserIds ? { mode: 'selected', userIds: selectedUserIds, excludedEmails }
+    : { mode: 'filters', filters: { ...filters, ...(excludedEmails.length ? { excludedEmails } : {}) } };
+  const reviewKey = JSON.stringify({ templateKey, audience });
+  const recipientCount = review?.inputKey === reviewKey ? review.eligibleCount : null;
+
   useEffect(() => {
-    loadTemplates();
-  }, []);
+    const controller = new AbortController();
+    void fetch('/api/admin/emails/templates', { signal: controller.signal })
+      .then(response => emailResponse<{ templates: EmailTemplate[] }>(response))
+      .then(data => { if (!controller.signal.aborted) setTemplates(data.templates); })
+      .catch(cause => { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Templates unavailable'); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    try {
+      if (invalidInitialFilters) throw new Error(initialState.error!);
+      const handoff = audienceHandoff;
+      if (handoff) {
+        const saved = sessionStorage.getItem(`email-audience:${handoff}`);
+        if (!saved) throw new Error('The selected audience is no longer available in this session. Return to Recipients and select it again.');
+        const restored = audienceSelectionSchema.parse(JSON.parse(saved));
+        if (restored.mode === 'selected') setSelectedUserIds(restored.userIds);
+        else setFilters(restored.filters);
+      }
+      const pending = sessionStorage.getItem(attemptStorageKey);
+      if (pending) {
+        const stored = JSON.parse(pending) as StoredCampaignAttempt;
+        const payload = JSON.parse(stored.payload);
+        const restored = audienceSelectionSchema.parse(payload.audience);
+        setName(payload.name); setTemplateKey(payload.templateKey); setAutoRetry(payload.autoRetry); setMaxRetries(payload.maxRetries);
+        if (restored.mode === 'selected') setSelectedUserIds(restored.userIds); else setFilters(restored.filters);
+        setExcludedEmails(restored.mode === 'selected' ? restored.excludedEmails ?? [] : restored.filters.excludedEmails ?? []);
+        setAttempt(stored); attemptRef.current = stored;
+      }
+      setHandoffReady(true);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to restore this audience'); }
+    return () => controller.abort();
+  }, [attemptStorageKey, audienceHandoff, invalidInitialFilters, initialState.error]);
 
   useEffect(() => {
     if (templateKey) {
-      const tpl = templates.find(t => t.key === templateKey);
-      if (tpl && !name) {
-        setName(tpl.name);
-      }
+      const tpl = templates.find(item => item.key === templateKey);
+      if (tpl) setName(current => current || tpl.name);
     }
   }, [templateKey, templates]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchRecipientCount();
+    const controller = new AbortController();
+    setCountError(null); setCountLoading(true);
+    if (!templateKey || !handoffReady) { setCountLoading(false); return () => controller.abort(); }
+    const timer = setTimeout(async () => {
+      try {
+        const data = await emailResponse<CampaignReview>(await fetch('/api/admin/emails/recipients/preview', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: reviewKey, signal: controller.signal,
+        }));
+        if (!controller.signal.aborted) setReview({ ...data, inputKey: reviewKey });
+      } catch (cause) {
+        if (!controller.signal.aborted) { setReview(null); setCountError(cause instanceof Error ? cause.message : 'Audience count unavailable'); }
+      } finally { if (!controller.signal.aborted) setCountLoading(false); }
     }, 300);
-    return () => clearTimeout(timer);
-  }, [filters, templateKey, excludedEmails]);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [reviewKey, templateKey, handoffReady]);
 
   useEffect(() => {
-    if (!excludeSearch.trim() || excludeSearch.trim().length < 2) {
-      setExcludeResults([]);
-      return;
-    }
-    const timer = setTimeout(() => searchUsersForExclude(excludeSearch.trim()), 300);
-    return () => clearTimeout(timer);
-  }, [excludeSearch]);
-
-  const loadTemplates = async () => {
-    try {
-      const res = await fetch('/api/admin/emails/templates');
-      if (res.ok) {
-        const data = await res.json();
-        setTemplates(data.templates || []);
-      }
-    } catch (err) {
-      console.error('Failed to load templates:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const searchUsersForExclude = async (query: string) => {
+    const controller = new AbortController();
+    setExcludeResults([]); setExcludeSearching(false);
+    if (excludeSearch.trim().length < 2) return () => controller.abort();
     setExcludeSearching(true);
-    try {
-      const params = new URLSearchParams({ search: query, limit: '10' });
-      const res = await fetch(`/api/admin/emails/users?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setExcludeResults(
-          (data.users || [])
-            .filter((u: UserSearchResult) => !excludedEmails.includes(u.email.toLowerCase()))
-            .map((u: UserSearchResult) => ({
-              id: u.id,
-              email: u.email,
-              username: u.username,
-              display_name: u.display_name,
-            }))
-        );
-      }
-    } catch {
-      setExcludeResults([]);
-    } finally {
-      setExcludeSearching(false);
-    }
-  };
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ search: excludeSearch.trim(), limit: '10' });
+        const data = await emailResponse<{ users: UserSearchResult[] }>(await fetch(`/api/admin/emails/users?${params}`, { signal: controller.signal }));
+        if (!controller.signal.aborted) setExcludeResults(data.users.filter(user => !excludedEmails.includes(user.email.toLowerCase())));
+      } catch (cause) { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Exclusion search unavailable'); }
+      finally { if (!controller.signal.aborted) setExcludeSearching(false); }
+    }, 300);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [excludeSearch, excludedEmails]);
 
   const addExcludedEmail = (email: string) => {
     const normalized = email.toLowerCase().trim();
@@ -180,102 +192,40 @@ export default function CreateCampaignPage() {
     setShowBulkInput(false);
   };
 
-  const fetchRecipientCount = async () => {
-    setCountLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.set('limit', '1');
-      if (filters.status) params.set('status', filters.status);
-      if (filters.emailVerified !== undefined) params.set('emailVerified', String(filters.emailVerified));
-      if (filters.hasStudio !== undefined) params.set('hasStudio', String(filters.hasStudio));
-      if (filters.studioVerified !== undefined) params.set('studioVerified', String(filters.studioVerified));
-      if (filters.studioFeatured !== undefined) params.set('studioFeatured', String(filters.studioFeatured));
-      if (filters.marketingOptIn !== undefined) params.set('marketingOptIn', String(filters.marketingOptIn));
-      if (filters.createdAfter) params.set('createdAfter', filters.createdAfter);
-      if (filters.createdBefore) params.set('createdBefore', filters.createdBefore);
-      if (filters.lastLoginAfter) params.set('lastLoginAfter', filters.lastLoginAfter);
-      if (filters.lastLoginBefore) params.set('lastLoginBefore', filters.lastLoginBefore);
-      if (filters.search) params.set('search', filters.search);
-      if (excludedEmails.length > 0) params.set('excludedEmails', excludedEmails.join(','));
-
-      const res = await fetch(`/api/admin/emails/users?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setRecipientCount(data.pagination?.total ?? null);
-      }
-    } catch {
-      setRecipientCount(null);
-    } finally {
-      setCountLoading(false);
-    }
-  };
-
-  const selectedTemplate = templates.find(t => t.key === templateKey);
-
+  const selectedTemplate = templates.find(item => item.key === templateKey);
   const handleCreate = async (startImmediately: boolean) => {
-    if (!name.trim() || !templateKey) {
-      setError('Campaign name and template are required.');
-      return;
+    if (createPending.current) return;
+    if (!attemptRef.current && (!name.trim() || !templateKey || !review || review.inputKey !== reviewKey || countLoading || !recipientCount || countError)) {
+      setError('Wait for a valid current audience review before creating a campaign.'); return;
     }
-    if (recipientCount === 0) {
-      setError('No recipients match the current filters.');
-      return;
-    }
-
-    setCreating(true);
-    setError(null);
-
+    createPending.current = true; setCreating(true); setError(null);
     try {
-      const res = await fetch('/api/admin/emails/campaigns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          templateKey,
-          filters: {
-            ...filters,
-            ...(excludedEmails.length > 0 ? { excludedEmails } : {}),
-          },
-          autoRetry,
-          maxRetries: autoRetry ? maxRetries : undefined,
-        }),
+      let operation = attemptRef.current;
+      if (!operation) {
+        operation = { payload: JSON.stringify({ requestKey: crypto.randomUUID(), name: name.trim(), templateKey, audience, autoRetry, maxRetries }), review: review! };
+        // Save before the first network request so a lost response is recoverable.
+        sessionStorage.setItem(attemptStorageKey, JSON.stringify(operation));
+        attemptRef.current = operation; setAttempt(operation);
+      }
+      const result = await runCampaignAttempt(operation, startImmediately, id => {
+        const saved = { ...operation!, campaignId: id };
+        attemptRef.current = saved; setAttempt(saved);
+        sessionStorage.setItem(attemptStorageKey, JSON.stringify(saved));
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to create campaign');
-      }
-
-      const data = await res.json();
-      const campaignId = data.campaign?.id;
-
-      if (startImmediately && campaignId) {
-        const startRes = await fetch(`/api/admin/emails/campaigns/${campaignId}/start`, {
-          method: 'POST',
-        });
-        if (!startRes.ok) {
-          const startData = await startRes.json();
-          throw new Error(startData.error || 'Campaign created but failed to start');
-        }
-      }
-
-      router.push(`/admin/emails/campaigns/${campaignId}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setCreating(false);
-    }
+      if (result.startError) sessionStorage.setItem(`email-campaign-notice:${result.campaignId}`, result.startError);
+      router.push(`/admin/emails/campaigns/${encodeURIComponent(result.campaignId)}`);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Creation outcome unavailable. Recover this attempt before making another.'); }
+    finally { createPending.current = false; setCreating(false); }
   };
 
-  const updateFilter = (key: keyof RecipientFilters, value: any) => {
+  const updateFilter = <K extends keyof RecipientFilters>(key: K, value: RecipientFilters[K] | '' | null) => {
     setFilters(prev => {
       const next = { ...prev };
       if (value === '' || value === undefined || value === null) {
         delete next[key];
-      } else {
-        (next as any)[key] = value;
+        return next;
       }
-      return next;
+      return { ...prev, [key]: value };
     });
   };
 
@@ -286,7 +236,7 @@ export default function CreateCampaignPage() {
       <div className="px-4 py-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <button
-          onClick={() => router.push('/admin/emails')}
+          onClick={() => router.push('/admin/emails?view=campaigns')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -301,20 +251,29 @@ export default function CreateCampaignPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg mb-6">
+          <div role="alert" className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg mb-6">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-600" />
               <p className="text-sm text-red-700">{error}</p>
+              {invalidInitialFilters && <button className="underline text-sm" onClick={() => { setFilters({}); setInvalidInitialFilters(false); setError(null); }}>Clear invalid filters</button>}
             </div>
           </div>
         )}
 
+        {attempt && <div role="status" className="p-4 mb-4 bg-blue-50 text-blue-900 rounded-lg">
+          <p>{attempt.campaignId ? 'This attempt already created a campaign. Open it to review its state.' : 'A creation request is saved. Recovery uses exactly the same request and audience.'}</p>
+          <button disabled={creating} onClick={() => void handleCreate(false)} className="underline mr-4">{attempt.campaignId ? 'Open existing campaign' : 'Recover creation request'}</button>
+          {attempt.campaignId && <button disabled={creating} onClick={() => { sessionStorage.removeItem(attemptStorageKey); attemptRef.current = null; setAttempt(null); }} className="underline">Begin a separate new campaign</button>}
+        </div>}
+        {countError && <p role="alert" className="p-4 mb-4 bg-red-50 text-red-800 rounded-lg">{countError}</p>}
+        {selectedUserIds && <p className="p-4 mb-4 bg-blue-50 text-blue-900 rounded-lg">Selected audience: {selectedUserIds.length} users. Return to Recipients to change this selection.</p>}
+        {review?.inputKey === reviewKey && <p role="status" className="text-sm text-gray-600 mb-4">{review.matchedCount} matched, {review.eligibleCount} eligible. Excluded: {describeCampaignExclusions(review.exclusions)}.</p>}
         {/* Campaign Name */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Campaign Name</label>
           <input
             type="text"
-            value={name}
+            aria-label="Name" disabled={creating || !!attempt} value={name}
             onChange={e => setName(e.target.value)}
             placeholder="e.g. Legacy User Announcement - February 2026"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -334,6 +293,8 @@ export default function CreateCampaignPage() {
               {templates.map(tpl => (
                 <button
                   key={tpl.key}
+                  aria-pressed={templateKey === tpl.key}
+                  disabled={!tpl.campaignSupported || creating || !!attempt}
                   onClick={() => setTemplateKey(tpl.key)}
                   className={`w-full text-left p-4 border-2 rounded-lg transition-colors ${
                     templateKey === tpl.key
@@ -344,6 +305,7 @@ export default function CreateCampaignPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium text-gray-900">{tpl.name}</div>
+                      {!tpl.campaignSupported && <p className="text-xs text-gray-500">Requires event data; available for preview/test only.</p>}
                       {tpl.description && (
                         <div className="text-sm text-gray-500 mt-1">{tpl.description}</div>
                       )}
@@ -369,7 +331,7 @@ export default function CreateCampaignPage() {
         </div>
 
         {/* Recipient Filters */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <fieldset aria-label="Recipient filters" disabled={creating || !!attempt || !!selectedUserIds} className="min-w-0 bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <label className="block text-sm font-medium text-gray-700">
               <Users className="w-4 h-4 inline mr-1" />
@@ -386,6 +348,7 @@ export default function CreateCampaignPage() {
             </div>
           </div>
 
+          <p className="text-xs text-gray-500 mb-3">Date ranges include both selected days in UTC. No Studio ignores the studio verification/Featured filters.</p>
           {selectedTemplate?.isMarketing && (
             <div className="bg-purple-50 border-l-4 border-purple-400 p-3 rounded-r-lg mb-4">
               <p className="text-sm text-purple-700">
@@ -401,7 +364,7 @@ export default function CreateCampaignPage() {
             <input
               type="text"
               placeholder="Search by email, username, or name..."
-              value={filters.search || ''}
+              aria-label="Search" value={filters.search || ''}
               onChange={e => updateFilter('search', e.target.value || undefined)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             />
@@ -412,7 +375,7 @@ export default function CreateCampaignPage() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">User Status</label>
               <select
-                value={filters.status || ''}
+                aria-label="Status" value={filters.status || ''}
                 onChange={e => updateFilter('status', e.target.value || undefined)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
               >
@@ -425,7 +388,7 @@ export default function CreateCampaignPage() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Email Verified</label>
               <select
-                value={filters.emailVerified === undefined ? '' : String(filters.emailVerified)}
+                aria-label="Email verified" value={filters.emailVerified === undefined ? '' : String(filters.emailVerified)}
                 onChange={e => {
                   const v = e.target.value;
                   updateFilter('emailVerified', v === '' ? undefined : v === 'true');
@@ -440,7 +403,7 @@ export default function CreateCampaignPage() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Marketing Opt-In</label>
               <select
-                value={filters.marketingOptIn === undefined ? '' : String(filters.marketingOptIn)}
+                aria-label="Marketing opt in" value={filters.marketingOptIn === undefined ? '' : String(filters.marketingOptIn)}
                 onChange={e => {
                   const v = e.target.value;
                   updateFilter('marketingOptIn', v === '' ? undefined : v === 'true');
@@ -457,6 +420,7 @@ export default function CreateCampaignPage() {
           {/* Advanced Filters Toggle */}
           <button
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            aria-expanded={showAdvancedFilters}
             className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors mb-4"
           >
             {showAdvancedFilters ? (
@@ -473,7 +437,7 @@ export default function CreateCampaignPage() {
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Has Studio</label>
                   <select
-                    value={filters.hasStudio === undefined ? '' : String(filters.hasStudio)}
+                    aria-label="Has studio" value={filters.hasStudio === undefined ? '' : String(filters.hasStudio)}
                     onChange={e => {
                       const v = e.target.value;
                       updateFilter('hasStudio', v === '' ? undefined : v === 'true');
@@ -488,7 +452,7 @@ export default function CreateCampaignPage() {
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Studio Verified</label>
                   <select
-                    value={filters.studioVerified === undefined ? '' : String(filters.studioVerified)}
+                    aria-label="Studio verified" disabled={filters.hasStudio === false} value={filters.studioVerified === undefined ? '' : String(filters.studioVerified)}
                     onChange={e => {
                       const v = e.target.value;
                       updateFilter('studioVerified', v === '' ? undefined : v === 'true');
@@ -503,7 +467,7 @@ export default function CreateCampaignPage() {
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Studio Featured</label>
                   <select
-                    value={filters.studioFeatured === undefined ? '' : String(filters.studioFeatured)}
+                    aria-label="Studio featured" disabled={filters.hasStudio === false} value={filters.studioFeatured === undefined ? '' : String(filters.studioFeatured)}
                     onChange={e => {
                       const v = e.target.value;
                       updateFilter('studioFeatured', v === '' ? undefined : v === 'true');
@@ -522,7 +486,7 @@ export default function CreateCampaignPage() {
                   <label className="block text-xs font-medium text-gray-500 mb-1">Created After</label>
                   <input
                     type="date"
-                    value={filters.createdAfter || ''}
+                    aria-label="Created after (UTC)" value={filters.createdAfter || ''}
                     onChange={e => updateFilter('createdAfter', e.target.value || undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   />
@@ -531,7 +495,7 @@ export default function CreateCampaignPage() {
                   <label className="block text-xs font-medium text-gray-500 mb-1">Created Before</label>
                   <input
                     type="date"
-                    value={filters.createdBefore || ''}
+                    aria-label="Created before (UTC)" value={filters.createdBefore || ''}
                     onChange={e => updateFilter('createdBefore', e.target.value || undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   />
@@ -540,7 +504,7 @@ export default function CreateCampaignPage() {
                   <label className="block text-xs font-medium text-gray-500 mb-1">Last Login After</label>
                   <input
                     type="date"
-                    value={filters.lastLoginAfter || ''}
+                    aria-label="Last login after (UTC)" value={filters.lastLoginAfter || ''}
                     onChange={e => updateFilter('lastLoginAfter', e.target.value || undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   />
@@ -549,7 +513,7 @@ export default function CreateCampaignPage() {
                   <label className="block text-xs font-medium text-gray-500 mb-1">Last Login Before</label>
                   <input
                     type="date"
-                    value={filters.lastLoginBefore || ''}
+                    aria-label="Last login before (UTC)" value={filters.lastLoginBefore || ''}
                     onChange={e => updateFilter('lastLoginBefore', e.target.value || undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   />
@@ -557,12 +521,13 @@ export default function CreateCampaignPage() {
               </div>
             </div>
           )}
-        </div>
+        </fieldset>
 
         {/* Excluded Users */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <button
             onClick={() => setShowExcludeSection(!showExcludeSection)}
+            aria-expanded={showExcludeSection}
             className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors w-full"
           >
             <UserMinus className="w-4 h-4" />
@@ -591,7 +556,7 @@ export default function CreateCampaignPage() {
                 <input
                   type="text"
                   placeholder="Search by email, username, or name to exclude..."
-                  value={excludeSearch}
+                  aria-label="Exclude search" disabled={creating || !!attempt} value={excludeSearch}
                   onChange={e => setExcludeSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
                 />
@@ -630,7 +595,7 @@ export default function CreateCampaignPage() {
               {showBulkInput && (
                 <div className="space-y-2">
                   <textarea
-                    value={bulkExcludeText}
+                    aria-label="Bulk exclude text" disabled={creating || !!attempt} value={bulkExcludeText}
                     onChange={e => setBulkExcludeText(e.target.value)}
                     placeholder="Paste emails separated by commas, semicolons, or new lines..."
                     rows={4}
@@ -698,7 +663,7 @@ export default function CreateCampaignPage() {
                   Auto-retry failed sends every 24 hours
                 </span>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  If any emails fail (e.g. daily sending limit reached), they will automatically be retried after 24 hours.
+                  Only eligible temporary failures retry after 24 hours. Skipped, permanent and uncertain outcomes are handled separately.
                 </p>
               </div>
             </label>
@@ -710,25 +675,25 @@ export default function CreateCampaignPage() {
                   type="number"
                   min={1}
                   max={50}
-                  value={maxRetries}
+                  aria-label="Max retries" disabled={creating || !!attempt} value={maxRetries}
                   onChange={e => setMaxRetries(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
                   className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 />
-                <span className="text-xs text-gray-500">attempts before giving up</span>
+                <span className="text-xs text-gray-500">additional attempts after the initial submission</span>
               </div>
             )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-end">
             <button
-              onClick={() => router.push('/admin/emails')}
+              onClick={() => router.push('/admin/emails?view=campaigns')}
               className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={() => handleCreate(false)}
-              disabled={creating || !name.trim() || !templateKey}
+              disabled={creating || !!attempt || !handoffReady || !name.trim() || !templateKey || countLoading || !!countError || !recipientCount}
               className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Save as Draft
@@ -742,7 +707,7 @@ export default function CreateCampaignPage() {
                   if (confirmed) handleCreate(true);
                 }
               }}
-              disabled={creating || !name.trim() || !templateKey || !recipientCount}
+              disabled={creating || !!attempt || !handoffReady || !name.trim() || !templateKey || countLoading || !!countError || !recipientCount}
               className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
@@ -754,4 +719,13 @@ export default function CreateCampaignPage() {
       </div>
     </>
   );
+}
+
+export default function CreateCampaignPage() {
+  return <Suspense fallback={<p className="p-6" role="status">Loading campaign draft…</p>}><CampaignRoute /></Suspense>;
+}
+
+function CampaignRoute() {
+  const params = useSearchParams();
+  return <CreateCampaignContent key={params.toString()} />;
 }

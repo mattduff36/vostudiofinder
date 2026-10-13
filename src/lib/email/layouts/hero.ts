@@ -7,6 +7,8 @@
  * Admins can only edit the COPY (text content), not the HTML structure.
  */
 
+import { defaultEmailFooter } from './footer';
+
 export interface HeroLayoutProps {
   subject: string;
   preheader?: string;
@@ -125,9 +127,7 @@ export function renderHeroLayout(props: HeroLayoutProps): { html: string; text: 
   } = props;
 
   const escapedHeading = escapeHtml(heading);
-  const currentYear = new Date().getFullYear();
-  const defaultFooter = `Voiceover Studio Finder\n© ${currentYear} Voiceover Studio Finder. All rights reserved.\nQuestions? support@voiceoverstudiofinder.com`;
-  const finalFooter = footerText || defaultFooter;
+  const finalFooter = footerText || defaultEmailFooter();
   
   // Convert footer text to HTML
   const footerHtml = finalFooter

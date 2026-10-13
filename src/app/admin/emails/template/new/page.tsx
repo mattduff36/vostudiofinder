@@ -3,7 +3,7 @@
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { ArrowLeft, Plus, Save, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 type LayoutType = 'STANDARD' | 'HERO';
 type VariableType = 'string' | 'url' | 'email' | 'number' | 'date';
@@ -60,9 +60,10 @@ export default function NewEmailTemplatePage() {
     footerText: '',
   });
   const [variables, setVariables] = useState<VariableField[]>([
-    { key: 'userEmail', type: 'string' },
+    { key: 'userEmail', type: 'email' },
     { key: 'displayName', type: 'string' },
   ]);
+  const submitPending = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,7 +114,13 @@ export default function NewEmailTemplatePage() {
   };
 
   const handleSubmit = async () => {
+    if (submitPending.current) return;
     setError(null);
+    const variableNames = variables.map(item => item.key.trim());
+    if (variableNames.some(key => !/^[A-Za-z][A-Za-z0-9_]*$/.test(key)) || new Set(variableNames).size !== variableNames.length) {
+      setError('Variable names must be valid and unique. Remove empty or duplicate names.');
+      return;
+    }
 
     const normalizedKey = normalizeTemplateKey(form.key.trim()).replace(/^-+|-+$/g, '');
     if (!normalizedKey) {
@@ -160,6 +167,7 @@ export default function NewEmailTemplatePage() {
     };
 
     try {
+      submitPending.current = true;
       setIsSubmitting(true);
       const response = await fetch('/api/admin/emails/templates', {
         method: 'POST',
@@ -177,6 +185,7 @@ export default function NewEmailTemplatePage() {
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Failed to create template.');
     } finally {
+      submitPending.current = false;
       setIsSubmitting(false);
     }
   };
@@ -189,7 +198,7 @@ export default function NewEmailTemplatePage() {
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
             <button
-              onClick={() => router.push('/admin/emails')}
+              onClick={() => router.push('/admin/emails?view=templates')}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -214,7 +223,7 @@ export default function NewEmailTemplatePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Template Key *</label>
                 <input
                   type="text"
-                  value={form.key}
+                  aria-label="Key" disabled={isSubmitting} value={form.key}
                   onChange={(e) => updateField('key', normalizeTemplateKey(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                   placeholder="example-template-key"
@@ -226,7 +235,7 @@ export default function NewEmailTemplatePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Template Name *</label>
                 <input
                   type="text"
-                  value={form.name}
+                  aria-label="Name" disabled={isSubmitting} value={form.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                   placeholder="Legacy User Re-Engagement"
@@ -238,7 +247,7 @@ export default function NewEmailTemplatePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <input
                 type="text"
-                value={form.description}
+                aria-label="Description" disabled={isSubmitting} value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 placeholder="Short internal description for admins"
@@ -249,7 +258,7 @@ export default function NewEmailTemplatePage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Layout</label>
                 <select
-                  value={form.layout}
+                  aria-label="Layout" disabled={isSubmitting} value={form.layout}
                   onChange={(e) => updateField('layout', e.target.value as LayoutType)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 >
@@ -276,7 +285,7 @@ export default function NewEmailTemplatePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">From Name</label>
                 <input
                   type="text"
-                  value={form.fromName}
+                  aria-label="From name" disabled={isSubmitting} value={form.fromName}
                   onChange={(e) => updateField('fromName', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                   placeholder="Voiceover Studio Finder"
@@ -286,7 +295,7 @@ export default function NewEmailTemplatePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">From Email</label>
                 <input
                   type="email"
-                  value={form.fromEmail}
+                  aria-label="From email" disabled={isSubmitting} value={form.fromEmail}
                   onChange={(e) => updateField('fromEmail', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                   placeholder="hello@example.com"
@@ -296,7 +305,7 @@ export default function NewEmailTemplatePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Reply-To Email</label>
                 <input
                   type="email"
-                  value={form.replyToEmail}
+                  aria-label="Reply to email" disabled={isSubmitting} value={form.replyToEmail}
                   onChange={(e) => updateField('replyToEmail', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                   placeholder="support@example.com"
@@ -351,7 +360,7 @@ export default function NewEmailTemplatePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Subject Line *</label>
               <input
                 type="text"
-                value={form.subject}
+                aria-label="Subject" disabled={isSubmitting} value={form.subject}
                 onChange={(e) => updateField('subject', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 placeholder="Your subject line"
@@ -362,7 +371,7 @@ export default function NewEmailTemplatePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Preheader Text</label>
               <input
                 type="text"
-                value={form.preheader}
+                aria-label="Preheader" disabled={isSubmitting} value={form.preheader}
                 onChange={(e) => updateField('preheader', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 placeholder="Preview text shown by email clients"
@@ -373,7 +382,7 @@ export default function NewEmailTemplatePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Main Heading *</label>
               <input
                 type="text"
-                value={form.heading}
+                aria-label="Heading" disabled={isSubmitting} value={form.heading}
                 onChange={(e) => updateField('heading', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 placeholder="Main email heading"
@@ -387,7 +396,7 @@ export default function NewEmailTemplatePage() {
                   <div key={index} className="flex gap-2">
                     <textarea
                       rows={3}
-                      value={paragraph}
+                      aria-label={`Body paragraph ${index + 1}`} disabled={isSubmitting} value={paragraph}
                       onChange={(e) => updateArrayField('bodyParagraphs', index, e.target.value)}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                       placeholder={`Paragraph ${index + 1}`}
@@ -420,7 +429,7 @@ export default function NewEmailTemplatePage() {
                   <div key={index} className="flex gap-2">
                     <input
                       type="text"
-                      value={item}
+                      aria-label={`Bullet point ${index + 1}`} disabled={isSubmitting} value={item}
                       onChange={(e) => updateArrayField('bulletItems', index, e.target.value)}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                       placeholder={`Bullet ${index + 1}`}
@@ -449,7 +458,7 @@ export default function NewEmailTemplatePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Primary Button Label</label>
                 <input
                   type="text"
-                  value={form.ctaPrimaryLabel}
+                  aria-label="Cta primary label" disabled={isSubmitting} value={form.ctaPrimaryLabel}
                   onChange={(e) => updateField('ctaPrimaryLabel', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                   placeholder="Get Started"
@@ -459,7 +468,7 @@ export default function NewEmailTemplatePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Primary Button URL</label>
                 <input
                   type="text"
-                  value={form.ctaPrimaryUrl}
+                  aria-label="Cta primary url" disabled={isSubmitting} value={form.ctaPrimaryUrl}
                   onChange={(e) => updateField('ctaPrimaryUrl', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                   placeholder="https://... or {{variableName}}"
@@ -472,7 +481,7 @@ export default function NewEmailTemplatePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Button Label</label>
                 <input
                   type="text"
-                  value={form.ctaSecondaryLabel}
+                  aria-label="Cta secondary label" disabled={isSubmitting} value={form.ctaSecondaryLabel}
                   onChange={(e) => updateField('ctaSecondaryLabel', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                   placeholder="Learn More"
@@ -482,7 +491,7 @@ export default function NewEmailTemplatePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Button URL</label>
                 <input
                   type="text"
-                  value={form.ctaSecondaryUrl}
+                  aria-label="Cta secondary url" disabled={isSubmitting} value={form.ctaSecondaryUrl}
                   onChange={(e) => updateField('ctaSecondaryUrl', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                   placeholder="https://... or {{variableName}}"
@@ -494,7 +503,7 @@ export default function NewEmailTemplatePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Footer Text</label>
               <textarea
                 rows={4}
-                value={form.footerText}
+                aria-label="Footer text" disabled={isSubmitting} value={form.footerText}
                 onChange={(e) => updateField('footerText', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 placeholder="Optional custom footer text"

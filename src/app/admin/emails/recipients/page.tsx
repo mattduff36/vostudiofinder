@@ -1,7 +1,9 @@
 'use client';
 
 import { AdminTabs } from '@/components/admin/AdminTabs';
-import { useState, useEffect, useCallback } from 'react';
+import { parseRecipientQuery, audienceSelectionSchema } from '@/lib/email/recipients';
+import { emailResponse } from '@/components/admin/emails/TemplatePlayground';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Users, Search, ChevronDown, ChevronUp,
@@ -60,10 +62,28 @@ export default function RecipientsPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  const requestController = useRef<AbortController | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedMatching, setSelectedMatching] = useState<number | null>(null);
+  const [ready, setReady] = useState(false);
   const limit = 50;
+  const visibleSelected = users.filter(user => selected.has(user.id)).length;
+
+  useEffect(() => {
+    try {
+      const parsed = parseRecipientQuery(new URLSearchParams(window.location.search));
+      const restored = { ...EMPTY_FILTERS };
+      Object.entries(parsed.filters).forEach(([key, value]) => { if (key in restored) restored[key as keyof Filters] = String(value); });
+      setFilters(restored); setPage(parsed.page); setReady(true);
+    } catch { setError('Invalid recipient filters in this link. Clear the filters to continue.'); setLoading(false); }
+  }, []);
 
   const loadUsers = useCallback(async () => {
-    setLoading(true);
+    if (!ready) return;
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
+    setLoading(true); setError(null);
     try {
       const params = new URLSearchParams();
       params.set('page', String(page));
@@ -80,32 +100,54 @@ export default function RecipientsPage() {
       if (filters.lastLoginBefore) params.set('lastLoginBefore', filters.lastLoginBefore);
       if (filters.search) params.set('search', filters.search);
 
-      const res = await fetch(`/api/admin/emails/users?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
+      window.history.replaceState(null, '', `/admin/emails/recipients?${params.toString()}`);
+      const res = await fetch(`/api/admin/emails/users?${params.toString()}`, { signal: controller.signal });
+      const data = await emailResponse<{ users: Recipient[]; pagination: { total: number; totalPages: number } }>(res);
+      if (!controller.signal.aborted) {
         setUsers(data.users || []);
         setTotal(data.pagination?.total || 0);
         setTotalPages(data.pagination?.totalPages || 0);
       }
     } catch (err) {
-      console.error('Failed to load users:', err);
+      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
-  }, [page, filters]);
+  }, [page, filters, ready]);
 
   useEffect(() => {
-    loadUsers();
+    const timer = setTimeout(() => void loadUsers(), 250);
+    return () => { clearTimeout(timer); requestController.current?.abort(); };
   }, [loadUsers]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    setSelectedMatching(null);
+    if (!selected.size) return () => controller.abort();
+    const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
+    const timer = setTimeout(async () => {
+      try {
+        const data = await emailResponse<{ matchingCount: number }>(await fetch('/api/admin/emails/users', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
+          body: JSON.stringify({ userIds: [...selected], filters: parseRecipientQuery(params).filters }),
+        }));
+        if (!controller.signal.aborted) setSelectedMatching(data.matchingCount);
+      } catch { /* Unknown remains explicitly uncounted; it never changes the selected IDs. */ }
+    }, 250);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [filters, selected]);
+
   const updateFilter = (key: keyof Filters, value: string) => {
+    requestController.current?.abort(); setLoading(true);
     setFilters(prev => ({ ...prev, [key]: value }));
     setPage(1);
   };
 
   const resetFilters = () => {
+    requestController.current?.abort(); setLoading(true);
     setFilters(EMPTY_FILTERS);
     setPage(1);
+    setReady(true);
   };
 
   const toggleSelect = (id: string) => {
@@ -118,20 +160,24 @@ export default function RecipientsPage() {
   };
 
   const toggleSelectAll = () => {
-    if (selected.size === users.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(users.map(u => u.id)));
-    }
+    setSelected(current => {
+      const next = new Set(current);
+      const allVisible = users.length > 0 && users.every(user => next.has(user.id));
+      users.forEach(user => { if (allVisible) next.delete(user.id); else next.add(user.id); });
+      return next;
+    });
   };
 
-  const handleCreateCampaignFromFilters = () => {
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, val]) => {
-      if (val) params.set(key, val);
-    });
-    router.push(`/admin/emails/campaigns/create?${params.toString()}`);
+  const createFromAudience = (fromSelected: boolean) => {
+    try {
+      const audience = audienceSelectionSchema.parse(fromSelected ? { mode: 'selected', userIds: [...selected] }
+        : { mode: 'filters', filters: parseRecipientQuery(new URLSearchParams(Object.entries(filters).filter(([, value]) => value))).filters });
+      const handoff = crypto.randomUUID();
+      sessionStorage.setItem(`email-audience:${handoff}`, JSON.stringify(audience));
+      router.push(`/admin/emails/campaigns/create?audience=${handoff}`);
+    } catch { setError('Unable to prepare this audience. Check the filters or selection, and browser session storage.'); }
   };
+  const handleCreateCampaignFromFilters = () => createFromAudience(false);
 
   const getOptInStatus = (user: Recipient): { label: string; color: string } => {
     if (!user.email_preferences) return { label: 'Default (In)', color: 'text-green-600' };
@@ -159,7 +205,7 @@ export default function RecipientsPage() {
 
         {/* Header */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap gap-4 items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-gray-900">Recipients</h1>
               <p className="text-sm text-gray-600 mt-1">
@@ -170,6 +216,7 @@ export default function RecipientsPage() {
               </p>
             </div>
             <button
+              disabled={loading || !!error}
               onClick={handleCreateCampaignFromFilters}
               className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
@@ -179,6 +226,14 @@ export default function RecipientsPage() {
           </div>
         </div>
 
+        {selected.size > 0 && <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex flex-wrap items-center gap-3">
+          <p role="status" className="text-sm text-gray-700">{selected.size} selected; {selectedMatching === null ? 'filter membership unavailable or checking' : `${selected.size - selectedMatching} outside the current filter`}.</p>
+          <button onClick={() => createFromAudience(true)} className="px-4 py-2 bg-red-600 text-white rounded-lg">Create from selected</button>
+          <button onClick={() => setSelected(new Set())} className="text-sm underline">Clear selection</button>
+        </div>}
+        {error && <div role="alert" className="bg-red-50 p-4 text-red-800 rounded-lg mb-4">{error} {ready
+          ? <button onClick={() => void loadUsers()} className="underline">Retry</button>
+          : <button onClick={resetFilters} className="underline">Clear invalid filters</button>}</div>}
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="relative mb-4">
@@ -186,7 +241,7 @@ export default function RecipientsPage() {
             <input
               type="text"
               placeholder="Search by email, username, or name..."
-              value={filters.search}
+              aria-label="Search" value={filters.search}
               onChange={e => updateFilter('search', e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             />
@@ -196,7 +251,7 @@ export default function RecipientsPage() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">User Status</label>
               <select
-                value={filters.status}
+                aria-label="Status" value={filters.status}
                 onChange={e => updateFilter('status', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
               >
@@ -209,7 +264,7 @@ export default function RecipientsPage() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Email Verified</label>
               <select
-                value={filters.emailVerified}
+                aria-label="Email verified" value={filters.emailVerified}
                 onChange={e => updateFilter('emailVerified', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
               >
@@ -221,7 +276,7 @@ export default function RecipientsPage() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Marketing Opt-In</label>
               <select
-                value={filters.marketingOptIn}
+                aria-label="Marketing opt in" value={filters.marketingOptIn}
                 onChange={e => updateFilter('marketingOptIn', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
               >
@@ -233,7 +288,7 @@ export default function RecipientsPage() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Has Studio</label>
               <select
-                value={filters.hasStudio}
+                aria-label="Has studio" value={filters.hasStudio}
                 onChange={e => updateFilter('hasStudio', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
               >
@@ -246,6 +301,7 @@ export default function RecipientsPage() {
 
           {/* Advanced Filters */}
           <button
+            aria-expanded={showAdvanced}
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
@@ -253,13 +309,14 @@ export default function RecipientsPage() {
             Advanced Filters
           </button>
 
+          {showAdvanced && <p className="mt-3 text-xs text-gray-500">Date ranges include both selected days in UTC. Studio filters are ignored when No Studio is selected.</p>}
           {showAdvanced && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 border-t border-gray-200 pt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Studio Verified</label>
                   <select
-                    value={filters.studioVerified}
+                    aria-label="Studio verified" disabled={filters.hasStudio === 'false'} value={filters.studioVerified}
                     onChange={e => updateFilter('studioVerified', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   >
@@ -271,7 +328,7 @@ export default function RecipientsPage() {
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Studio Featured</label>
                   <select
-                    value={filters.studioFeatured}
+                    aria-label="Studio featured" disabled={filters.hasStudio === 'false'} value={filters.studioFeatured}
                     onChange={e => updateFilter('studioFeatured', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   >
@@ -286,7 +343,7 @@ export default function RecipientsPage() {
                   <label className="block text-xs font-medium text-gray-500 mb-1">Created After</label>
                   <input
                     type="date"
-                    value={filters.createdAfter}
+                    aria-label="Created after (UTC)" value={filters.createdAfter}
                     onChange={e => updateFilter('createdAfter', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   />
@@ -295,7 +352,7 @@ export default function RecipientsPage() {
                   <label className="block text-xs font-medium text-gray-500 mb-1">Created Before</label>
                   <input
                     type="date"
-                    value={filters.createdBefore}
+                    aria-label="Created before (UTC)" value={filters.createdBefore}
                     onChange={e => updateFilter('createdBefore', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   />
@@ -304,7 +361,7 @@ export default function RecipientsPage() {
                   <label className="block text-xs font-medium text-gray-500 mb-1">Last Login After</label>
                   <input
                     type="date"
-                    value={filters.lastLoginAfter}
+                    aria-label="Last login after (UTC)" value={filters.lastLoginAfter}
                     onChange={e => updateFilter('lastLoginAfter', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   />
@@ -313,7 +370,7 @@ export default function RecipientsPage() {
                   <label className="block text-xs font-medium text-gray-500 mb-1">Last Login Before</label>
                   <input
                     type="date"
-                    value={filters.lastLoginBefore}
+                    aria-label="Last login before (UTC)" value={filters.lastLoginBefore}
                     onChange={e => updateFilter('lastLoginBefore', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   />
@@ -332,9 +389,10 @@ export default function RecipientsPage() {
           )}
         </div>
 
+        {loading && users.length > 0 && <p role="status" className="mb-2 text-sm text-gray-600">Updating recipients… Previous results remain visible.</p>}
         {/* Users Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {loading ? (
+          {loading && users.length === 0 ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-600 border-t-transparent" />
               <p className="mt-2 text-gray-600">Loading users...</p>
@@ -353,7 +411,9 @@ export default function RecipientsPage() {
                       <th className="text-left py-3 px-4">
                         <input
                           type="checkbox"
-                          checked={selected.size === users.length && users.length > 0}
+                          aria-label="Select all users on this page" disabled={loading || !!error}
+                          ref={element => { if (element) element.indeterminate = visibleSelected > 0 && visibleSelected < users.length; }}
+                          checked={visibleSelected === users.length && users.length > 0}
                           onChange={toggleSelectAll}
                           className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                         />
@@ -363,7 +423,7 @@ export default function RecipientsPage() {
                       <th className="text-left py-3 px-4 text-gray-600 font-medium">Verified</th>
                       <th className="text-left py-3 px-4 text-gray-600 font-medium">Marketing</th>
                       <th className="text-left py-3 px-4 text-gray-600 font-medium">Studio</th>
-                      <th className="text-left py-3 px-4 text-gray-600 font-medium">Joined</th>
+                      <th className="text-left py-3 px-4 text-gray-600 font-medium">Joined (UTC)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -377,6 +437,7 @@ export default function RecipientsPage() {
                           <td className="py-3 px-4">
                             <input
                               type="checkbox"
+                              aria-label={`Select ${user.email}`} disabled={loading || !!error}
                               checked={selected.has(user.id)}
                               onChange={() => toggleSelect(user.id)}
                               className="rounded border-gray-300 text-red-600 focus:ring-red-500"
@@ -423,7 +484,7 @@ export default function RecipientsPage() {
                             )}
                           </td>
                           <td className="py-3 px-4 text-xs text-gray-500">
-                            {new Date(user.created_at).toLocaleDateString()}
+                            {new Date(user.created_at).toLocaleDateString(undefined, { timeZone: 'UTC' })}
                           </td>
                         </tr>
                       );
@@ -445,8 +506,8 @@ export default function RecipientsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page <= 1}
+                    onClick={() => { setLoading(true); setPage(p => Math.max(1, p - 1)); }}
+                    disabled={loading || page <= 1}
                     className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
@@ -455,8 +516,8 @@ export default function RecipientsPage() {
                     Page {page} of {totalPages}
                   </span>
                   <button
-                    onClick={() => setPage(p => p + 1)}
-                    disabled={page >= totalPages}
+                    onClick={() => { setLoading(true); setPage(p => p + 1); }}
+                    disabled={loading || page >= totalPages}
                     className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next

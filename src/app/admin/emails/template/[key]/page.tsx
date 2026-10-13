@@ -1,67 +1,71 @@
 'use client';
 
 import { AdminTabs } from '@/components/admin/AdminTabs';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { TemplatePlayground, emailResponse } from '@/components/admin/emails/TemplatePlayground';
+import { templateCopySchema, templateDraftSchema, type ResolvedEmailTemplate } from '@/lib/email/template-contract';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Eye, TestTube, RotateCcw } from 'lucide-react';
 
-interface TemplateData {
-  key: string;
-  name: string;
-  description?: string;
-  layout: 'STANDARD' | 'HERO';
-  isMarketing: boolean;
-  isSystem: boolean;
-  subject: string;
-  preheader?: string;
-  heading: string;
-  bodyParagraphs: string[];
-  bulletItems?: string[];
-  ctaPrimaryLabel?: string;
-  ctaPrimaryUrl?: string;
-  ctaSecondaryLabel?: string;
-  ctaSecondaryUrl?: string;
-  footerText?: string;
-  variableSchema: Record<string, string>;
-  defaultTemplate?: any;
+interface TemplateData extends ResolvedEmailTemplate {
+  defaultTemplate?: Partial<ResolvedEmailTemplate> | null;
 }
 
-export default function TemplateEditorPage() {
-  const params = useParams();
+function TemplateEditor({ templateKey }: { templateKey: string }) {
   const router = useRouter();
-  const templateKey = params.key as string;
 
   const [template, setTemplate] = useState<TemplateData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const savePending = useRef(false);
+  const loadController = useRef<AbortController | null>(null);
+  const [savedContent, setSavedContent] = useState('');
+  const [playground, setPlayground] = useState<'preview' | 'test' | null>(null);
+  const [testing, setTesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTemplate();
+  const loadTemplate = useCallback(async (discardDraft = false) => {
+    loadController.current?.abort();
+    const controller = new AbortController();
+    loadController.current = controller;
+    try {
+      setLoading(true); setError(null);
+      const data = await emailResponse<{ template: TemplateData }>(await fetch(`/api/admin/emails/templates/${encodeURIComponent(templateKey)}`, { signal: controller.signal }));
+      if (controller.signal.aborted) return;
+      setSavedContent(JSON.stringify(templateCopySchema.parse(data.template)));
+      let restored = data.template;
+      try {
+        if (discardDraft) sessionStorage.removeItem(`email-template-draft:${templateKey}`);
+        const stored = sessionStorage.getItem(`email-template-draft:${templateKey}`);
+        if (stored) {
+          const draft = JSON.parse(stored);
+          restored = { ...data.template, ...templateDraftSchema.parse(draft), revision: typeof draft.revision === 'number' ? draft.revision : data.template.revision };
+          setSuccessMessage('Restored your unsaved draft for this template.');
+        }
+      } catch { /* A stale/invalid local draft must not replace authoritative data. */ }
+      setTemplate(restored);
+    } catch (cause) { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Failed to load template'); }
+    finally { if (!controller.signal.aborted) setLoading(false); }
   }, [templateKey]);
 
-  const loadTemplate = async () => {
+  useEffect(() => {
+    void loadTemplate();
+    return () => loadController.current?.abort();
+  }, [loadTemplate]);
+
+  useEffect(() => {
+    if (!template || loading) return;
     try {
-      setLoading(true);
-      const res = await fetch(`/api/admin/emails/templates/${templateKey}`);
-      
-      if (!res.ok) {
-        throw new Error('Failed to load template');
-      }
-      
-      const data = await res.json();
-      setTemplate(data.template);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load template');
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (JSON.stringify(templateDraftSchema.parse(template)) === savedContent) sessionStorage.removeItem(`email-template-draft:${templateKey}`);
+      else sessionStorage.setItem(`email-template-draft:${templateKey}`, JSON.stringify(template));
+    } catch { /* Invalid in-progress text remains in the mounted editor. */ }
+  }, [template, loading, savedContent, templateKey]);
 
   const handleSave = async () => {
-    if (!template) return;
-
+    if (!template || savePending.current) return;
+    const submitted = template;
+    savePending.current = true;
     try {
       setSaving(true);
       setError(null);
@@ -71,6 +75,7 @@ export default function TemplateEditorPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          revision: template.revision,
           subject: template.subject,
           preheader: template.preheader,
           heading: template.heading,
@@ -89,12 +94,15 @@ export default function TemplateEditorPage() {
         throw new Error(errorData.error || 'Failed to save template');
       }
 
-      setSuccessMessage('Template saved successfully!');
-      setTimeout(() => setSuccessMessage(null), 3000);
-      await loadTemplate(); // Reload to get updated version
+      const data = await res.json() as { template: TemplateData };
+      setSavedContent(JSON.stringify(templateCopySchema.parse(data.template)));
+      setTemplate(current => current === submitted ? { ...data.template, defaultTemplate: submitted.defaultTemplate ?? null }
+        : current ? { ...current, revision: data.template.revision } : current);
+      setSuccessMessage('Template saved. Any newer typing remains in your draft.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save template');
     } finally {
+      savePending.current = false;
       setSaving(false);
     }
   };
@@ -102,19 +110,7 @@ export default function TemplateEditorPage() {
   const handleReset = () => {
     if (!template?.defaultTemplate || !confirm('Reset to default template? All custom changes will be lost.')) return;
     
-    setTemplate({
-      ...template,
-      subject: template.defaultTemplate.subject,
-      preheader: template.defaultTemplate.preheader,
-      heading: template.defaultTemplate.heading,
-      bodyParagraphs: template.defaultTemplate.bodyParagraphs,
-      bulletItems: template.defaultTemplate.bulletItems,
-      ctaPrimaryLabel: template.defaultTemplate.ctaPrimaryLabel,
-      ctaPrimaryUrl: template.defaultTemplate.ctaPrimaryUrl,
-      ctaSecondaryLabel: template.defaultTemplate.ctaSecondaryLabel,
-      ctaSecondaryUrl: template.defaultTemplate.ctaSecondaryUrl,
-      footerText: template.defaultTemplate.footerText,
-    });
+    setTemplate({ ...template, ...templateCopySchema.parse(template.defaultTemplate) });
   };
 
   const updateArrayField = (field: 'bodyParagraphs' | 'bulletItems', index: number, value: string) => {
@@ -160,7 +156,7 @@ export default function TemplateEditorPage() {
               <p className="text-red-800">{error}</p>
             </div>
             <button
-              onClick={() => router.push('/admin/emails')}
+              onClick={() => router.push('/admin/emails?view=templates')}
               className="mt-4 flex items-center gap-2 text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -183,7 +179,7 @@ export default function TemplateEditorPage() {
         {/* Header */}
         <div className="mb-6">
           <button
-            onClick={() => router.push('/admin/emails')}
+            onClick={() => router.push('/admin/emails?view=templates')}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -224,14 +220,16 @@ export default function TemplateEditorPage() {
                 </button>
               )}
               <button
-                onClick={() => router.push(`/admin/emails/template/${templateKey}/preview`)}
+                disabled={testing}
+                onClick={() => setPlayground(current => current === 'preview' ? null : 'preview')}
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 <Eye className="w-4 h-4" />
                 Preview
               </button>
               <button
-                onClick={() => router.push(`/admin/emails/template/${templateKey}/test`)}
+                disabled={testing}
+                onClick={() => setPlayground(current => current === 'test' ? null : 'test')}
                 className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
               >
                 <TestTube className="w-4 h-4" />
@@ -251,15 +249,19 @@ export default function TemplateEditorPage() {
 
         {/* Success/Error Messages */}
         {successMessage && (
-          <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 text-green-800">
+          <div role="status" className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 text-green-800">
             {successMessage}
           </div>
         )}
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+          <div role="alert" className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
             {error}
           </div>
         )}
+
+        {playground && <TemplatePlayground key={templateKey} template={template} draft={template} mode={playground} onBusyChange={setTesting} />}
+        <p className="text-sm text-gray-500 mb-4">Unsaved drafts stay with this template during this browser session.</p>
+        {error && <button onClick={() => { if (confirm('Discard this draft and reload the saved template?')) void loadTemplate(true); }} className="text-sm underline mb-4">Reload saved version</button>}
 
         {/* Available Variables */}
         <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -285,6 +287,7 @@ export default function TemplateEditorPage() {
             </label>
             <input
               type="text"
+              aria-label="Subject line"
               value={template.subject}
               onChange={(e) => setTemplate({ ...template, subject: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
@@ -299,6 +302,7 @@ export default function TemplateEditorPage() {
             </label>
             <input
               type="text"
+              aria-label="Preheader text"
               value={template.preheader || ''}
               onChange={(e) => setTemplate({ ...template, preheader: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
@@ -313,6 +317,7 @@ export default function TemplateEditorPage() {
             </label>
             <input
               type="text"
+              aria-label="Main heading"
               value={template.heading}
               onChange={(e) => setTemplate({ ...template, heading: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
@@ -329,6 +334,7 @@ export default function TemplateEditorPage() {
               {template.bodyParagraphs.map((para, index) => (
                 <div key={index} className="flex gap-2">
                   <textarea
+                    aria-label={`Body paragraph ${index + 1}`}
                     value={para}
                     onChange={(e) => updateArrayField('bodyParagraphs', index, e.target.value)}
                     rows={3}
@@ -338,6 +344,7 @@ export default function TemplateEditorPage() {
                   {template.bodyParagraphs.length > 1 && (
                     <button
                       onClick={() => removeArrayItem('bodyParagraphs', index)}
+                      aria-label={`Remove body paragraph ${index + 1}`}
                       className="px-3 py-2 text-red-600 hover:text-red-800"
                     >
                       Remove
@@ -364,6 +371,7 @@ export default function TemplateEditorPage() {
                 <div key={index} className="flex gap-2">
                   <input
                     type="text"
+                    aria-label={`Bullet point ${index + 1}`}
                     value={item}
                     onChange={(e) => updateArrayField('bulletItems', index, e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
@@ -371,6 +379,7 @@ export default function TemplateEditorPage() {
                   />
                   <button
                     onClick={() => removeArrayItem('bulletItems', index)}
+                    aria-label={`Remove bullet point ${index + 1}`}
                     className="px-3 py-2 text-red-600 hover:text-red-800"
                   >
                     Remove
@@ -394,7 +403,8 @@ export default function TemplateEditorPage() {
               </label>
               <input
                 type="text"
-                value={template.ctaPrimaryLabel || ''}
+                aria-label="Primary button label"
+              value={template.ctaPrimaryLabel || ''}
                 onChange={(e) => setTemplate({ ...template, ctaPrimaryLabel: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 placeholder="e.g., Get Started"
@@ -406,7 +416,8 @@ export default function TemplateEditorPage() {
               </label>
               <input
                 type="text"
-                value={template.ctaPrimaryUrl || ''}
+                aria-label="Primary button URL"
+              value={template.ctaPrimaryUrl || ''}
                 onChange={(e) => setTemplate({ ...template, ctaPrimaryUrl: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 placeholder="https://... or {{variableName}}"
@@ -422,7 +433,8 @@ export default function TemplateEditorPage() {
               </label>
               <input
                 type="text"
-                value={template.ctaSecondaryLabel || ''}
+                aria-label="Secondary button label"
+              value={template.ctaSecondaryLabel || ''}
                 onChange={(e) => setTemplate({ ...template, ctaSecondaryLabel: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 placeholder="e.g., Learn More"
@@ -434,7 +446,8 @@ export default function TemplateEditorPage() {
               </label>
               <input
                 type="text"
-                value={template.ctaSecondaryUrl || ''}
+                aria-label="Secondary button URL"
+              value={template.ctaSecondaryUrl || ''}
                 onChange={(e) => setTemplate({ ...template, ctaSecondaryUrl: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 placeholder="https://... or {{variableName}}"
@@ -448,6 +461,7 @@ export default function TemplateEditorPage() {
               Footer Text (Optional)
             </label>
             <textarea
+              aria-label="Footer text"
               value={template.footerText || ''}
               onChange={(e) => setTemplate({ ...template, footerText: e.target.value })}
               rows={4}
@@ -475,4 +489,9 @@ export default function TemplateEditorPage() {
       </div>
     </>
   );
+}
+
+export default function TemplateEditorPage() {
+  const params = useParams<{ key: string }>();
+  return <TemplateEditor key={params.key} templateKey={params.key} />;
 }

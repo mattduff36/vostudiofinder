@@ -6,30 +6,30 @@
 
 import { db } from '@/lib/db';
 import crypto from 'crypto';
+import type { Prisma } from '@prisma/client';
 
 /**
  * Generate a secure unsubscribe token for a user
  * Stores the token in email_preferences table
  */
-export async function generateUnsubscribeToken(userId: string): Promise<string> {
-  // Generate random token
+export async function generateUnsubscribeToken(
+  userId: string,
+  client: Pick<Prisma.TransactionClient, 'email_preferences'> = db
+): Promise<string> {
+  // Reuse a stable token: rotating it would invalidate previous/frozen emails.
   const token = crypto.randomBytes(32).toString('hex');
-  
-  // Store or update token in email_preferences
-  await db.email_preferences.upsert({
+  const preference = await client.email_preferences.upsert({
     where: { user_id: userId },
-    create: {
-      user_id: userId,
-      unsubscribe_token: token,
-      marketing_opt_in: true, // Default ON as per your selection
-    },
-    update: {
-      unsubscribe_token: token,
-      updated_at: new Date(),
-    },
+    create: { user_id: userId, unsubscribe_token: token, marketing_opt_in: true },
+    update: {},
   });
-  
-  return token;
+  if (preference.unsubscribe_token) return preference.unsubscribe_token;
+  await client.email_preferences.updateMany({
+    where: { user_id: userId, unsubscribe_token: null }, data: { unsubscribe_token: token },
+  });
+  const current = await client.email_preferences.findUniqueOrThrow({ where: { user_id: userId } });
+  if (!current.unsubscribe_token) throw new Error('Unsubscribe token unavailable');
+  return current.unsubscribe_token;
 }
 
 /**
