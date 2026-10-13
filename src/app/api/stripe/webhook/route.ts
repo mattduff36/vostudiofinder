@@ -6,13 +6,12 @@ import { headers } from 'next/headers';
 import { sendTemplatedEmail } from '@/lib/email/send-templated';
 import { randomBytes } from 'crypto';
 import type Stripe from 'stripe';
-import { UserStatus } from '@prisma/client';
+import { UserStatus, type Prisma } from '@prisma/client';
 import {
   calculateEarlyRenewalExpiry,
   calculateStandardRenewalExpiry,
   calculate5YearRenewalExpiry,
 } from '@/lib/membership-renewal';
-import { performDowngrade } from '@/lib/subscriptions/downgrade';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
@@ -1029,130 +1028,6 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
 }
 
 /**
- * Handle refund events
- */
-async function handleRefund(refund: Stripe.Refund) {
-  console.log(`[INFO] Processing refund ${refund.id} for payment ${refund.payment_intent}`);
-
-  // IDEMPOTENCY CHECK: Check if this refund was already processed
-  const existingRefund = await db.refunds.findUnique({
-    where: { stripe_refund_id: refund.id },
-  });
-
-  if (existingRefund) {
-    console.log(`[INFO] Refund ${refund.id} already processed, skipping`);
-    return;
-  }
-
-  // Find payment record
-  const payment = await db.payments.findUnique({
-    where: { stripe_payment_intent_id: refund.payment_intent as string },
-  });
-
-  if (!payment) {
-    console.warn(`[WARNING] Payment not found for refund ${refund.id}`);
-    return;
-  }
-
-  // Update payment refund amount
-  // Safeguard: Ensure refund doesn't exceed payment amount (Stripe should prevent this, but add safety check)
-  const newRefundedAmount = Math.min(payment.refunded_amount + refund.amount, payment.amount);
-  const isFullRefund = newRefundedAmount >= payment.amount;
-
-  await db.payments.update({
-    where: { id: payment.id },
-    data: {
-      refunded_amount: newRefundedAmount,
-      status: isFullRefund ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
-      updated_at: new Date(),
-    },
-  });
-
-  console.log(`[SUCCESS] Payment ${payment.id} updated: refunded ${newRefundedAmount}/${payment.amount}`);
-
-  // CRITICAL: processed_by requires a valid user ID (FK constraint)
-  // For automated webhook refunds, use the first admin user or the user being refunded
-  const adminUser = await db.users.findFirst({
-    where: { role: 'ADMIN' },
-    select: { id: true },
-  });
-  
-  // Use admin if available, otherwise use payment user_id
-  // Safeguard: If payment.user_id is 'PENDING' (legacy case), use admin or log warning
-  let processedBy = adminUser?.id || payment.user_id;
-  
-  if (processedBy === 'PENDING' || !processedBy) {
-    if (adminUser) {
-      processedBy = adminUser.id;
-      console.warn(`[WARNING] Payment user_id is PENDING, using admin for processed_by`);
-    } else {
-      console.warn(`[WARNING] No admin found and payment.user_id is PENDING, refund may fail FK constraint`);
-      // Will fail FK constraint if invalid - better to fail than corrupt data
-      processedBy = payment.user_id;
-    }
-  }
-  
-  console.log(`[DEBUG] Recording refund processed by: ${processedBy === payment.user_id ? 'USER (no admin found)' : 'ADMIN'}`);
-
-  // Record refund
-  await db.refunds.create({
-    data: {
-      id: randomBytes(12).toString('base64url'),
-      stripe_refund_id: refund.id,
-      stripe_payment_intent_id: refund.payment_intent as string,
-      amount: refund.amount,
-      currency: refund.currency,
-      reason: refund.reason || null,
-      status: refund.status === 'succeeded' ? 'SUCCEEDED' : 'PENDING',
-      processed_by: processedBy, // Use admin user or fallback to payment user
-      user_id: payment.user_id, // Now guaranteed to be valid (not 'PENDING')
-      payment_id: payment.id,
-      created_at: new Date(),
-      updated_at: new Date(),
-    },
-  });
-
-  // If full refund, end membership immediately
-  if (isFullRefund) { // payment.user_id is now always valid
-    console.log(`🚫 Full refund detected, ending membership for user ${payment.user_id}`);
-    
-    // Find active subscription
-    const activeSubscription = await db.subscriptions.findFirst({
-      where: {
-        user_id: payment.user_id,
-        status: 'ACTIVE',
-      },
-      orderBy: { created_at: 'desc' },
-    });
-
-    if (activeSubscription) {
-      await db.subscriptions.update({
-        where: { id: activeSubscription.id },
-        data: {
-          status: 'CANCELLED',
-          cancelled_at: new Date(),
-          current_period_end: new Date(), // End immediately
-          updated_at: new Date(),
-        },
-      });
-
-      // Set studio to INACTIVE
-      await db.studio_profiles.updateMany({
-        where: { user_id: payment.user_id },
-        data: {
-          status: 'INACTIVE',
-          updated_at: new Date(),
-        },
-      });
-
-      const transition = await performDowngrade(payment.user_id, { sendEmail: false });
-      if (transition.error) throw new Error(transition.error);
-      console.log(`[SUCCESS] Membership ended for user ${payment.user_id}`);
-    }
-  }
-}
-
-/**
  * Main webhook handler
  */
 export async function POST(request: NextRequest) {
@@ -1207,6 +1082,38 @@ export async function POST(request: NextRequest) {
       throw err;
     }
 
+    // Refund containment runs before generic idempotency/processed bookkeeping.
+    // A signed receipt is evidence to reconcile; it is not a settled refund or
+    // permission to alter any membership, placement, visibility or renewal.
+    if (['charge.refunded', 'refund.created', 'refund.updated', 'refund.failed'].includes(event.type)) {
+      try {
+        const receipt = await db.stripe_webhook_events.upsert({
+          where: { stripe_event_id: event.id },
+          create: {
+            id: randomBytes(12).toString('base64url'),
+            stripe_event_id: event.id,
+            type: event.type,
+            payload: event.data.object as unknown as Prisma.InputJsonValue,
+            processed: false,
+            error: 'Refund processing paused; provider and access reconciliation required.',
+          },
+          // Preserve any earlier receipt and its recorded processing history.
+          update: {},
+          // Existing columns only: this slice needs no expanded schema/client.
+          select: { id: true, processed: true },
+        });
+        return NextResponse.json({
+          received: true,
+          refund_processing_paused: true,
+          reconciliation_required: true,
+          receipt_state: receipt.processed ? 'previously_processed' : 'pending_review',
+        });
+      } catch {
+        console.error('[Refund containment] Signed receipt could not be retained');
+        return NextResponse.json({ error: 'Refund receipt could not be retained. Retry delivery.' }, { status: 503 });
+      }
+    }
+
     // Ensure idempotency
     console.log(`[DEBUG ${requestTimestamp}] Checking event idempotency for event ${event.id}...`);
     const shouldProcess = await ensureEventIdempotency(
@@ -1250,20 +1157,6 @@ export async function POST(request: NextRequest) {
           } else {
             console.log(`[DEBUG ${eventTimestamp}] ⚠️ Session ${session.id} mode=${session.mode}, skipping`);
           }
-          break;
-        }
-
-        case 'charge.refunded': {
-          const charge = event.data.object as Stripe.Charge;
-          if (charge.refunds?.data[0]) {
-            await handleRefund(charge.refunds.data[0]);
-          }
-          break;
-        }
-
-        case 'refund.updated': {
-          const refund = event.data.object as Stripe.Refund;
-          await handleRefund(refund);
           break;
         }
 
