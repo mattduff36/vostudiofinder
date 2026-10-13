@@ -1,0 +1,293 @@
+{
+  "stats": {
+    "startTime": "2026-10-13T00:11:59.179Z",
+    "duration": 157393.954,
+    "expected": 34,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "routes": [
+    {
+      "route": "/admin",
+      "data": "server read-only fixture",
+      "navigation": "passed",
+      "reads": [],
+      "durationMs": 6929,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/studios",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/studios"
+      ],
+      "durationMs": 4318,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/analytics",
+      "data": "server read-only fixture",
+      "navigation": "passed",
+      "reads": [],
+      "durationMs": 7099,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/payments",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/payments"
+      ],
+      "durationMs": 4230,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/payments/fixture-payment",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/payments/fixture-payment",
+        "/api/admin/payments"
+      ],
+      "durationMs": 4208,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/reservations",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/reservations"
+      ],
+      "durationMs": 4005,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/waitlist",
+      "data": "server read-only fixture",
+      "navigation": "passed",
+      "reads": [],
+      "durationMs": 6977,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/faq",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/faq"
+      ],
+      "durationMs": 4072,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/message-templates",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/message-templates"
+      ],
+      "durationMs": 4401,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/platform-updates",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/platform-updates"
+      ],
+      "durationMs": 4137,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/error-log",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/error-log"
+      ],
+      "durationMs": 4948,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/suggestions",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/support-tickets"
+      ],
+      "durationMs": 4357,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/support",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/support-tickets"
+      ],
+      "durationMs": 6609,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/sandbox",
+      "data": "local form state",
+      "navigation": "passed",
+      "reads": [],
+      "durationMs": 7708,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/emails",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/emails/templates",
+        "/api/admin/emails/campaigns",
+        "/api/admin/emails/stats"
+      ],
+      "durationMs": 5217,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/emails/recipients",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/emails/users"
+      ],
+      "durationMs": 4606,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/emails/campaigns/create",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/emails/templates"
+      ],
+      "durationMs": 4448,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/emails/campaigns/fixture-campaign",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/emails/campaigns/fixture-campaign",
+        "/api/admin/emails/campaigns/fixture-campaign/deliveries"
+      ],
+      "durationMs": 5553,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/emails/template/new",
+      "data": "local form state",
+      "navigation": "passed",
+      "reads": [],
+      "durationMs": 3950,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/emails/template/fixture-template",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/emails/templates/fixture-template"
+      ],
+      "durationMs": 4917,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/emails/template/fixture-template/preview",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/emails/templates/fixture-template",
+        "/api/admin/emails/preview"
+      ],
+      "durationMs": 5567,
+      "result": "PASS"
+    },
+    {
+      "route": "/admin/emails/template/fixture-template/test",
+      "data": "held API initial-to-loaded",
+      "navigation": "passed",
+      "reads": [
+        "/api/admin/emails/templates/fixture-template",
+        "/api/admin/emails/preview"
+      ],
+      "durationMs": 5148,
+      "result": "PASS"
+    }
+  ],
+  "recoveryChecks": [
+    {
+      "test": "error recovery /admin/faq",
+      "result": "PASS",
+      "durationMs": 2398
+    },
+    {
+      "test": "error recovery /admin/payments",
+      "result": "PASS",
+      "durationMs": 3260
+    },
+    {
+      "test": "error recovery /admin/payments/fixture-payment",
+      "result": "PASS",
+      "durationMs": 2652
+    },
+    {
+      "test": "error recovery /admin/reservations",
+      "result": "PASS",
+      "durationMs": 2333
+    },
+    {
+      "test": "error recovery /admin/error-log",
+      "result": "PASS",
+      "durationMs": 2813
+    },
+    {
+      "test": "error recovery /admin/suggestions",
+      "result": "PASS",
+      "durationMs": 2455
+    },
+    {
+      "test": "error recovery /admin/emails",
+      "result": "PASS",
+      "durationMs": 1825
+    },
+    {
+      "test": "error recovery /admin/emails/recipients",
+      "result": "PASS",
+      "durationMs": 2108
+    },
+    {
+      "test": "error recovery /admin/emails/template/fixture-template/preview",
+      "result": "PASS",
+      "durationMs": 2058
+    },
+    {
+      "test": "error recovery /admin/emails/campaigns/fixture-campaign",
+      "result": "PASS",
+      "durationMs": 1890
+    },
+    {
+      "test": "server Analytics unavailable response recovers after reload without masquerading as zero",
+      "result": "PASS",
+      "durationMs": 6654
+    },
+    {
+      "test": "campaign refresh clears a recovered read error",
+      "result": "PASS",
+      "durationMs": 2259
+    }
+  ],
+  "uncaughtBrowserErrors": 0,
+  "forbiddenApiRequests": 0,
+  "boundary": "Actual routes/styles in an isolated Next development checkout. Synthetic browser API responses and guarded read-only server database substitute; no live integrations."
+}

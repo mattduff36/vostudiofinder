@@ -1,7 +1,7 @@
 # Testing
 
 Status: canonical verification guide
-Last reviewed: 31 August 2026 (Phase 2E Next.js proxy migration)
+Last reviewed: 12 October 2026 (reviewed admin implementation)
 
 ## Current tools
 
@@ -86,3 +86,46 @@ Remaining backlog after Phase 2E includes disabled CI, Prisma query logging, and
 ## Do not weaken proof
 
 Do not skip, delete, loosen or rewrite assertions simply to make a change pass. Fix the implementation or document a genuine baseline/contract change. Do not treat a skipped or refused class B/C run as a passed test.
+
+## Reviewed admin regression checks
+
+The October 2026 admin work adds focused tests in `tests/unit/admin`, `tests/unit/email` and `tests/unit/payments`. `npm test` includes them. Keep the original completion compatibility suite in the explicit selection as well:
+
+```sh
+npx jest tests/profile-completion.test.ts tests/unit/admin/profile-completion-contract.test.ts --runInBand
+npm test
+npm run type-check
+npm run lint
+```
+
+The completion tests preserve all 18 predicates, required/optional counts and legacy weighting. Other targeted checks cover editor write coordination, list response ownership, role-only access, overlays/navigation, campaign recipient identity and recovery, refund outcomes, notes conflicts, error redaction and content controls. These tests mock authentication, database and provider boundaries where relevant; their assertions do not prove real SQL transaction behavior.
+
+### Actual PostgreSQL transaction gate
+
+The following six reviewed suites require a deliberately provisioned, disposable PostgreSQL fixture. They accept only the exact host `127.0.0.1`, port `55432` and database `vsf_admin_fixture_utf8` through explicit `TEST_DATABASE_URL`; they refuse a shared database fallback. The initial schema and the three additive admin migrations must already be applied to that fixture, with its matching Prisma client generated. Use an empty campaign queue for global worker/capacity tests. No fixture provisioning or migration command below targets an application database.
+
+```sh
+npx jest --runInBand \
+  tests/integration/admin/studio-list.test.ts \
+  tests/integration/admin/shared-workflows.test.ts \
+  tests/integration/admin/content-reservation-writes.test.ts \
+  tests/integration/admin/refund-lifecycle.test.ts \
+  tests/integration/admin/purchased-benefit-holds.test.ts \
+  tests/integration/email/campaign-lifecycle.test.ts
+```
+
+These tests use actual transactions, constraints, row/advisory locks and independent clients. All Stripe, email and Sentry effects use synthetic adapters. Tests remove only their invented fixture IDs in foreign-key-safe order; a cleanup failure must be fixed, not hidden by dropping constraints. The gate covers coherent studio rows/counts and derived ordering, support replay/status conflicts, triage cleanup/reimport, FAQ concurrent reorder, reservation activation/deletion, refund amount reservations and recovery, exact benefit intervals/overlaps, campaign claims, identity changes and a bounded 10,000-recipient start. Logged bytes, query counts and timings describe these fixtures, not production capacity or a service-level objective.
+
+### Admin browser gate
+
+`playwright.admin.config.ts` and `tests/browser/admin-studios-reviewed.spec.ts` exercise the actual admin routes with a signed synthetic session and intercepted API responses. The controlled list contains 480 studios so the 80-to-400 loaded prefix and subsequent paging are exercised. External browser requests are blocked. The test server receives a fake unreachable loopback database, fake provider keys and disabled operational flags.
+
+```sh
+npx playwright test --config=playwright.admin.config.ts
+```
+
+The default starts an owned Next development server on `127.0.0.1:4208`. For production-runtime verification, build in an explicitly safe fixture environment first and set `VSF_ADMIN_USE_BUILD=1` for that invocation; it then uses `next start` against the existing build. Never run a build and development server against the same `.next` directory concurrently. `VSF_ADMIN_CHROMIUM_PATH` optionally selects an existing local Chromium executable. Normal results go to `test-results/admin-reviewed-v2`; `VSF_ADMIN_BROWSER_OUTPUT_DIR` can select a separate evidence directory.
+
+The browser checks cover collapsed screenshots, simultaneous expansion without reads, explicit section editing, clean close without list refresh, partial privacy saves, ordinary save, dirty-close decisions, native background inertness, focus/scroll restoration, Back/Forward draft recovery and the Suggestions drawer's actual responsive breakpoint. `VSF_ADMIN_BASELINE_DIR` can point at an untouched checkout for controlled collapsed-screen comparisons; revised-only assertions are then deliberately skipped and must not be counted as baseline passes.
+
+Shared owner/self-edit, image-cropper and public-image/What's New checks use an isolated test checkout importing unchanged current components and canonical styles. Such test-only fixture routes/layouts must never be copied into the production app. Record which server/API boundaries are substituted, and distinguish component browser evidence from a full customer/auth/provider integration test. The dated [implementation report](archived/ADMIN_REVIEW_IMPLEMENTATION_2026-10-13.md) carries the 22-route smoke matrix, concrete run results and controlled screenshots. The [portable isolated harness](../tests/fixtures/admin-route-smoke-harness/README.md) preserves the exact route/component specs, configs, synthetic API/server adapters and explicit reproduction boundaries. Keep its `isolated-overrides` under tests and copy them only into a disposable validation checkout; never into application `src`.

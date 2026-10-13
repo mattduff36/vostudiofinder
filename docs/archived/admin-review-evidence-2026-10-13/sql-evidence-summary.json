@@ -1,0 +1,40 @@
+{
+  "suites": {
+    "integration/admin/studio-list.test.ts": {
+      "sourceReport": "sql-final.json",
+      "tests": 9,
+      "passed": 9
+    },
+    "integration/email/campaign-lifecycle.test.ts": {
+      "sourceReport": "sql-final.json",
+      "tests": 15,
+      "passed": 15
+    },
+    "integration/admin/shared-workflows.test.ts": {
+      "sourceReport": "sql-final.json",
+      "tests": 6,
+      "passed": 6
+    },
+    "integration/admin/refund-lifecycle.test.ts": {
+      "sourceReport": "sql-recheck.json",
+      "tests": 12,
+      "passed": 12
+    },
+    "integration/admin/purchased-benefit-holds.test.ts": {
+      "sourceReport": "sql-recheck.json",
+      "tests": 5,
+      "passed": 5
+    },
+    "integration/admin/content-reservation-writes.test.ts": {
+      "sourceReport": "sql-recheck.json",
+      "tests": 4,
+      "passed": 4
+    }
+  },
+  "suiteCount": 6,
+  "testCount": 51,
+  "allPassed": true,
+  "database": "isolated PostgreSQL18.4 UTF8 loopback55432",
+  "providerCalls": "mocked",
+  "migrations": "baseline plus all3 additive migrations applied successfully"
+}

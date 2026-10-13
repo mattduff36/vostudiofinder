@@ -1,7 +1,7 @@
 # Environment Configuration
 
 Status: canonical environment contract guide
-Last reviewed: 2 September 2026 (Vercel/Docker output split)
+Last reviewed: 12 October 2026 (admin workflow and refund rollout gates)
 
 ## Principle
 
@@ -77,6 +77,23 @@ These names are not referenced by current `src/`, `scripts/`, or `next.config.ts
 - Production: values live in the deployment platform secret store, not committed files.
 
 Before database, Stripe, real-email or destructive operations, identify the environment explicitly.
+
+## Admin processing gates
+
+These are server-only values. Each is off when absent or set to anything other than the exact string `true`; `env.example` deliberately sets them to `false`.
+
+| Variable | Enabled behaviour | Dependencies |
+|---|---|---|
+| `REFUND_LIFECYCLE_ENABLED` | Reconciles refund receipts/operations; records exact forward purchased-benefit grants; uses surviving access for refund-adjusted accounts. | The additive admin schema must be deployed first. Enabling reconciliation may complete already accepted financial/access/billing effects, so it requires an environment-specific rollout decision. |
+| `ADMIN_REFUNDS_ENABLED` | Allows preparing and starting a new admin refund. | Also requires lifecycle. Pausing it does not erase existing operations or prevent recovery of previously submitted money. An untouched prepared operation cannot start later while initiation is paused. |
+| `REFUND_NOTIFICATIONS_ENABLED` | Allows the independent financial notification dispatcher to submit a frozen refund message. | Also requires lifecycle and the configured email provider/sender. Money, access and renewal recovery do not require this flag. |
+| `EMAIL_CAMPAIGNS_ENABLED` | Allows admin campaign starts and queue processing. | The new email queue schema and historical campaign review must be complete. It does not control unrelated transactional mail or the separate refund dispatcher. |
+
+`CRON_SECRET` protects `/api/cron/reconcile-refunds` as well as the existing authenticated cron routes. The refund worker returns a paused no-op while lifecycle is off, after validating authentication. A scheduler entry and a route's operational activation are separate decisions; current schedules remain defined by `vercel.json`.
+
+**Closed flags do not make the generated Prisma client compatible with an old database.** Apply the three reviewed additive admin migrations before deploying this complete version. Shared-model reads and writes can select new columns even when the corresponding worker is paused. The ordered migration list, expand-first procedure, historical review and rollback limits are in [Operations](OPERATIONS.md#admin-workflow-schema-rollout).
+
+The admin integration suites under `tests/integration/admin/` require the explicitly provisioned disposable PostgreSQL target, currently guarded as host `127.0.0.1`, port `55432`, database `vsf_admin_fixture_utf8`. The generic `TEST_DATABASE_URL` example is not permission to remove that guard or use the shared development database. These suites mock Stripe and email providers; a missing isolated target is a blocked verification gate.
 
 ## Docker
 

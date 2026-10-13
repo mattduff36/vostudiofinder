@@ -1,0 +1,16 @@
+{
+  "src/components/dashboard/ProfileEditForm.tsx": true,
+  "src/components/dashboard/ImageGalleryManager.tsx": true,
+  "src/components/profile/EditProfileModal.tsx": true,
+  "src/components/profile/AvatarUpload.tsx": true,
+  "src/components/images/ImageCropperModal.tsx": true,
+  "src/components/ui/ManagedOverlay.tsx": true,
+  "src/components/ui/Modal.tsx": true,
+  "src/components/ui/UnsavedChangesDialog.tsx": true,
+  "src/hooks/useOverlay.ts": true,
+  "src/hooks/useUnsavedNavigationGuard.ts": true,
+  "src/lib/ui/overlay-manager.ts": true,
+  "src/components/studio/profile/mobile/ImageModal.tsx": true,
+  "src/components/whats-new/WhatsNewModal.tsx": true,
+  "src/app/globals.css": true
+}

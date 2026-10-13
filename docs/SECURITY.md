@@ -1,7 +1,7 @@
 # Security
 
 Status: canonical security engineering guide
-Last reviewed: 2 September 2026 (Phase 2F Auth.js security baseline)
+Last reviewed: 12 October 2026 (reviewed admin implementation)
 
 ## High-risk domains
 
@@ -26,6 +26,10 @@ Treat these as CRITICAL under TEE:
 
 Admin UI visibility is not authorization. Every sensitive server route must enforce the appropriate server-side session/role/membership rule.
 
+The reviewed admin studio, message-template, shared-note and build-badge paths use the established `ADMIN` role. Matching a legacy owner email or username is not an authorization alternative. The legitimate owners' stored roles were checked read-only before those exceptions were removed; the change does not grant roles. The existing JWT contains the role captured at sign-in, so acceptance after a role/session change requires a fresh valid sign-in, not merely a page refresh. Keep `src/lib/auth.ts` as the authentication authority.
+
+An admin editor's customer target is explicit and separate from the signed-in administrator. Profile reads, images, visibility, verification and privacy saves must retain that captured target; an absent admin target must fail instead of falling back to the owner endpoint.
+
 ## Input and output
 
 Validate untrusted request input. Avoid reflecting raw provider/database errors to clients. Sanitize user-generated content where it is rendered into HTML/email/metadata contexts.
@@ -37,6 +41,16 @@ Reset, verification, OAuth and retry links are security-sensitive capabilities. 
 ## Webhooks
 
 Verify provider signatures/secrets before processing Stripe, Resend or Sentry webhook data. Preserve idempotency for events that can be delivered repeatedly.
+
+The Sentry endpoint requires a correctly formed, valid raw-body HMAC before parsing or persistence. Missing, malformed and incorrect signatures are rejected; missing server configuration is an unavailable integration, not permission to accept unsigned requests. Confirm the deployed Sentry integration supplies the supported signature before release. Do not restore unsigned acceptance as a rollback.
+
+Error detail and ingestion use `src/lib/admin/error-log/redaction.ts` for bounded sanitization of live and cached samples, nested credentials, URL queries, headers and structured bodies. Unstructured request bodies are omitted. Responses must not expose raw provider/database errors or token fragments. Response-time protection does not depend on rewriting historical stored events.
+
+## Durable email and refund operations
+
+Support replies, campaign deliveries and refund notifications persist the reviewed recipient, frozen content, stable provider key and durable outcome before dispatch. Their stored payloads can contain personal data or capability links: restrict access and approve an operational retention policy before activation. Uncertain outcomes and accepted-operation evidence must survive UI rollback, account/ticket deletion and payload-retention jobs until their defined recovery obligations are resolved.
+
+Refund money, benefit changes, future billing and notification are independently recorded effects. Authorization or retry of one does not authorize another money movement or email. Historical and external operations with uncertain attribution require evidence; never infer a human actor or generate new provider keys to bypass an unresolved outcome. See `docs/OPERATIONS.md` for release flags, migration order and recovery boundaries.
 
 ## Production logging
 

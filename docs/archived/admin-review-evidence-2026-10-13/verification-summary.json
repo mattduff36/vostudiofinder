@@ -1,0 +1,487 @@
+{
+  "specification": "Voiceover Studio Finder Admin Implementation Plan, Reviewed v2; recommended decisions approved by Matt",
+  "baseline": "237569c02c41abe49c0ebc06dba40ab6d6c3d4ae",
+  "sourceFingerprint": {
+    "algorithm": "SHA256 of sorted path + NUL + SHA256(file) for src files, Prisma schema/migrations, package.json/package-lock.json, vercel.json",
+    "fileCount": 565,
+    "sha256": "89471e43076563a41db4a00c7a3c1059469117526182510f73ff903742d3b5e2"
+  },
+  "unitAndCompatibility": {
+    "success": true,
+    "numTotalTestSuites": 60,
+    "numPassedTestSuites": 60,
+    "numTotalTests": 568,
+    "numPassedTests": 568,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "unitInvocation": "jest tests/unit tests/profile-completion.test.ts --runInBand",
+  "sql": {
+    "suites": {
+      "integration/admin/studio-list.test.ts": {
+        "sourceReport": "sql-final.json",
+        "tests": 9,
+        "passed": 9
+      },
+      "integration/email/campaign-lifecycle.test.ts": {
+        "sourceReport": "sql-final.json",
+        "tests": 15,
+        "passed": 15
+      },
+      "integration/admin/shared-workflows.test.ts": {
+        "sourceReport": "sql-final.json",
+        "tests": 6,
+        "passed": 6
+      },
+      "integration/admin/refund-lifecycle.test.ts": {
+        "sourceReport": "sql-recheck.json",
+        "tests": 12,
+        "passed": 12
+      },
+      "integration/admin/purchased-benefit-holds.test.ts": {
+        "sourceReport": "sql-recheck.json",
+        "tests": 5,
+        "passed": 5
+      },
+      "integration/admin/content-reservation-writes.test.ts": {
+        "sourceReport": "sql-recheck.json",
+        "tests": 4,
+        "passed": 4
+      }
+    },
+    "suiteCount": 6,
+    "testCount": 51,
+    "allPassed": true,
+    "database": "isolated PostgreSQL18.4 UTF8 loopback55432",
+    "providerCalls": "mocked",
+    "migrations": "baseline plus all3 additive migrations applied successfully"
+  },
+  "sqlQualification": "Aggregate of three passing suites in sql-final.json and three passing suites in sql-recheck.json after fixes; not one all-green invocation. Isolated providers and database, not populated production history.",
+  "studioBrowser": {
+    "stats": {
+      "startTime": "2026-10-13T00:00:38.515Z",
+      "duration": 42051.92800000001,
+      "expected": 6,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "tests": [
+      {
+        "title": "admin-studios-reviewed.spec.ts / collapsed layouts at desktop, tablet and mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 1834
+          }
+        ]
+      },
+      {
+        "title": "admin-studios-reviewed.spec.ts / native focus, nested Escape and browser Back/Forward retain the correct draft",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 6637
+          }
+        ]
+      },
+      {
+        "title": "admin-studios-reviewed.spec.ts / tablet suggestion drawer releases focus and scroll at its real desktop breakpoint",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 4000
+          }
+        ]
+      },
+      {
+        "title": "admin-studios-reviewed.spec.ts / expand, checklist, clean close, save, dirty-close protection and independent privacy save",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 5496
+          }
+        ]
+      },
+      {
+        "title": "admin-studios-reviewed.spec.ts / mobile expansion and bounded 80/160/400-row navigation",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 13795
+          }
+        ]
+      },
+      {
+        "title": "admin-studios-reviewed.spec.ts / summary click and keyboard disclosure stay independent of the existing row controls",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 7991
+          }
+        ]
+      }
+    ]
+  },
+  "sharedComponentBrowser": {
+    "stats": {
+      "startTime": "2026-10-12T23:49:35.119Z",
+      "duration": 22949.45,
+      "expected": 3,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "tests": [
+      {
+        "title": "components-isolated.spec.ts / owner editing retains section draft, nested crop cancel focus/scroll, and saves through owner API",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 5362
+          }
+        ]
+      },
+      {
+        "title": "components-isolated.spec.ts / an admin editing self resolves its own studio without falling into another editor target",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 1946
+          }
+        ]
+      },
+      {
+        "title": "components-isolated.spec.ts / mobile public images and Whats New release focus, scroll and document classes",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 4045
+          }
+        ]
+      }
+    ]
+  },
+  "typecheck": {
+    "status": "passed",
+    "scope": "application TypeScript configuration; tests/scripts excluded by existing configuration"
+  },
+  "lint": {
+    "status": "passed",
+    "errors": 0,
+    "warnings": 758,
+    "command": "npm run lint"
+  },
+  "build": {
+    "status": "passed",
+    "buildId": "53EovhCDR5Ykul_Yxcta0",
+    "command": "next build --turbopack",
+    "configuration": "fake loopback database and fake providers, operational flags false"
+  },
+  "browserBoundaries": "Chromium with controlled desktop/mobile viewports, synthetic ADMIN session and controlled API/provider fixtures; owner/self/public checks import unchanged production components in an isolated fixture checkout. Not physical device, Safari, live provider or deployed authentication evidence.",
+  "adminRoutesBrowser": {
+    "stats": {
+      "startTime": "2026-10-13T00:11:59.179Z",
+      "duration": 157393.954,
+      "expected": 34,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "routes": [
+      {
+        "route": "/admin",
+        "data": "server read-only fixture",
+        "navigation": "passed",
+        "reads": [],
+        "durationMs": 6929,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/studios",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/studios"
+        ],
+        "durationMs": 4318,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/analytics",
+        "data": "server read-only fixture",
+        "navigation": "passed",
+        "reads": [],
+        "durationMs": 7099,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/payments",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/payments"
+        ],
+        "durationMs": 4230,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/payments/fixture-payment",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/payments/fixture-payment",
+          "/api/admin/payments"
+        ],
+        "durationMs": 4208,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/reservations",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/reservations"
+        ],
+        "durationMs": 4005,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/waitlist",
+        "data": "server read-only fixture",
+        "navigation": "passed",
+        "reads": [],
+        "durationMs": 6977,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/faq",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/faq"
+        ],
+        "durationMs": 4072,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/message-templates",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/message-templates"
+        ],
+        "durationMs": 4401,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/platform-updates",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/platform-updates"
+        ],
+        "durationMs": 4137,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/error-log",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/error-log"
+        ],
+        "durationMs": 4948,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/suggestions",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/support-tickets"
+        ],
+        "durationMs": 4357,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/support",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/support-tickets"
+        ],
+        "durationMs": 6609,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/sandbox",
+        "data": "local form state",
+        "navigation": "passed",
+        "reads": [],
+        "durationMs": 7708,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/emails",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/emails/templates",
+          "/api/admin/emails/campaigns",
+          "/api/admin/emails/stats"
+        ],
+        "durationMs": 5217,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/emails/recipients",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/emails/users"
+        ],
+        "durationMs": 4606,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/emails/campaigns/create",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/emails/templates"
+        ],
+        "durationMs": 4448,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/emails/campaigns/fixture-campaign",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/emails/campaigns/fixture-campaign",
+          "/api/admin/emails/campaigns/fixture-campaign/deliveries"
+        ],
+        "durationMs": 5553,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/emails/template/new",
+        "data": "local form state",
+        "navigation": "passed",
+        "reads": [],
+        "durationMs": 3950,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/emails/template/fixture-template",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/emails/templates/fixture-template"
+        ],
+        "durationMs": 4917,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/emails/template/fixture-template/preview",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/emails/templates/fixture-template",
+          "/api/admin/emails/preview"
+        ],
+        "durationMs": 5567,
+        "result": "PASS"
+      },
+      {
+        "route": "/admin/emails/template/fixture-template/test",
+        "data": "held API initial-to-loaded",
+        "navigation": "passed",
+        "reads": [
+          "/api/admin/emails/templates/fixture-template",
+          "/api/admin/emails/preview"
+        ],
+        "durationMs": 5148,
+        "result": "PASS"
+      }
+    ],
+    "recoveryChecks": [
+      {
+        "test": "error recovery /admin/faq",
+        "result": "PASS",
+        "durationMs": 2398
+      },
+      {
+        "test": "error recovery /admin/payments",
+        "result": "PASS",
+        "durationMs": 3260
+      },
+      {
+        "test": "error recovery /admin/payments/fixture-payment",
+        "result": "PASS",
+        "durationMs": 2652
+      },
+      {
+        "test": "error recovery /admin/reservations",
+        "result": "PASS",
+        "durationMs": 2333
+      },
+      {
+        "test": "error recovery /admin/error-log",
+        "result": "PASS",
+        "durationMs": 2813
+      },
+      {
+        "test": "error recovery /admin/suggestions",
+        "result": "PASS",
+        "durationMs": 2455
+      },
+      {
+        "test": "error recovery /admin/emails",
+        "result": "PASS",
+        "durationMs": 1825
+      },
+      {
+        "test": "error recovery /admin/emails/recipients",
+        "result": "PASS",
+        "durationMs": 2108
+      },
+      {
+        "test": "error recovery /admin/emails/template/fixture-template/preview",
+        "result": "PASS",
+        "durationMs": 2058
+      },
+      {
+        "test": "error recovery /admin/emails/campaigns/fixture-campaign",
+        "result": "PASS",
+        "durationMs": 1890
+      },
+      {
+        "test": "server Analytics unavailable response recovers after reload without masquerading as zero",
+        "result": "PASS",
+        "durationMs": 6654
+      },
+      {
+        "test": "campaign refresh clears a recovered read error",
+        "result": "PASS",
+        "durationMs": 2259
+      }
+    ],
+    "uncaughtBrowserErrors": 0,
+    "forbiddenApiRequests": 0,
+    "boundary": "Actual routes/styles in an isolated Next development checkout. Synthetic browser API responses and guarded read-only server database substitute; no live integrations."
+  },
+  "codeCommit": "a757a515b1b502371ec5d0adb66233d0b34a4cd4",
+  "postTestNormalization": "Removed only one extra trailing blank line at EOF of src/lib/payments/refunds/presentation.ts for git diff --check after the main build/tests. No semantic change; source manifest updated without rerunning those checks.",
+  "fixtureCleanup": "Owned PostgreSQL18.4 fixture stopped cleanly through exact pg_ctl data-directory lifecycle after successful SQL evidence capture. No application database changed."
+}
