@@ -695,7 +695,7 @@ export default function AdminStudiosPage() {
                     Delete
                   </button>
                 </div>
-                <div id={`studio-mobile-${studio.id}`} hidden={!expandedStudios.has(studio.id)}>{expandedStudios.has(studio.id) && <StudioDetails studio={studio} />}</div>
+                <div id={`studio-mobile-${studio.id}`} hidden={!expandedStudios.has(studio.id)}>{expandedStudios.has(studio.id) && <StudioDetails studio={studio} onEdit={section => handleEditStudio(studio, section)} />}</div>
               </div>
             ))}
 
@@ -1100,7 +1100,7 @@ export default function AdminStudiosPage() {
                         </td>
                       )}
                     </tr>
-                    <tr id={`studio-desktop-${studio.id}`} hidden={!expandedStudios.has(studio.id)}><td colSpan={visibleColumnCount} className="px-6 pb-5">{expandedStudios.has(studio.id) && <StudioDetails studio={studio} />}</td></tr>
+                    <tr id={`studio-desktop-${studio.id}`} hidden={!expandedStudios.has(studio.id)}><td colSpan={visibleColumnCount} className="px-6 pb-5">{expandedStudios.has(studio.id) && <StudioDetails studio={studio} onEdit={section => handleEditStudio(studio, section)} />}</td></tr>
                     </Fragment>
                   ))}
                 </tbody>

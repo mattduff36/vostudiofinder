@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { ADMIN_STUDIO_SELECT, serializeAdminStudio, studioListEnforcementInput } from '@/lib/admin/studios/summary';
+import { addAdminStudioDetails } from '@/lib/admin/studios/admin-details';
 import { STUDIO_MAX_WINDOW } from '@/components/admin/studios/types';
 import { studioListQuerySchema, sortDerivedStudios } from '@/lib/admin/studios/list-query';
 import { computeEnforcementDecisions, applyEnforcementDecisions } from '@/lib/subscriptions/enforcement';
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
       const total = await tx.studio_profiles.count({ where });
       let studios = rows.map(serializeAdminStudio);
       if (derived) studios = sortDerivedStudios(studios, sortBy, sortOrder).slice(offset, offset + limit);
+      studios = await addAdminStudioDetails(tx, studios);
       return { studios, pagination: { total, offset, limit, returned: studios.length,
         hasMore: offset + studios.length < total, maxLimit: STUDIO_MAX_WINDOW } };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead });

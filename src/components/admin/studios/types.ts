@@ -1,6 +1,17 @@
 import type { CompletionBreakdown, CompletionInput } from '@/lib/utils/profile-completion';
 
+export interface AdminStudioDetails {
+  accountCreatedAt: string;
+  billing: string;
+  renewal: string;
+  latestPayment: string | null;
+  openSupport: number;
+  openRefunds: number;
+  note: { text: string; updatedAt: string | null; version: string | null };
+}
+
 export interface Studio extends CompletionInput {
+  admin_details?: AdminStudioDetails;
   id: string;
   name: string;
   description?: string | null;

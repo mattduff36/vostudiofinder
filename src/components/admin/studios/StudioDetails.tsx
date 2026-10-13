@@ -2,11 +2,10 @@
 
 import { useState, type ReactNode } from 'react';
 import { CheckCircle, Circle, Copy } from 'lucide-react';
-import type { Studio } from './types';
-import { COMPLETION_CONNECTION_FIELDS } from '@/lib/utils/profile-completion';
+import type { Studio, AdminStudioDetails } from './types';
+import { completionEditSection, type ProfileSectionId } from '@/lib/profile/completion-sections';
 import { formatDate } from '@/lib/date-format';
 
-const connectionLabels = ['Source Connect', 'Source-Nexus', 'Phone Patch', 'Session Link Pro', 'Zoom or Teams', 'Cleanfeed', 'Riverside', 'Google Hangouts', 'ipDTL', 'SquadCast', 'Zencastr', 'DIVA'];
 const groupHeading = '!text-sm !font-semibold text-gray-900 !mt-0 !mb-2';
 
 export function outstandingStudioText(studio: Studio): string {
@@ -27,16 +26,40 @@ function DetailFact({ label, children }: { label: string; children: ReactNode })
   );
 }
 
-export function StudioDetails({ studio }: { studio: Studio }) {
+export function StudioDetails({ studio, onEdit }: { studio: Studio; onEdit: (section: ProfileSectionId) => void }) {
   const [copyResult, setCopyResult] = useState<'copied' | 'fallback' | null>(null);
   const text = outstandingStudioText(studio);
   const copyOutstanding = async () => {
     try { await navigator.clipboard.writeText(text); setCopyResult('copied'); }
     catch { setCopyResult('fallback'); }
   };
-  const connections = COMPLETION_CONNECTION_FIELDS.flatMap((field, index) => studio[field] === '1' ? [connectionLabels[index]] : []).join(', ');
-  const website = studio.website_url?.trim();
-  const safeWebsite = website && /^https?:\/\//i.test(website) ? website : undefined;
+  const details = studio.admin_details;
+  const [savedNote, setSavedNote] = useState<AdminStudioDetails['note'] | null>(null);
+  const note = savedNote ?? details?.note;
+  const [editingNote, setEditingNote] = useState(false);
+  const [noteDraft, setNoteDraft] = useState('');
+  const [noteError, setNoteError] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+  const [noteSuccess, setNoteSuccess] = useState(false);
+  const [noteConflict, setNoteConflict] = useState<AdminStudioDetails['note'] | null>(null);
+  const saveNote = async () => {
+    if (savingNote || noteConflict || !note) return;
+    setSavingNote(true); setNoteError(''); setNoteSuccess(false);
+    try {
+      const response = await fetch(`/api/admin/studios/${encodeURIComponent(studio.id)}/note`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: noteDraft, expectedVersion: note.version }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        if (response.status === 409 && result.latest) setNoteConflict(result.latest);
+        throw new Error(result.error || 'Unable to save note.');
+      }
+      setSavedNote(result.note); setEditingNote(false); setNoteSuccess(true);
+    } catch (error) { setNoteError(error instanceof Error ? error.message : 'Unable to save note. Reload before retrying.'); }
+    finally { setSavingNote(false); }
+  };
+  const ageDays = details ? Math.max(0, Math.floor((Date.now() - new Date(details.accountCreatedAt).getTime()) / 86400000)) : null;
   return (
     <section data-studio-details className="@container border-t border-gray-200 mt-3 pt-3 text-sm text-gray-700 whitespace-normal min-w-0 max-w-full" onClick={event => event.stopPropagation()} aria-label={`${studio.name} details`}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -51,31 +74,39 @@ export function StudioDetails({ studio }: { studio: Studio }) {
       {copyResult === 'fallback' && <label className="block mb-3">Select and copy the text below:<textarea readOnly value={text} className="mt-1 w-full min-h-36 border rounded p-2" onFocus={event => event.target.select()} /></label>}
       <div className="grid grid-cols-1 @md:grid-cols-2 @4xl:grid-cols-4 gap-x-4 gap-y-3 min-w-0">
         {[true, false].map(required => <div key={String(required)} className="min-w-0"><h4 className={groupHeading}>{required ? 'Required' : 'Optional'}</h4>
-          <ul className="space-y-1">{studio.completion.items.filter(item => item.required === required).map(item => <li key={item.id} className="flex items-start gap-2 min-w-0">
+          <ul className="space-y-1">{studio.completion.items.filter(item => item.required === required).map(item => <li key={item.id} className="min-w-0">
+            <button type="button" onClick={() => onEdit(completionEditSection(item.id, 'admin'))} aria-label={`Edit ${item.label}`} aria-description={item.completed ? 'Complete' : 'Outstanding'} className="flex w-full items-start gap-2 min-w-0 rounded text-left hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
             {item.completed ? <CheckCircle aria-hidden className="w-4 h-4 shrink-0 mt-0.5 text-green-600" /> : <Circle aria-hidden className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />}
             <span className={`min-w-0 break-words ${item.completed ? 'text-gray-600' : 'font-medium text-gray-900'}`}>{item.label}<span className="sr-only"> — {item.completed ? 'Complete' : 'Outstanding'}</span></span>
+            </button>
           </li>)}</ul>
         </div>)}
         <div className="min-w-0">
-          <h4 className={groupHeading}>Identity and contact</h4>
+          <h4 className={groupHeading}>Account and billing</h4>
           <dl className="space-y-1.5">
-            <DetailFact label="Owner">{studio.users.display_name || 'Missing'} (@{studio.users.username || 'Missing'})</DetailFact>
-            <DetailFact label="Email">{studio.users.email || 'Missing'} · {studio.users.email_verified ? 'Verified' : 'Not verified'}</DetailFact>
-            <DetailFact label="Location">{studio.location || 'Missing'}</DetailFact>
-            <DetailFact label="Website">{safeWebsite ? <a href={safeWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{website}</a> : website || 'Missing'}</DetailFact>
-            <DetailFact label="Connections">{connections || 'None selected'}</DetailFact>
+            <DetailFact label="Email verification">{studio.users.email_verified ? 'Verified' : 'Awaiting verification'}</DetailFact>
+            <DetailFact label="Account created">{details ? `${formatDate(details.accountCreatedAt)} · ${ageDays?.toLocaleString('en-GB')} days ago` : 'Unavailable'}</DetailFact>
+            <DetailFact label="Billing status">{details?.billing ?? 'Unavailable'}{details?.latestPayment && <span className="block text-xs">Latest payment: {details.latestPayment}</span>}</DetailFact>
+            <DetailFact label="Auto-renewal">{details?.renewal ?? 'Unavailable'}</DetailFact>
           </dl>
         </div>
         <div className="min-w-0">
-          <h4 className={groupHeading}>Listing and membership</h4>
+          <h4 className={groupHeading}>Needs attention</h4>
           <dl className="space-y-1.5">
-            <DetailFact label="Images">{studio.images_count ?? studio.studio_images.length} studio image(s) · {studio.users.avatar_url ? 'Avatar added' : 'Avatar missing'}</DetailFact>
-            <DetailFact label="Membership">{studio.membership_tier} · {studio.membership_expires_at ? `Expires ${formatDate(studio.membership_expires_at)}` : 'No expiry recorded'}</DetailFact>
-            <DetailFact label="Visibility and listing">{studio.is_profile_visible ? 'Visible' : 'Hidden'} · {studio.status} · {studio.is_verified ? 'Studio verified' : 'Studio not verified'}</DetailFact>
-            <DetailFact label="Featured">{studio.is_featured ? `Featured${studio.featured_until ? ` until ${formatDate(studio.featured_until)}` : ' · No expiry recorded'}` : 'Not featured'}</DetailFact>
-            <DetailFact label="Admin review">{studio.admin_review ? 'Flagged for review' : 'Not flagged'}</DetailFact>
-            <DetailFact label="Short description">{studio.short_about || 'Missing'}</DetailFact>
+            <DetailFact label="Outstanding issues">{details ? `${details.openSupport} open support ${details.openSupport === 1 ? 'ticket' : 'tickets'} · ${details.openRefunds} ${details.openRefunds === 1 ? 'refund' : 'refunds'} needing attention` : 'Unavailable'}</DetailFact>
+            <DetailFact label="Latest admin note">
+              <span className="block line-clamp-3 whitespace-pre-line" title={note?.text || undefined}>{details ? note?.text || 'No admin note yet' : 'Unavailable'}</span>
+              {note?.updatedAt && <span className="block text-xs text-gray-500">Updated {formatDate(note.updatedAt)}</span>}
+              {!editingNote && <button type="button" disabled={!details} onClick={() => { setNoteDraft(note?.text || ''); setNoteError(''); setNoteConflict(null); setNoteSuccess(false); setEditingNote(true); }} className="text-xs text-blue-700 hover:underline disabled:text-gray-400">{note?.text ? 'View / edit note' : 'Add note'}</button>}
+            </DetailFact>
           </dl>
+          {editingNote && <div className="mt-2 space-y-2">
+            <label className="block text-xs">Private admin note<textarea aria-label="Private admin note" maxLength={500} disabled={savingNote} value={noteDraft} onChange={event => setNoteDraft(event.target.value)} className="block mt-1 w-full rounded border border-gray-300 p-2 text-sm" rows={3} /></label>
+            <div className="flex gap-3 text-xs"><button type="button" disabled={savingNote || !!noteConflict} onClick={saveNote} className="text-blue-700 hover:underline">{savingNote ? 'Saving…' : 'Save note'}</button><button type="button" disabled={savingNote} onClick={() => setEditingNote(false)} className="hover:underline">Cancel</button><span className="ml-auto text-gray-500">{noteDraft.length}/500</span></div>
+            {noteConflict && <div className="text-xs"><p>Latest saved note: {noteConflict.text || 'No note'}</p><button type="button" className="text-blue-700 underline" onClick={() => { setSavedNote(noteConflict); setNoteDraft(noteConflict.text); setNoteConflict(null); setNoteError(''); }}>Load latest note</button></div>}
+            {noteError && <p role="alert" className="text-xs text-red-700">{noteError}</p>}
+          </div>}
+          {noteSuccess && <p role="status" className="mt-1 text-xs text-green-700">Admin note saved.</p>}
         </div>
       </div>
     </section>

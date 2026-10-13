@@ -4,7 +4,7 @@ import { adminStudioFixture, adminProfileFixture } from '../fixtures/admin-studi
 
 const baseline = !!process.env.VSF_ADMIN_BASELINE_DIR;
 async function fixture(page: Page) {
-  const rows = Array.from({ length: 480 }, (_, index) => adminStudioFixture(index + 1));
+  const rows = Array.from({ length: 480 }, (_, index) => ({ ...adminStudioFixture(index + 1), admin_details: { accountCreatedAt: '2020-01-01T00:00:00.000Z', billing: 'Local/manual record · active', renewal: 'No linked recurring billing', latestPayment: null, openSupport: 2, openRefunds: 1, note: { text: '', updatedAt: null as string | null, version: null as string | null } } }));
   const reads: string[] = [], writes: Array<{ url: string; body: any }> = [], errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   const token = await encode({ token: { sub: 'fixture_admin', email: 'admin@example.invalid', username: 'fixtureadmin', display_name: 'Fixture Admin', role: 'ADMIN', email_verified: true }, secret: 'vsf_local_browser_fixture_secret_only' });
@@ -21,6 +21,12 @@ async function fixture(page: Page) {
     if (method !== 'GET') {
       let body: any = {}; try { body = route.request().postDataJSON(); } catch { /* upload fixture */ }
       writes.push({ url: url.pathname, body });
+      const noteMatch = url.pathname.match(/^\/api\/admin\/studios\/(fixture_studio_\d+)\/note$/);
+      if (noteMatch) {
+        const row = rows.find(item => item.id === noteMatch[1])!;
+        row.admin_details.note = { text: body.text, updatedAt: '2026-10-13T12:00:00.000Z', version: '2026-10-13T12:00:00.000Z' };
+        return json({ note: row.admin_details.note });
+      }
       const match = url.pathname.match(/^\/api\/admin\/studios\/(fixture_studio_\d+)$/);
       if (match) {
         const row = rows.find(item => item.id === match[1])!;
@@ -154,7 +160,10 @@ test('expand, checklist, clean close, save, dirty-close protection and independe
   await expect(page.locator('#studio-desktop-fixture_studio_1')).toBeVisible();
   await page.screenshot({ path: info.outputPath('revised-expanded-desktop.png') });
   const detail = page.locator('#studio-desktop-fixture_studio_1');
-  await expect(detail.getByRole('button', { name: /^Edit/ })).toHaveCount(0);
+  await expect(detail.getByRole('button', { name: /^Edit / })).toHaveCount(18);
+  await detail.getByRole('button', { name: 'Edit Email', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Edit Profile', exact: true }).getByRole('heading', { name: 'Admin Only Section' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close profile editor', exact: true }).click();
   const rowEdit = page.locator('tr[data-studio-id="fixture_studio_1"]').getByRole('button', { name: 'Edit', exact: true });
   await rowEdit.click();
   const modal = page.getByRole('dialog', { name: 'Edit Profile', exact: true });
@@ -266,4 +275,54 @@ test('summary click and keyboard disclosure stay independent of the existing row
   await expect(page.locator('#studio-mobile-fixture_studio_1')).toBeVisible();
   await expect(page.getByRole('dialog', { name: 'Edit Profile', exact: true })).toHaveCount(0);
   expect(errors).toEqual([]);
+});
+
+
+test('compact admin facts, all completion tab links and private note save', async ({ page }, info) => {
+  const { writes, errors } = await fixture(page);
+  await page.getByRole('button', { name: 'Expand Fixture Studio 0001', exact: true }).filter({ visible: true }).click();
+  const details = page.getByRole('region', { name: 'Fixture Studio 0001 details' }).filter({ visible: true });
+  await expect(details.getByText('Email verification', { exact: true })).toBeVisible();
+  await expect(details.getByText('Local/manual record · active', { exact: true })).toBeVisible();
+  await expect(details.getByText('2 open support tickets · 1 refund needing attention', { exact: true })).toBeVisible();
+  for (const duplicate of ['Owner', 'Email', 'Membership', 'Visibility and listing', 'Featured', 'Admin review', 'Short description']) await expect(details.locator('dt').filter({ hasText: new RegExp(`^${duplicate}$`) })).toHaveCount(0);
+  const routes = [['Username','admin'],['Display Name','basic'],['Email','admin'],['Studio Name','basic'],['Short Description','basic'],['Full Description','basic'],['Studio Type selected','basic'],['Location','contact'],['Connection Methods','connections'],['Website URL','basic'],['At least 1 image','images'],['Avatar','basic'],['About Me','basic'],['Phone','contact'],['Social Media (min 2 links)','social'],['Session Rate Tier(s)','rates'],['Equipment List','rates'],['Services Offered','rates']];
+  for (const [label, section] of routes) {
+    await details.getByRole('button', { name: `Edit ${label}`, exact: true }).click();
+    const editor = page.getByRole('dialog', { name: 'Edit Profile', exact: true });
+    await expect(editor.locator(`[data-section="${section}"]`).filter({ visible: true })).toHaveClass(/border-red-500/);
+    await editor.getByRole('button', { name: 'Close profile editor', exact: true }).click();
+  }
+  expect(writes).toHaveLength(0);
+  await details.getByRole('button', { name: 'Add note', exact: true }).click();
+  await details.getByRole('textbox', { name: 'Private admin note', exact: true }).fill('Follow up on the studio image next week.');
+  await details.getByRole('button', { name: 'Save note', exact: true }).click();
+  await expect(details.getByText('Admin note saved.', { exact: true })).toBeVisible();
+  expect(writes).toHaveLength(1);
+  expect(writes[0].url).toBe('/api/admin/studios/fixture_studio_1/note');
+  await page.screenshot({ path: info.outputPath('admin-glance-desktop.png') });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobile = page.getByRole('region', { name: 'Fixture Studio 0001 details' }).filter({ visible: true });
+  await expect(mobile.getByText('Email verification', { exact: true })).toBeVisible();
+  await expect(mobile.getByText('Latest admin note', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath('admin-glance-mobile.png') });
+  expect(errors).toEqual([]);
+});
+
+
+test('admin note conflict keeps the draft and requires explicitly loading latest', async ({ page }) => {
+  await fixture(page);
+  await page.route('**/api/admin/studios/fixture_studio_1/note', route => route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: 'Another admin changed this note.', latest: { text: 'Other admin reminder', updatedAt: '2026-10-13T13:00:00.000Z', version: '2026-10-13T13:00:00.000Z' } }) }));
+  await page.getByRole('button', { name: 'Expand Fixture Studio 0001', exact: true }).filter({ visible: true }).click();
+  const details = page.getByRole('region', { name: 'Fixture Studio 0001 details' }).filter({ visible: true });
+  await details.getByRole('button', { name: 'Add note', exact: true }).click();
+  await details.getByRole('textbox', { name: 'Private admin note', exact: true }).fill('My pending draft');
+  await details.getByRole('button', { name: 'Save note', exact: true }).click();
+  await expect(details.getByRole('alert')).toContainText('Another admin changed');
+  await expect(details.getByRole('textbox', { name: 'Private admin note', exact: true })).toHaveValue('My pending draft');
+  await expect(details.getByRole('button', { name: 'Save note', exact: true })).toBeDisabled();
+  await details.getByRole('button', { name: 'Load latest note', exact: true }).click();
+  await expect(details.getByRole('textbox', { name: 'Private admin note', exact: true })).toHaveValue('Other admin reminder');
+  await expect(details.getByRole('button', { name: 'Save note', exact: true })).toBeEnabled();
 });
