@@ -124,14 +124,19 @@ model refunds {
   reason                   String?
   comment                  String?      // Admin comment/note for the refund
   status                   RefundStatus
-  processed_by             String
+  processed_by                      String?
   user_id                  String?      // User being refunded (optional for backward compat)
   payment_id               String?      // Link to payment record (optional for backward compat)
   created_at               DateTime     @default(now())
   updated_at               DateTime
-  users_refunds_processed_byTousers users @relation("refunds_processed_byTousers", fields: [processed_by], references: [id])
+  users_refunds_processed_byTousers users?             @relation("refunds_processed_byTousers", fields: [processed_by], references: [id], onDelete: SetNull)
   users_refunds_user_idTousers      users? @relation("refunds_user_idTousers", fields: [user_id], references: [id])
   payments                 payments?    @relation(fields: [payment_id], references: [id])
+  operation_id                      String?            @unique
+  provider_status                   String?
+  provider_checked_at               DateTime?
+  source                            String             @default("LEGACY")
+  operation                         refund_operations? @relation(fields: [operation_id], references: [id], onDelete: SetNull)
   
   @@index([user_id])
   @@index([payment_id])
@@ -152,6 +157,8 @@ model payments {
   updated_at                 DateTime
   users                      users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
   refunds                    refunds[]
+  refund_operations          refund_operations[]
+  benefit_grants             payment_benefit_grants[]
   
   @@index([user_id])
   @@index([status])
@@ -172,6 +179,10 @@ model stripe_webhook_events {
   @@index([type])
   @@index([processed])
   @@index([created_at])
+  last_attempt_at DateTime?
+  attempt_count Int @default(0)
+
+  @@index([processed, type, last_attempt_at])
 }
 
 model review_responses {
@@ -349,6 +360,7 @@ model studio_profiles {
   pending_subscriptions   pending_subscriptions[]
   profile_audit_findings  profile_audit_findings[]
   profile_audit_log       profile_audit_log[]
+  benefit_grants         payment_benefit_grants[]
   
   @@index([user_id])
   @@index([city])
@@ -374,6 +386,7 @@ model subscriptions {
   created_at             DateTime           @default(now())
   updated_at             DateTime
   users                  users              @relation(fields: [user_id], references: [id])
+  benefit_grants         payment_benefit_grants[]
 }
 
 model user_connections {
@@ -476,6 +489,7 @@ model users {
   email_campaigns                                            email_campaigns[]
   email_deliveries                                           email_deliveries[]
   email_preferences                                          email_preferences?
+  refund_operations       refund_operations[]       @relation("refund_operation_actor")
 }
 
 model waitlist {
@@ -835,6 +849,7 @@ model email_templates {
   
   versions        email_template_versions[]
   campaigns       email_campaigns[]
+  revision  Int                       @default(1)
   
   @@index([key])
   @@index([is_marketing])
@@ -868,6 +883,7 @@ model email_template_versions {
   
   template        email_templates @relation(fields: [template_id], references: [id], onDelete: Cascade)
   created_by      users?          @relation(fields: [created_by_id], references: [id], onDelete: SetNull)
+  snapshot   Json?
   
   @@unique([template_id, version_number])
   @@index([template_id])
@@ -907,6 +923,12 @@ model email_campaigns {
   created_by      users           @relation(fields: [created_by_id], references: [id], onDelete: Cascade)
   
   deliveries      email_deliveries[]
+  creation_request_key  String?            @unique
+  creation_payload_hash String?
+  template_snapshot     Json?
+  template_revision     Int?
+  audience_fingerprint  String?
+  queue_version         Int?
   
   @@index([status])
   @@index([created_by_id])
@@ -934,13 +956,28 @@ model email_deliveries {
   
   campaign        email_campaigns? @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
   user            users?           @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  reviewed_user_id        String?
+  normalized_recipient    String?
+  lease_token             String?
+  lease_expires_at        DateTime?
+  attempt_count           Int              @default(0)
+  next_attempt_at         DateTime?
+  submission_key          String?          @unique
+  submission_payload      Json?
+  submission_payload_hash String?
+  first_submission_at     DateTime?
+  outcome_reason          String?
+  retryable               Boolean          @default(false)
   
+  @@unique([campaign_id, normalized_recipient])
   @@index([campaign_id])
   @@index([user_id])
   @@index([to_email])
   @@index([status])
   @@index([resend_id])
   @@index([created_at])
+  @@index([status, next_attempt_at])
+  @@index([lease_expires_at])
 }
 
 model email_preferences {
@@ -979,6 +1016,8 @@ enum DeliveryStatus {
   SENT
   FAILED
   BOUNCED
+  SKIPPED
+  UNCERTAIN
 }
 
 // ============================================
@@ -1044,4 +1083,123 @@ model page_views {
   @@index([created_at])
   @@index([visitor_hash, created_at])
   @@index([path, created_at])
+}
+
+model support_reply_operations {
+  id                  String               @id
+  ticket_id           String
+  ticket_user_id      String
+  actor_id            String
+  recipient           String
+  message             String               @db.Text
+  payload_hash        String
+  payload             Json
+  requested_status    SupportTicketStatus?
+  ticket_version      DateTime
+  provider_key        String               @unique
+  provider_status     String               @default("PREPARED")
+  provider_message_id String?
+  status_result       String               @default("PENDING")
+  error_code          String?
+  first_attempt_at    DateTime?
+  lease_until         DateTime?
+  accepted_at         DateTime?
+  attempt_count       Int                  @default(0)
+  created_at          DateTime             @default(now())
+  updated_at          DateTime             @updatedAt
+
+  @@index([ticket_id, created_at])
+  @@index([actor_id, created_at])
+  @@index([provider_status, lease_until])
+}
+
+model error_log_triage {
+  sentry_issue_id   String         @id
+  local_status      ErrorLogStatus
+  decided_at        DateTime       @default(now())
+  deciding_admin_id String
+
+  @@index([local_status])
+}
+
+model refund_operations {
+  id                        String                  @id
+  request_key               String?                 @unique
+  payload_hash              String
+  payment_id                String?
+  user_reference            String
+  actor_id                  String?
+  source                    String                  @default("ADMIN")
+  stripe_payment_intent_id  String
+  stripe_refund_id          String?                 @unique
+  amount                    Int
+  currency                  String
+  reason                    String?
+  comment                   String?
+  idempotency_key           String                  @unique
+  money_status              String                  @default("PREPARED")
+  provider_status           String?
+  submitted_at              DateTime?
+  provider_checked_at       DateTime?
+  lease_token               String?
+  lease_expires_at          DateTime?
+  reconciliation_attempts   Int                     @default(0)
+  last_error_code           String?
+  benefit_action            String?
+  benefit_status            String                  @default("NOT_APPLICABLE")
+  benefit_grant_id          String?
+  billing_action            String?
+  billing_status            String                  @default("NOT_APPLICABLE")
+  stripe_subscription_id    String?
+  billing_effective_at      DateTime?
+  billing_idempotency_key   String                  @unique
+  billing_submitted_at      DateTime?
+  billing_evidence          Json?
+  eligibility_snapshot      Json?
+  access_review_required    Boolean                 @default(false)
+  notification_status       String                  @default("NOT_REQUESTED")
+  notification_provider_id  String?
+  notification_submitted_at DateTime?
+  notification_snapshot     Json?
+  created_at                DateTime                @default(now())
+  updated_at                DateTime                @updatedAt
+  payment                   payments?               @relation(fields: [payment_id], references: [id], onDelete: SetNull)
+  actor                     users?                  @relation("refund_operation_actor", fields: [actor_id], references: [id], onDelete: SetNull)
+  benefit_grant             payment_benefit_grants? @relation(fields: [benefit_grant_id], references: [id], onDelete: SetNull)
+  refund                    refunds?
+
+  @@index([payment_id, money_status])
+  @@index([money_status, lease_expires_at])
+  @@index([billing_status])
+  @@index([notification_status])
+}
+
+model payment_benefit_grants {
+  id                     String              @id
+  source_key             String              @unique
+  payment_id             String?
+  user_reference         String
+  kind                   String
+  subscription_id        String?
+  studio_id              String?
+  stripe_invoice_id      String?
+  stripe_subscription_id String?
+  starts_at              DateTime
+  ends_at                DateTime
+  status                 String              @default("ACTIVE")
+  mapping_source         String
+  evidence               Json?
+  revoked_at             DateTime?
+  created_at             DateTime            @default(now())
+  updated_at             DateTime            @updatedAt
+  payment                payments?           @relation(fields: [payment_id], references: [id], onDelete: SetNull)
+  subscription           subscriptions?      @relation(fields: [subscription_id], references: [id], onDelete: SetNull)
+  studio                 studio_profiles?    @relation(fields: [studio_id], references: [id], onDelete: SetNull)
+  refund_operations      refund_operations[]
+
+  @@index([payment_id])
+  @@index([user_reference, kind, status])
+  @@index([subscription_id])
+  @@index([studio_id])
+  @@index([stripe_invoice_id])
 }
