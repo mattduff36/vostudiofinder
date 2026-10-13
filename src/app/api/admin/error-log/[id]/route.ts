@@ -1,3 +1,4 @@
+import { withLocalTriage } from '@/lib/admin/error-log/triage';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/auth-guards';
 import { Role } from '@prisma/client';
@@ -25,7 +26,7 @@ export async function GET(
     const fetchLive = searchParams.get('live') === '1';
 
     // Fetch error log group with full details from DB
-    const errorLogGroup = await db.error_log_groups.findUnique({
+    const sourceGroup = await db.error_log_groups.findUnique({
       where: { id },
       select: {
         id: true,
@@ -45,12 +46,14 @@ export async function GET(
       },
     });
 
-    if (!errorLogGroup) {
+    if (!sourceGroup) {
       return NextResponse.json(
         { error: 'Error log group not found' },
         { status: 404 }
       );
     }
+
+    const errorLogGroup = await withLocalTriage(sourceGroup);
 
     // If live fetch is requested, get fresh data from Sentry
     let sentryIssue = null;

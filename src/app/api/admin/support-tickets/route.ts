@@ -1,84 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { Prisma } from '@prisma/client';
+import { z } from 'zod';
 import { db } from '@/lib/db';
-import { logger } from '@/lib/logger';
+import { requireSupportAdmin, SupportError, supportStatuses, ticketUserInclude } from '@/lib/admin/support/replies';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    // Check admin authorization
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const user = await db.users.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
-
-    if (user?.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    // Get query parameters for filtering
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type'); // ISSUE or SUGGESTION
-    const status = searchParams.get('status'); // OPEN, IN_PROGRESS, RESOLVED, CLOSED
-    const category = searchParams.get('category');
-    const sortBy = searchParams.get('sortBy') || 'created_at';
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
-
-    // Build where clause
-    const where: any = {};
-    if (type) where.type = type;
-    if (status) where.status = status;
-    if (category) where.category = category;
-
-    // Fetch tickets
-    const tickets = await db.support_tickets.findMany({
-      where,
-      include: {
-        users: {
-          select: {
-            id: true,
-            email: true,
-            username: true,
-            display_name: true,
-          },
-        },
-      },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
-    });
-
-    // Get counts by status and type
-    const counts = await db.support_tickets.groupBy({
-      by: ['status', 'type'],
-      _count: true,
-    });
-
-    return NextResponse.json({
-      success: true,
-      tickets,
-      counts,
-      total: tickets.length,
-    });
-
+    await requireSupportAdmin();
+    const parsed = z.object({ type: z.enum(['ISSUE', 'SUGGESTION']).optional(), status: z.enum(supportStatuses).optional(),
+      category: z.string().max(200).optional(), sortBy: z.enum(['created_at', 'updated_at', 'status', 'priority']).default('created_at'),
+      sortOrder: z.enum(['asc', 'desc']).default('desc') }).safeParse(Object.fromEntries(request.nextUrl.searchParams));
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid suggestion filters' }, { status: 400 });
+    const { type, status, category, sortBy, sortOrder } = parsed.data;
+    const where: Prisma.support_ticketsWhereInput = { ...(type ? { type } : {}), ...(status ? { status } : {}), ...(category ? { category } : {}) };
+    const [tickets, counts] = await Promise.all([
+      db.support_tickets.findMany({ where, include: ticketUserInclude, orderBy: [{ [sortBy]: sortOrder }, { id: 'asc' }] }),
+      db.support_tickets.groupBy({ by: ['status', 'type'], _count: true }),
+    ]);
+    return NextResponse.json({ success: true, tickets, counts, total: tickets.length });
   } catch (error) {
-    logger.error('Error fetching support tickets:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch support tickets' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error instanceof SupportError ? error.message : 'Failed to fetch suggestions' },
+      { status: error instanceof SupportError ? error.status : 500 });
   }
 }
-

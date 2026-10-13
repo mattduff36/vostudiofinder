@@ -198,21 +198,21 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       href: '/admin/suggestions',
     },
     {
-      title: 'Active Users (30d)',
+      title: 'Updated Accounts (30d)',
       value: stats.activeUsers30d.toLocaleString(),
       subtitle: stats.totalUsers > 0
         ? `${Math.round((stats.activeUsers30d / stats.totalUsers) * 100)}% of total`
-        : 'active in last 30 days',
+        : 'accounts updated in 30 days',
       icon: Activity,
       color: 'bg-teal-500',
       href: '/admin/studios',
     },
     {
       title: 'Visitors (24h)',
-      value: stats.visitors24h !== null ? stats.visitors24h.toLocaleString() : '0',
+      value: stats.visitors24h !== null ? stats.visitors24h.toLocaleString() : 'Unavailable',
       subtitle: stats.visitors7d !== null
-        ? `${stats.visitors7d.toLocaleString()} in last 7 days`
-        : '0 in last 7 days',
+        ? `${stats.visitors7d.toLocaleString()} daily visitor IDs (7 UTC dates)`
+        : 'Visitor metrics unavailable',
       icon: Eye,
       color: 'bg-indigo-500',
       href: '/admin/analytics',
@@ -255,6 +255,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
     title: string;
     description: string;
     metadata?: string;
+    href?: string;
     timestamp: Date;
   }> = [];
 
@@ -299,6 +300,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
       color: 'text-green-600',
       bgColor: 'bg-green-100',
       title: 'Payment Received',
+      href: `/admin/payments/${encodeURIComponent(payment.id)}`,
       description: `${formatPayment(payment.amount)} from @${payment.users.username} (${payment.users.display_name})`,
       timestamp: payment.created_at,
     });
@@ -352,8 +354,8 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
         icon: LinkIcon,
         color: 'text-indigo-600',
         bgColor: 'bg-indigo-100',
-        title: 'Custom Connection Added',
-        description: `${studio.name} by @${studio.users.username} added: ${methods.join(', ')}`,
+        title: 'Studio with Custom Connections Updated',
+        description: `${studio.name} by @${studio.users.username} currently lists: ${methods.join(', ')}`,
         timestamp: studio.updated_at,
       });
     }
@@ -455,7 +457,7 @@ export function AdminDashboard({ stats, insights, recentActivity }: AdminDashboa
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
                                   <span className="text-sm md:text-base font-medium text-gray-900">
-                                    {activity.title}
+                                    {activity.href ? <Link className="hover:underline" href={activity.href}>{activity.title}</Link> : activity.title}
                                   </span>
                                   {activity.metadata && (
                                     <span className="text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 rounded-full font-medium bg-gray-100 text-gray-800">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { 
   AlertTriangle, 
   Loader2, 
@@ -33,6 +33,8 @@ interface ErrorLogGroup {
   title: string;
   level: string;
   status: 'OPEN' | 'RESOLVED' | 'IGNORED';
+  source_status?: 'OPEN' | 'RESOLVED' | 'IGNORED';
+  local_triage?: { status: string; decided_at: string } | null;
   first_seen_at: string;
   last_seen_at: string;
   event_count: number;
@@ -96,133 +98,176 @@ export function ErrorLog() {
   const [filterLevel, setFilterLevel] = useState<string>('ALL');
   const [searchText, setSearchText] = useState('');
   const [selectedError, setSelectedError] = useState<ErrorLogGroupDetails | null>(null);
+  const selectedDetail = useRef<ErrorLogGroupDetails | null>(null);
+  useLayoutEffect(() => { selectedDetail.current = selectedError; }, [selectedError]);
   const [sentryIssue, setSentryIssue] = useState<SentryIssue | null>(null);
   const [sentryEvent, setSentryEvent] = useState<SentryEvent | null>(null);
   const [sentryError, setSentryError] = useState<string | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  const pendingStatus = useRef(new Set<string>());
+  const updatingStatus = !!selectedError && updatingIds.has(selectedError.id);
   const [totalCount, setTotalCount] = useState(0);
-  const [page] = useState(1); // Pagination controls to be added in future enhancement
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
+  const requestedId = useRef<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const syncPending = useRef(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-
-  const fetchErrorLogs = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (filterStatus !== 'ALL') params.append('status', filterStatus);
-      if (filterLevel !== 'ALL') params.append('level', filterLevel);
-      if (searchText) params.append('search', searchText);
-      params.append('page', page.toString());
-      params.append('limit', '50');
-      params.append('sortBy', 'last_seen_at');
-      params.append('sortOrder', 'desc');
-
-      const response = await fetch(`/api/admin/error-log?${params.toString()}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch error logs');
-      }
-
-      setErrorLogGroups(data.errorLogGroups);
-      setTotalCount(data.pagination.totalCount);
-    } catch (error) {
-      logger.error('Error fetching error logs:', error);
-      showError('Failed to load error logs');
-    } finally {
-      setLoading(false);
-    }
-  }, [filterStatus, filterLevel, searchText, page]);
+  const [readError, setReadError] = useState<string | null>(null);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const listRequest = useRef({ generation: 0, controller: null as AbortController | null });
+  const detailRequest = useRef({ generation: 0, controller: null as AbortController | null });
+  const query = useRef({ filterStatus, filterLevel, debouncedSearch, page });
+  useLayoutEffect(() => { query.current = { filterStatus, filterLevel, debouncedSearch, page }; }, [filterStatus, filterLevel, debouncedSearch, page]);
 
   useEffect(() => {
-    fetchErrorLogs();
-  }, [fetchErrorLogs]);
+    const timer = window.setTimeout(() => { setDebouncedSearch(searchText); setPage(1); }, 300);
+    return () => window.clearTimeout(timer);
+  }, [searchText]);
+
+  const fetchErrorLogs = useCallback(async () => {
+    listRequest.current.controller?.abort();
+    const generation = ++listRequest.current.generation;
+    const controller = new AbortController();
+    listRequest.current.controller = controller;
+    setLoading(true);
+    setReadError(null);
+    try {
+      const current = query.current;
+      const params = new URLSearchParams({ status: current.filterStatus, level: current.filterLevel, search: current.debouncedSearch,
+        page: String(current.page), limit: '50', sortBy: 'last_seen_at', sortOrder: 'desc' });
+      const response = await fetch(`/api/admin/error-log?${params}`, { signal: controller.signal });
+      const data = await response.json();
+      if (!response.ok) throw new Error('Failed to load error logs. Please retry.');
+      if (generation !== listRequest.current.generation || controller.signal.aborted) return;
+      setErrorLogGroups(data.errorLogGroups);
+      setTotalCount(data.pagination.totalCount);
+      setTotalPages(data.pagination.totalPages);
+      setPage(data.pagination.page);
+    } catch (error) {
+      if (generation === listRequest.current.generation && !controller.signal.aborted) {
+        setReadError(error instanceof Error ? error.message : 'Failed to load error logs. Please retry.');
+      }
+    } finally {
+      if (generation === listRequest.current.generation && !controller.signal.aborted) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchErrorLogs();
+    return () => { listRequest.current.controller?.abort(); ++listRequest.current.generation; };
+  }, [fetchErrorLogs, filterStatus, filterLevel, debouncedSearch, page]);
+  useEffect(() => () => { detailRequest.current.controller?.abort(); ++detailRequest.current.generation; }, []);
+
+  const closeDetails = () => {
+    detailRequest.current.controller?.abort();
+    ++detailRequest.current.generation;
+    requestedId.current = null;
+    setExpandedErrorId(null);
+    setSelectedError(null);
+    setSentryIssue(null);
+    setSentryEvent(null);
+    setSentryError(null);
+    setDetailsError(null);
+    setLoadingDetails(false);
+    setMobileDrawerOpen(false);
+  };
 
   const fetchErrorDetails = async (errorId: string) => {
+    detailRequest.current.controller?.abort();
+    const generation = ++detailRequest.current.generation;
+    const controller = new AbortController();
+    detailRequest.current.controller = controller;
+    requestedId.current = errorId;
+    setExpandedErrorId(errorId);
+    setMobileDrawerOpen(true);
     setLoadingDetails(true);
+    setDetailsError(null);
+    setSelectedError(null);
+    setSentryIssue(null);
+    setSentryEvent(null);
+    setSentryError(null);
     try {
-      const response = await fetch(`/api/admin/error-log/${errorId}?live=1`);
+      const response = await fetch(`/api/admin/error-log/${errorId}?live=1`, { signal: controller.signal });
       const data: ErrorDetailsResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.errorLogGroup?.title || 'Failed to fetch error details');
-      }
-
+      if (!response.ok) throw new Error('Failed to load error details. Please retry.');
+      if (generation !== detailRequest.current.generation || controller.signal.aborted) return;
       setSelectedError(data.errorLogGroup);
       setSentryIssue(data.sentryIssue);
       setSentryEvent(data.sentryLatestEvent);
       setSentryError(data.sentryError);
-      setExpandedErrorId(errorId);
     } catch (error) {
-      logger.error('Error fetching error details:', error);
-      showError('Failed to load error details');
+      if (generation === detailRequest.current.generation && !controller.signal.aborted) {
+        setDetailsError(error instanceof Error ? error.message : 'Failed to load error details. Please retry.');
+      }
     } finally {
-      setLoadingDetails(false);
+      if (generation === detailRequest.current.generation && !controller.signal.aborted) setLoadingDetails(false);
     }
   };
 
   const handleUpdateStatus = async (errorId: string, newStatus: string) => {
-    setUpdatingStatus(true);
+    if (pendingStatus.current.has(errorId)) return;
+    pendingStatus.current.add(errorId);
+    setUpdatingIds(new Set(pendingStatus.current));
+    listRequest.current.controller?.abort();
+    const invalidatedGeneration = ++listRequest.current.generation;
+    if (requestedId.current === errorId) {
+      detailRequest.current.controller?.abort();
+      ++detailRequest.current.generation;
+      setLoadingDetails(false);
+    }
     try {
       const response = await fetch('/api/admin/error-log', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: errorId, status: newStatus }),
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update status');
+      if (!response.ok) throw new Error(data.error || 'Failed to update status');
+      setErrorLogGroups(rows => rows.map(row => row.id === errorId ? { ...row, ...data.errorLogGroup } : row));
+      if (requestedId.current === errorId) {
+        // A detail read started during the mutation may contain the old status.
+        detailRequest.current.controller?.abort();
+        ++detailRequest.current.generation;
+        setLoadingDetails(false);
+        setSelectedError(current => current?.id === errorId ? { ...current, ...data.errorLogGroup } : current);
+        if (selectedDetail.current?.id !== errorId) void fetchErrorDetails(errorId);
       }
-
-      showSuccess('Status updated successfully');
-      fetchErrorLogs();
-      if (selectedError?.id === errorId) {
-        setSelectedError({ ...selectedError, status: newStatus as any });
-      }
-    } catch (error: any) {
-      logger.error('Error updating error status:', error);
-      showError(error.message || 'Failed to update status');
+      showSuccess('Local status updated');
+      void fetchErrorLogs();
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Failed to update status');
+      if (listRequest.current.generation === invalidatedGeneration) setLoading(false);
     } finally {
-      setUpdatingStatus(false);
+      pendingStatus.current.delete(errorId);
+      setUpdatingIds(new Set(pendingStatus.current));
     }
   };
 
   const toggleErrorDetails = (errorId: string) => {
-    if (expandedErrorId === errorId) {
-      setExpandedErrorId(null);
-      setSelectedError(null);
-      setSentryIssue(null);
-      setSentryEvent(null);
-      setSentryError(null);
-      setMobileDrawerOpen(false);
-    } else {
-      fetchErrorDetails(errorId);
-      setMobileDrawerOpen(true);
-    }
+    if (requestedId.current === errorId) closeDetails();
+    else void fetchErrorDetails(errorId);
   };
 
   const handleSyncNow = async () => {
+    if (syncPending.current) return;
+    syncPending.current = true;
     setSyncing(true);
+    setSyncMessage(null);
     try {
       const response = await fetch('/api/admin/sync-sentry');
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to sync with Sentry');
-      }
-
-      showSuccess(`Successfully synced ${data.synced} error${data.synced !== 1 ? 's' : ''} from Sentry`);
-      fetchErrorLogs(); // Refresh the list
+      if (!response.ok) throw new Error('Failed to sync with Sentry. Please retry.');
+      const message = `Synced ${data.synced} error${data.synced !== 1 ? 's' : ''}${data.errors ? `; ${data.errors} could not be imported. Review configuration before retrying.` : '.'}`;
+      setSyncMessage(message);
+      if (!data.errors) showSuccess(message);
+      void fetchErrorLogs();
     } catch (error) {
-      logger.error('Error syncing with Sentry:', error);
-      showError('Failed to sync with Sentry');
-    } finally {
-      setSyncing(false);
-    }
+      setSyncMessage(error instanceof Error ? error.message : 'Failed to sync with Sentry.');
+    } finally { syncPending.current = false; setSyncing(false); }
   };
 
   const getStatusBadge = (status: string) => {
@@ -341,7 +386,8 @@ export function ErrorLog() {
               <div className="grid grid-cols-2 gap-2 md:flex md:gap-4">
                 <select
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+                  onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+                  aria-label="Error status"
                   className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                 >
                   <option value="ALL">All Statuses</option>
@@ -352,7 +398,8 @@ export function ErrorLog() {
 
                 <select
                   value={filterLevel}
-                  onChange={(e) => setFilterLevel(e.target.value)}
+                  onChange={(e) => { setFilterLevel(e.target.value); setPage(1); }}
+                  aria-label="Error level"
                   className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                 >
                   <option value="ALL">All Levels</option>
@@ -366,6 +413,7 @@ export function ErrorLog() {
               <input
                 type="text"
                 placeholder="Search errors..."
+                aria-label="Search errors"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B] w-full md:flex-grow md:max-w-md"
@@ -377,16 +425,19 @@ export function ErrorLog() {
             </div>
           </div>
 
+          {syncMessage && <p role="status" className="mb-4 rounded border border-amber-200 bg-amber-50 p-3 text-sm">{syncMessage}</p>}
+          {readError && <div role="alert" className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{readError} <button onClick={() => void fetchErrorLogs()} className="underline">Retry</button></div>}
+          {loading && errorLogGroups.length > 0 && <p role="status" className="mb-2 text-sm text-gray-500">Refreshing errors…</p>}
           {/* Error Log List */}
           <div className="space-y-3">
-            {loading ? (
+            {loading && errorLogGroups.length === 0 ? (
               <div className="flex items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
                 <Loader2 className="w-8 h-8 animate-spin text-[#9C060B]" />
               </div>
-            ) : errorLogGroups.length === 0 ? (
+            ) : errorLogGroups.length === 0 && !readError ? (
               <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
                 <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
-                <p className="text-gray-500">No errors found - all clear! 🎉</p>
+                <p className="text-gray-500">No errors match these filters.</p>
               </div>
             ) : (
               errorLogGroups.map((error) => (
@@ -395,8 +446,11 @@ export function ErrorLog() {
                   className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all"
                 >
                   {/* Error Summary - Clickable to expand (desktop inline, mobile drawer) */}
-                  <div 
-                    className="p-3 md:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                  <button
+                    type="button"
+                    aria-expanded={expandedErrorId === error.id}
+                    aria-label={`Show error: ${error.title}`}
+                    className="w-full text-left p-3 md:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() => toggleErrorDetails(error.id)}
                   >
                     <div className="flex items-start justify-between gap-2 md:gap-4">
@@ -434,14 +488,14 @@ export function ErrorLog() {
                         )}
                       </div>
                     </div>
-                  </div>
-
+                  </button>
+                  {expandedErrorId === error.id && detailsError && <div role="alert" className="hidden md:block border-t p-3 text-sm text-red-700">{detailsError} <button onClick={() => void fetchErrorDetails(error.id)} className="underline">Retry</button></div>}
                   {/* Expanded Details - Desktop only */}
                   {expandedErrorId === error.id && selectedError && (
                     <div className="hidden md:block border-t border-gray-200 bg-gray-50 p-4" onClick={(e) => e.stopPropagation()}>
                       {/* Header with Status Control */}
                       <div className="mb-4 flex items-center justify-between">
-                        <h4 className="text-sm font-semibold text-gray-900">Error Details</h4>
+                        <div><h4 className="text-sm font-semibold text-gray-900">Error Details</h4><p className="text-xs text-gray-500">{selectedError.local_triage ? `Local decision · Sentry: ${selectedError.source_status}` : 'Following Sentry status'}</p></div>
                         <div className="flex items-center gap-3">
                           {sentryIssue?.permalink && (
                             <a
@@ -457,6 +511,7 @@ export function ErrorLog() {
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-600">Status:</span>
                             <select
+                              aria-label="Change local error status"
                               value={selectedError.status}
                               onChange={(e) => handleUpdateStatus(error.id, e.target.value)}
                               disabled={updatingStatus}
@@ -731,23 +786,23 @@ export function ErrorLog() {
               ))
             )}
           </div>
+          <nav aria-label="Error log pages" className="mt-4 flex items-center justify-between gap-3 text-sm">
+            <span>{totalCount ? `${(page - 1) * 50 + 1}–${Math.min(page * 50, totalCount)} of ${totalCount}` : '0 errors'}</span>
+            <div className="flex gap-2"><button disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)} className="rounded border px-3 py-2 disabled:opacity-40">Previous</button><button disabled={page >= totalPages || loading} onClick={() => setPage(p => p + 1)} className="rounded border px-3 py-2 disabled:opacity-40">Next</button></div>
+          </nav>
         </div>
       </div>
 
       {/* Mobile Error Details Drawer */}
       <AdminDrawer
-        isOpen={mobileDrawerOpen && !!selectedError}
-        onClose={() => {
-          setMobileDrawerOpen(false);
-          setExpandedErrorId(null);
-          setSelectedError(null);
-          setSentryIssue(null);
-          setSentryEvent(null);
-          setSentryError(null);
-        }}
+        isOpen={mobileDrawerOpen}
+        onClose={closeDetails}
         title="Error Details"
         showBackButton
       >
+        {loadingDetails && <p role="status" className="p-4">Loading error details…</p>}
+        {detailsError && <div role="alert" className="p-4 text-sm text-red-700">{detailsError} <button className="underline" onClick={() => requestedId.current && void fetchErrorDetails(requestedId.current)}>Retry</button></div>}
+        {selectedError && <p className="mb-3 text-xs text-gray-500">{selectedError.local_triage ? `Local decision · Sentry: ${selectedError.source_status}` : 'Following Sentry status'}</p>}
         {selectedError && (
           <div className="p-4 space-y-4">
             {/* Header with Status Control */}
@@ -770,7 +825,8 @@ export function ErrorLog() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Status:</label>
                 <select
-                  value={selectedError.status}
+                  aria-label="Change local error status"
+                              value={selectedError.status}
                   onChange={(e) => handleUpdateStatus(selectedError.id, e.target.value)}
                   disabled={updatingStatus}
                   className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"

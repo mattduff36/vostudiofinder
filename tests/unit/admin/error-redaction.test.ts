@@ -7,6 +7,7 @@ import { redactSentryEvent } from '@/lib/admin/error-log/redaction';
 jest.mock('@/lib/auth-guards', () => ({
   requireApiRole: jest.fn().mockResolvedValue({ user: { role: 'ADMIN' } }),
 }));
+jest.mock('@/lib/admin/error-log/triage', () => ({ withLocalTriage: jest.fn(async (group: unknown) => group) }));
 
 jest.mock('@/lib/db', () => ({
   db: {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Lightbulb, 
   Loader2, 
@@ -12,7 +12,8 @@ import {
   Calendar,
   Trash2
 } from 'lucide-react';
-import { logger } from '@/lib/logger';
+import { useSession } from 'next-auth/react';
+import { showUnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 import { showSuccess, showError } from '@/lib/toast';
 import { showConfirm } from '@/components/ui/ConfirmDialog';
 import { AdminTabs } from './AdminTabs';
@@ -38,143 +39,277 @@ interface Suggestion {
   };
 }
 
+interface ReplyOperation {
+  id: string; ticketId: string; recipient: string; message: string; providerStatus: string;
+  providerId: string | null; statusResult: string; requestedStatus: string | null;
+  canRecover: boolean; retryAt: string | null;
+}
+interface ReplyRequest {
+  requestKey: string; message: string; expectedUserId: string; expectedRecipient: string;
+  expectedUpdatedAt: string; updateStatus?: string;
+}
+
 export function Suggestions() {
+  const { data: session } = useSession();
+  const storageKey = `admin-support-drafts:${session?.user?.id ?? 'pending'}`;
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [records, setRecords] = useState<Record<string, Suggestion>>({});
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
-  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
-  const [replyMessage, setReplyMessage] = useState('');
-  const [sendingReply, setSendingReply] = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const filterRef = useRef('ALL');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedSuggestion = selectedId ? records[selectedId] ?? null : null;
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const draftsRef = useRef<Record<string, string>>({});
+  const attempts = useRef<Record<string, ReplyRequest>>({});
+  const [operations, setOperations] = useState<Record<string, ReplyOperation | null>>({});
+  const [lookupErrors, setLookupErrors] = useState<Record<string, string>>({});
+  const [lookupReady, setLookupReady] = useState<Record<string, boolean>>({});
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+  const pending = useRef(new Set<string>());
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [readError, setReadError] = useState<string | null>(null);
+  const [draftStorageError, setDraftStorageError] = useState<string | null>(null);
+  const replyReads = useRef(new Map<string, AbortController>());
+  const [operationErrors, setOperationErrors] = useState<Record<string, string>>({});
+  const closePending = useRef(false);
+  const listRequest = useRef({ generation: 0, controller: null as AbortController | null });
+  const replyMessage = selectedId ? drafts[selectedId] ?? '' : '';
+  const operation = selectedId ? operations[selectedId] ?? null : null;
+  const sendingReply = !!selectedId && pendingIds.has(selectedId);
+  const updatingStatus = sendingReply;
+  const deleting = sendingReply;
 
-  const fetchSuggestions = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.append('type', 'SUGGESTION');
-      if (filterStatus !== 'ALL') params.append('status', filterStatus);
-      params.append('sortBy', 'created_at');
-      params.append('sortOrder', 'desc');
-
-      const response = await fetch(`/api/admin/support-tickets?${params.toString()}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch suggestions');
-      }
-
-      setSuggestions(data.tickets);
-    } catch (error) {
-      logger.error('Error fetching suggestions:', error);
-      showError('Failed to load suggestions');
-    } finally {
-      setLoading(false);
-    }
-  }, [filterStatus]);
+  const persistDrafts = (next = draftsRef.current) => {
+    if (!session?.user?.id) return false;
+    try { sessionStorage.setItem(storageKey, JSON.stringify({ drafts: next, attempts: attempts.current })); setDraftStorageError(null); return true; }
+    catch { setDraftStorageError('Reply drafts could not be saved in this browser. Keep this page open until the draft is saved or copied.'); return false; }
+  };
+  const setDraft = (id: string, value: string) => {
+    const next = { ...draftsRef.current, [id]: value };
+    draftsRef.current = next; setDrafts(next); persistDrafts(next);
+  };
+  const setReplyMessage = (value: string) => { if (selectedId) setDraft(selectedId, value); };
 
   useEffect(() => {
-    fetchSuggestions();
-  }, [fetchSuggestions]);
-
-  const handleUpdateStatus = async (suggestionId: string, newStatus: string) => {
-    setUpdatingStatus(true);
+    if (!session?.user?.id) return;
+    replyReads.current.forEach(controller => controller.abort()); replyReads.current.clear();
+    draftsRef.current = {}; attempts.current = {}; setDrafts({}); setOperations({}); setLookupReady({}); setLookupErrors({});
     try {
-      const response = await fetch(`/api/admin/support-tickets/${suggestionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update status');
+      const saved = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
+      const restored = Object.fromEntries(Object.entries(saved.drafts ?? {}).filter(([, value]) => typeof value === 'string' && value.length <= 20_000)) as Record<string, string>;
+      draftsRef.current = restored; setDrafts(restored);
+      const restoredAttempts: Record<string, ReplyRequest> = {};
+      for (const [id, value] of Object.entries(saved.attempts ?? {})) {
+        if (!value || typeof value !== 'object') throw new Error('Invalid saved request');
+        const request = value as ReplyRequest;
+        if (typeof request.requestKey !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(request.requestKey)
+          || typeof request.message !== 'string' || !request.message.trim() || request.message.length > 20_000
+          || typeof request.expectedUserId !== 'string' || !request.expectedUserId
+          || typeof request.expectedRecipient !== 'string' || !request.expectedRecipient.includes('@')
+          || typeof request.expectedUpdatedAt !== 'string' || Number.isNaN(Date.parse(request.expectedUpdatedAt))
+          || (request.updateStatus !== undefined && !['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].includes(request.updateStatus))) throw new Error('Invalid saved request');
+        restoredAttempts[id] = request;
       }
+      attempts.current = restoredAttempts; setDraftStorageError(null);
+    } catch { setDraftStorageError('Saved reply recovery details could not be restored. Check the previous reply before sending again.'); }
+  }, [session?.user?.id, storageKey]);
 
-      showSuccess('Status updated successfully');
-      fetchSuggestions();
-      if (selectedSuggestion?.id === suggestionId) {
-        setSelectedSuggestion(data.ticket);
-      }
-    } catch (error: any) {
-      logger.error('Error updating suggestion status:', error);
-      showError(error.message || 'Failed to update status');
-    } finally {
-      setUpdatingStatus(false);
-    }
+  useEffect(() => () => { replyReads.current.forEach(controller => controller.abort()); replyReads.current.clear(); }, []);
+  useEffect(() => {
+    if (!draftStorageError || !Object.values(drafts).some(draft => draft.trim())) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [draftStorageError, drafts]);
+
+  const begin = (id: string) => {
+    if (pending.current.has(id)) return false;
+    replyReads.current.get(id)?.abort(); replyReads.current.delete(id);
+    pending.current.add(id); setPendingIds(new Set(pending.current)); return true;
+  };
+  const finish = (id: string) => { pending.current.delete(id); setPendingIds(new Set(pending.current)); };
+  const invalidateList = () => { listRequest.current.controller?.abort(); ++listRequest.current.generation; };
+  const mergeTicket = (ticket: Suggestion) => {
+    setRecords(current => ({ ...current, [ticket.id]: ticket }));
+    setSuggestions(current => current.map(row => row.id === ticket.id ? ticket : row)
+      .filter(row => filterRef.current === 'ALL' || row.status === filterRef.current));
   };
 
-  const handleSendReply = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!selectedSuggestion || !replyMessage.trim()) {
-      showError('Please enter a reply message');
-      return;
-    }
-
-    setSendingReply(true);
+  const fetchSuggestions = useCallback(async () => {
+    listRequest.current.controller?.abort();
+    const generation = ++listRequest.current.generation;
+    const controller = new AbortController(); listRequest.current.controller = controller;
+    setLoading(true); setReadError(null);
     try {
-      const response = await fetch(`/api/admin/support-tickets/${selectedSuggestion.id}/reply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: replyMessage,
-          updateStatus: selectedSuggestion.status === 'OPEN' ? 'IN_PROGRESS' : undefined,
-        }),
-      });
-
+      const params = new URLSearchParams({ type: 'SUGGESTION', sortBy: 'created_at', sortOrder: 'desc' });
+      if (filterRef.current !== 'ALL') params.set('status', filterRef.current);
+      const response = await fetch(`/api/admin/support-tickets?${params}`, { signal: controller.signal });
       const data = await response.json();
+      if (!response.ok) throw new Error('Failed to load suggestions. Please retry.');
+      if (generation !== listRequest.current.generation || controller.signal.aborted) return;
+      setSuggestions(data.tickets);
+      setRecords(current => ({ ...current, ...Object.fromEntries(data.tickets.map((ticket: Suggestion) => [ticket.id, ticket])) }));
+    } catch (error) {
+      if (generation === listRequest.current.generation && !controller.signal.aborted) setReadError(error instanceof Error ? error.message : 'Failed to load suggestions.');
+    } finally { if (generation === listRequest.current.generation && !controller.signal.aborted) setLoading(false); }
+  }, []);
+  useEffect(() => { void fetchSuggestions(); return invalidateList; }, [fetchSuggestions, filterStatus]);
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send reply');
+  const applyOperation = (id: string, result: ReplyOperation) => {
+    setOperations(current => ({ ...current, [id]: result }));
+    setOperationErrors(current => ({ ...current, [id]: '' }));
+    if (result.providerStatus === 'ACCEPTED' && draftsRef.current[id] === result.message) setDraft(id, '');
+  };
+  const loadReply = async (id: string) => {
+    if (pending.current.has(id)) return;
+    replyReads.current.get(id)?.abort();
+    const controller = new AbortController(); replyReads.current.set(id, controller);
+    setLookupErrors(current => ({ ...current, [id]: '' }));
+    try {
+      const request = attempts.current[id];
+      const response = await fetch(`/api/admin/support-tickets/${id}/reply${request ? `?operationId=${encodeURIComponent(request.requestKey)}` : ''}`, { signal: controller.signal });
+      const data = await response.json();
+      if (controller.signal.aborted || replyReads.current.get(id) !== controller) return;
+      // A lost POST may still arrive: keep its original key/payload for a retry.
+      if (response.status === 404 && request) {
+        applyOperation(id, { id: request.requestKey, ticketId: id, recipient: request.expectedRecipient, message: request.message,
+          providerStatus: 'PREPARED', providerId: null, statusResult: 'PENDING', requestedStatus: request.updateStatus ?? null, canRecover: true, retryAt: null });
+      } else {
+        if (!response.ok) throw new Error('Could not check the previous reply. Retry before sending.');
+        if (data.operation) applyOperation(id, data.operation);
+        else setOperations(current => ({ ...current, [id]: null }));
       }
-
-      showSuccess('Reply sent successfully!');
-      setReplyMessage('');
-      fetchSuggestions();
-    } catch (error: any) {
-      logger.error('Error sending reply:', error);
-      showError(error.message || 'Failed to send reply');
-    } finally {
-      setSendingReply(false);
-    }
+      setLookupReady(current => ({ ...current, [id]: true }));
+    } catch (error) {
+      if (!controller.signal.aborted && replyReads.current.get(id) === controller) setLookupErrors(current => ({ ...current, [id]: error instanceof Error ? error.message : 'Reply lookup failed.' }));
+    } finally { if (replyReads.current.get(id) === controller) replyReads.current.delete(id); }
   };
 
-  const handleDeleteSuggestion = async (suggestionId: string) => {
-    const confirmed = await showConfirm({
-      title: 'Delete Suggestion?',
-      message: 'This will permanently delete this suggestion. This action cannot be undone.',
-      confirmText: 'Delete Suggestion',
-      isDangerous: true,
-    });
-
-    if (!confirmed) return;
-
-    setDeleting(true);
+  const selectSuggestion = (id: string) => {
+    setSelectedId(id); setMobileDrawerOpen(true);
+    if (!lookupReady[id]) void loadReply(id);
+  };
+  const closeDrawer = async () => {
+    if (closePending.current) return;
+    closePending.current = true;
     try {
-      const response = await fetch(`/api/admin/support-tickets/${suggestionId}`, {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete suggestion');
+      if (selectedId && draftsRef.current[selectedId]?.trim()) {
+        const answer = await showUnsavedChangesDialog();
+        if (answer === 'cancel') return;
+        if (answer === 'discard') setDraft(selectedId, '');
+        if (answer === 'save' && !persistDrafts()) { showError('The draft could not be saved in this browser. Keep this window open.'); return; }
       }
-
-      showSuccess('Suggestion deleted successfully');
-      setSelectedSuggestion(null);
       setMobileDrawerOpen(false);
-      fetchSuggestions();
-    } catch (error: any) {
-      logger.error('Error deleting suggestion:', error);
-      showError(error.message || 'Failed to delete suggestion');
-    } finally {
-      setDeleting(false);
-    }
+    } finally { closePending.current = false; }
   };
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    if (!begin(id)) return;
+    invalidateList();
+    try {
+      const response = await fetch(`/api/admin/support-tickets/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to update status');
+      mergeTicket(data.ticket); showSuccess('Status updated successfully'); void fetchSuggestions();
+    } catch (error) { showError(error instanceof Error ? error.message : 'Failed to update status'); setLoading(false); }
+    finally { finish(id); }
+  };
+
+  const submitAttempt = async (id: string, request: ReplyRequest | { action: 'recover'; operationId: string }, statusOnly = false) => {
+    invalidateList();
+    const response = await fetch(`/api/admin/support-tickets/${id}/reply`, {
+      method: statusOnly ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(statusOnly ? { operationId: 'operationId' in request ? request.operationId : request.requestKey } : request),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      if (!statusOnly && 'requestKey' in request && [400, 404, 409].includes(response.status)) {
+        const check = await fetch(`/api/admin/support-tickets/${id}/reply?operationId=${encodeURIComponent(request.requestKey)}`);
+        if (check.status === 404) {
+          delete attempts.current[id]; persistDrafts();
+          setOperations(current => ({ ...current, [id]: null }));
+          void fetchSuggestions();
+        } else if (check.ok) {
+          const recovered = await check.json();
+          if (recovered.operation) applyOperation(id, recovered.operation);
+        }
+      }
+      throw new Error(data.error || 'Reply outcome unavailable. Recover this operation before another send.');
+    }
+    applyOperation(id, data.operation);
+    if (data.ticket) mergeTicket(data.ticket);
+    if (data.operation.providerStatus === 'ACCEPTED') showSuccess('Reply accepted by the email provider');
+    void fetchSuggestions();
+  };
+
+  const handleSendReply = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedSuggestion || !replyMessage.trim() || !lookupReady[selectedSuggestion.id] || operation) return;
+    const target = selectedSuggestion;
+    const message = replyMessage.trim();
+    if (!begin(target.id)) return;
+    try {
+      const confirmed = await showConfirm({ title: 'Send reply?', message: `Send the displayed reply to ${target.users.email}?`, confirmText: 'Send Reply' });
+      if (!confirmed) return;
+      const request: ReplyRequest = { requestKey: crypto.randomUUID(), message, expectedUserId: target.user_id,
+        expectedRecipient: target.users.email.toLowerCase().trim(), expectedUpdatedAt: target.updated_at,
+        ...(target.status === 'OPEN' ? { updateStatus: 'IN_PROGRESS' } : {}) };
+      attempts.current[target.id] = request;
+      if (!persistDrafts()) { delete attempts.current[target.id]; throw new Error('Recovery details could not be saved in this browser. The reply has not been sent.'); }
+      applyOperation(target.id, { id: request.requestKey, ticketId: target.id, recipient: request.expectedRecipient, message,
+        providerStatus: 'SUBMITTING', providerId: null, statusResult: 'PENDING', requestedStatus: request.updateStatus ?? null, canRecover: true, retryAt: null });
+      await submitAttempt(target.id, request);
+    } catch (error) { setOperationErrors(current => ({ ...current, [target.id]: error instanceof Error ? error.message : 'Reply outcome unavailable.' })); setLoading(false); }
+    finally { finish(target.id); }
+  };
+
+  const recoverOperation = async (statusOnly = false) => {
+    if (!selectedId || !operation || !begin(selectedId)) return;
+    const id = selectedId;
+    try {
+      // A known prepared local attempt keeps its exact original payload/key.
+      const request = operation.providerStatus === 'PREPARED' && attempts.current[id] ? attempts.current[id]!
+        : { action: 'recover' as const, operationId: operation.id };
+      await submitAttempt(id, request, statusOnly);
+    } catch (error) { setOperationErrors(current => ({ ...current, [id]: error instanceof Error ? error.message : 'Recovery failed.' })); setLoading(false); }
+    finally { finish(id); }
+  };
+
+  const handleDeleteSuggestion = async (id: string) => {
+    if (!begin(id)) return;
+    try {
+      const confirmed = await showConfirm({ title: 'Delete Suggestion?', message: 'This will permanently delete this suggestion. This action cannot be undone.', confirmText: 'Delete Suggestion', isDangerous: true });
+      if (!confirmed) return;
+      invalidateList();
+      const response = await fetch(`/api/admin/support-tickets/${id}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to delete suggestion');
+      setSuggestions(current => current.filter(row => row.id !== id));
+      setRecords(current => { const next = { ...current }; delete next[id]; return next; });
+      setSelectedId(current => current === id ? null : current);
+      setDraft(id, ''); showSuccess('Suggestion deleted successfully'); void fetchSuggestions();
+    } catch (error) { showError(error instanceof Error ? error.message : 'Failed to delete suggestion'); setLoading(false); }
+    finally { finish(id); }
+  };
+
+  const replyFeedback = () => selectedId && <div className="mb-3 space-y-2 text-xs">
+    {draftStorageError && <p role="alert" className="text-red-700">{draftStorageError}</p>}
+    <p>Recipient: <strong>{selectedSuggestion?.users.email}</strong></p>
+    {!lookupReady[selectedId] && !lookupErrors[selectedId] && <p role="status">Checking previous reply…</p>}
+    {lookupErrors[selectedId] && <p role="alert" className="text-red-700">{lookupErrors[selectedId]} <button type="button" className="underline" onClick={() => void loadReply(selectedId)}>Retry lookup</button></p>}
+    {operationErrors[selectedId] && <p role="alert" className="text-red-700">{operationErrors[selectedId]}</p>}
+    {operation && <div className="rounded border bg-gray-50 p-2 space-y-2" role="status">
+      <p>{operation.providerStatus === 'ACCEPTED' ? `Reply accepted by the email provider for ${operation.recipient}. Inbox delivery is not confirmed.`
+        : operation.providerStatus === 'REJECTED' ? 'The provider did not accept this reply.'
+        : operation.providerStatus === 'REVIEW_REQUIRED' || !operation.canRecover ? 'The reply outcome needs provider evidence before another send.'
+        : 'A reply operation is pending or its outcome is uncertain. Recover it before sending another reply.'}</p>
+      {operation.providerStatus === 'ACCEPTED' && ['PENDING', 'FAILED'].includes(operation.statusResult) && <><p>The email was accepted, but the suggestion status still needs updating.</p><button type="button" disabled={sendingReply} className="underline" onClick={() => void recoverOperation(true)}>Retry status only</button></>}
+      {operation.statusResult === 'CONFLICT' && <p>The suggestion changed after this reply was prepared. Its newer status has been kept.</p>}
+      {operation.canRecover && operation.providerStatus !== 'ACCEPTED' && <button type="button" disabled={sendingReply} className="underline" onClick={() => void recoverOperation()}>Recover existing reply</button>}
+      {['ACCEPTED', 'REJECTED'].includes(operation.providerStatus) && <button type="button" disabled={sendingReply} className="underline" onClick={() => { delete attempts.current[selectedId]; persistDrafts(); setOperations(current => ({ ...current, [selectedId]: null })); }}>Write another reply</button>}
+    </div>}
+  </div>;
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -237,7 +372,8 @@ export function Suggestions() {
                 <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <select
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+                  onChange={(e) => { filterRef.current = e.target.value; setFilterStatus(e.target.value); }}
+                  aria-label="Suggestion status"
                   className="text-sm px-2.5 md:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
                 >
                   <option value="ALL">All Statuses</option>
@@ -254,26 +390,27 @@ export function Suggestions() {
             </div>
           </div>
 
+          {readError && <div role="alert" className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{readError} <button className="underline" onClick={() => void fetchSuggestions()}>Retry</button></div>}
+          {loading && suggestions.length > 0 && <p role="status" className="mb-2 text-sm text-gray-500">Refreshing suggestions…</p>}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Suggestions List */}
             <div className="lg:col-span-2 space-y-3">
-              {loading ? (
+              {loading && suggestions.length === 0 ? (
                 <div className="flex items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
                   <Loader2 className="w-8 h-8 animate-spin text-[#9C060B]" />
                 </div>
-              ) : suggestions.length === 0 ? (
+              ) : suggestions.length === 0 && !readError ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
                   <p className="text-gray-500">No suggestions found</p>
                 </div>
               ) : (
                 suggestions.map((suggestion) => (
-                  <div
+                  <button
+                    type="button"
                     key={suggestion.id}
-                    onClick={() => {
-                      setSelectedSuggestion(suggestion);
-                      setMobileDrawerOpen(true);
-                    }}
-                    className={`bg-white rounded-lg border cursor-pointer transition-all ${
+                    onClick={() => selectSuggestion(suggestion.id)}
+                    aria-pressed={selectedId === suggestion.id}
+                    className={`w-full text-left bg-white rounded-lg border cursor-pointer transition-all ${
                       selectedSuggestion?.id === suggestion.id
                         ? 'border-[#9C060B] shadow-md'
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
@@ -305,7 +442,7 @@ export function Suggestions() {
                         {getPriorityBadge(suggestion.priority)}
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))
               )}
             </div>
@@ -361,6 +498,7 @@ export function Suggestions() {
                       Change Status
                     </label>
                     <select
+                      aria-label="Change suggestion status"
                       value={selectedSuggestion.status}
                       onChange={(e) => handleUpdateStatus(selectedSuggestion.id, e.target.value)}
                       disabled={updatingStatus}
@@ -397,7 +535,10 @@ export function Suggestions() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Reply via Email
                     </label>
+                    {replyFeedback()}
                     <textarea
+                      aria-label="Reply message"
+                      maxLength={20000}
                       value={replyMessage}
                       onChange={(e) => setReplyMessage(e.target.value)}
                       rows={6}
@@ -407,7 +548,7 @@ export function Suggestions() {
                     />
                     <button
                       type="submit"
-                      disabled={sendingReply || !replyMessage.trim()}
+                      disabled={sendingReply || !replyMessage.trim() || !!operation || !selectedId || !lookupReady[selectedId]}
                       className="w-full px-4 py-2 text-sm font-medium text-white bg-[#9C060B] rounded-md hover:bg-[#680407] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                     >
                       {sendingReply ? (
@@ -437,11 +578,8 @@ export function Suggestions() {
       {/* Mobile Suggestion Details Drawer */}
       <AdminDrawer
         isOpen={mobileDrawerOpen && !!selectedSuggestion}
-        onClose={() => {
-          setMobileDrawerOpen(false);
-          setReplyMessage('');
-          setUpdatingStatus(false);
-        }}
+        onClose={() => void closeDrawer()}
+        breakpoint="lg"
         title="Suggestion Details"
         showBackButton
       >
@@ -496,7 +634,8 @@ export function Suggestions() {
                 Change Status
               </label>
               <select
-                value={selectedSuggestion.status}
+                aria-label="Change suggestion status"
+                      value={selectedSuggestion.status}
                 onChange={(e) => handleUpdateStatus(selectedSuggestion.id, e.target.value)}
                 disabled={updatingStatus}
                 className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9C060B]"
@@ -534,7 +673,10 @@ export function Suggestions() {
               <label className="block text-sm font-medium text-gray-700">
                 Reply via Email
               </label>
+              {replyFeedback()}
               <textarea
+                aria-label="Reply message"
+                maxLength={20000}
                 value={replyMessage}
                 onChange={(e) => setReplyMessage(e.target.value)}
                 rows={6}
@@ -544,7 +686,7 @@ export function Suggestions() {
               />
               <button
                 type="submit"
-                disabled={sendingReply || !replyMessage.trim()}
+                disabled={sendingReply || !replyMessage.trim() || !!operation || !selectedId || !lookupReady[selectedId]}
                 className="w-full px-4 py-2 text-sm font-medium text-white bg-[#9C060B] rounded-md hover:bg-[#680407] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
                 {sendingReply ? (

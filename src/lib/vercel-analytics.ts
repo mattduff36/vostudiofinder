@@ -1,5 +1,6 @@
 import 'server-only';
 import { db } from '@/lib/db';
+import { analyticsRanges, utcDate, utcDates, fillDailySeries } from '@/lib/analytics/ranges';
 
 // ---------------------------------------------------------------------------
 // Site Analytics – powered by self-hosted page_views table
@@ -51,43 +52,32 @@ export type AnalyticsResult<T> =
 // Date helpers
 // ---------------------------------------------------------------------------
 
-function daysAgo(n: number): Date {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function isoDate(d: Date): string {
-  return d.toISOString().split('T')[0]!;
-}
-
-// ---------------------------------------------------------------------------
 // Query helpers
 // ---------------------------------------------------------------------------
 
-async function getTimeseries(since: Date): Promise<TimeseriesPoint[]> {
+async function getTimeseries(since: Date, until: Date, days: number): Promise<TimeseriesPoint[]> {
   const rows = await db.$queryRaw<Array<{ day: Date; visitors: bigint; pageviews: bigint }>>`
     SELECT
       DATE(created_at) AS day,
       COUNT(DISTINCT visitor_hash) AS visitors,
       COUNT(*) AS pageviews
     FROM page_views
-    WHERE created_at >= ${since}
+    WHERE created_at >= ${since} AND created_at < ${until}
     GROUP BY DATE(created_at)
     ORDER BY day ASC
   `;
 
-  return rows.map((r) => ({
-    date: isoDate(r.day),
+  return fillDailySeries(rows.map((r) => ({
+    date: utcDate(r.day),
     visitors: Number(r.visitors),
     pageviews: Number(r.pageviews),
-  }));
+  })), utcDates(days, until), date => ({ date, visitors: 0, pageviews: 0 }));
 }
 
 async function getBreakdown(
   column: string,
   since: Date,
+  until: Date,
   limit: number,
 ): Promise<BreakdownEntry[]> {
   // Using raw query for dynamic column; column name is hard-coded at call sites
@@ -99,11 +89,12 @@ async function getBreakdown(
        COUNT(DISTINCT visitor_hash) AS visitors,
        COUNT(*) AS pageviews
      FROM page_views
-     WHERE created_at >= $1 AND ${column} IS NOT NULL
+     WHERE created_at >= $1 AND created_at < $2 AND ${column} IS NOT NULL
      GROUP BY ${column}
      ORDER BY visitors DESC
-     LIMIT $2`,
+     LIMIT $3`,
     since,
+    until,
     limit,
   );
 
@@ -118,10 +109,9 @@ async function getBreakdown(
 // Public API: lightweight summary (for dashboard card)
 // ---------------------------------------------------------------------------
 
-export async function getVisitorSummary(): Promise<AnalyticsResult<AnalyticsSummary>> {
+export async function getVisitorSummary(now = new Date()): Promise<AnalyticsResult<AnalyticsSummary>> {
   try {
-    const since24h = daysAgo(1);
-    const since7d = daysAgo(7);
+    const { rolling24h: since24h, days7: since7d } = analyticsRanges(now);
 
     const [day, week] = await Promise.all([
       db.$queryRaw<[{ visitors: bigint; pageviews: bigint }]>`
@@ -129,14 +119,14 @@ export async function getVisitorSummary(): Promise<AnalyticsResult<AnalyticsSumm
           COUNT(DISTINCT visitor_hash) AS visitors,
           COUNT(*) AS pageviews
         FROM page_views
-        WHERE created_at >= ${since24h}
+        WHERE created_at >= ${since24h} AND created_at < ${now}
       `,
       db.$queryRaw<[{ visitors: bigint; pageviews: bigint }]>`
         SELECT
           COUNT(DISTINCT visitor_hash) AS visitors,
           COUNT(*) AS pageviews
         FROM page_views
-        WHERE created_at >= ${since7d}
+        WHERE created_at >= ${since7d} AND created_at < ${now}
       `,
     ]);
 
@@ -153,7 +143,7 @@ export async function getVisitorSummary(): Promise<AnalyticsResult<AnalyticsSumm
     console.error('[analytics] getVisitorSummary failed:', err);
     return {
       ok: false,
-      error: err instanceof Error ? err.message : 'Unknown error',
+      error: 'Analytics is temporarily unavailable. Please retry.',
       configured: true,
     };
   }
@@ -163,10 +153,9 @@ export async function getVisitorSummary(): Promise<AnalyticsResult<AnalyticsSumm
 // Public API: full analytics detail (for /admin/analytics page)
 // ---------------------------------------------------------------------------
 
-export async function getAnalyticsDetail(): Promise<AnalyticsResult<AnalyticsDetail>> {
+export async function getAnalyticsDetail(now = new Date()): Promise<AnalyticsResult<AnalyticsDetail>> {
   try {
-    const since7d = daysAgo(7);
-    const since30d = daysAgo(30);
+    const { days7: since7d, days30: since30d } = analyticsRanges(now);
 
     const [
       timeseries7d,
@@ -177,30 +166,25 @@ export async function getAnalyticsDetail(): Promise<AnalyticsResult<AnalyticsDet
       topBrowsers,
       topOS,
       topDevices,
+      summaryResult,
     ] = await Promise.all([
-      getTimeseries(since7d),
-      getTimeseries(since30d),
-      getBreakdown('path', since7d, 20),
-      getBreakdown('referrer', since7d, 20),
-      getBreakdown('country', since7d, 20),
-      getBreakdown('browser', since7d, 15),
-      getBreakdown('os', since7d, 15),
-      getBreakdown('device', since7d, 10),
+      getTimeseries(since7d, now, 7),
+      getTimeseries(since30d, now, 30),
+      getBreakdown('path', since7d, now, 20),
+      getBreakdown('referrer', since7d, now, 20),
+      getBreakdown('country', since7d, now, 20),
+      getBreakdown('browser', since7d, now, 15),
+      getBreakdown('os', since7d, now, 15),
+      getBreakdown('device', since7d, now, 10),
+      getVisitorSummary(now),
     ]);
 
-    // Compute summary from 7d series
-    const since24h = daysAgo(1);
-    const today = isoDate(since24h);
-    const recent = timeseries7d.filter((p) => p.date >= today);
-    const visitors24h = recent.reduce((s, p) => s + p.visitors, 0);
-    const pageviews24h = recent.reduce((s, p) => s + p.pageviews, 0);
-    const visitors7d = timeseries7d.reduce((s, p) => s + p.visitors, 0);
-    const pageviews7d = timeseries7d.reduce((s, p) => s + p.pageviews, 0);
+    if (!summaryResult.ok) return summaryResult;
 
     return {
       ok: true,
       data: {
-        summary: { visitors24h, visitors7d, pageviews24h, pageviews7d },
+        summary: summaryResult.data,
         timeseries7d,
         timeseries30d,
         topPages,
@@ -215,7 +199,7 @@ export async function getAnalyticsDetail(): Promise<AnalyticsResult<AnalyticsDet
     console.error('[analytics] getAnalyticsDetail failed:', err);
     return {
       ok: false,
-      error: err instanceof Error ? err.message : 'Unknown error',
+      error: 'Analytics is temporarily unavailable. Please retry.',
       configured: true,
     };
   }

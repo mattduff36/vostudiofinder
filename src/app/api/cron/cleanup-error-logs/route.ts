@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { cleanupErrorLogs } from '@/lib/admin/error-log/triage';
 
 /**
  * Cron Job: Cleanup Old Error Logs
@@ -39,43 +39,11 @@ export async function GET(request: NextRequest) {
 
     console.log('🗑️  [ERROR_LOG_CLEANUP] Starting error log cleanup...');
 
-    // Calculate 90 days ago
-    const ninetyDaysAgo = new Date();
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-
-    // Delete old OPEN error log groups (keep RESOLVED/IGNORED for separate retention policy below)
-    const deletedGroups = await db.error_log_groups.deleteMany({
-      where: {
-        status: 'OPEN',
-        last_seen_at: {
-          lt: ninetyDaysAgo,
-        },
-      },
-    });
-
-    console.log(`✅ [ERROR_LOG_CLEANUP] Deleted ${deletedGroups.count} old OPEN error log groups (90+ days)`);
-
-    // Also clean up resolved/ignored issues older than 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const deletedResolved = await db.error_log_groups.deleteMany({
-      where: {
-        status: {
-          in: ['RESOLVED', 'IGNORED'],
-        },
-        updated_at: {
-          lt: thirtyDaysAgo,
-        },
-      },
-    });
-
-    console.log(`✅ [ERROR_LOG_CLEANUP] Deleted ${deletedResolved.count} resolved/ignored error logs (30+ days)`);
+    const counts = await cleanupErrorLogs();
 
     return NextResponse.json({
       success: true,
-      deletedOld: deletedGroups.count,
-      deletedResolved: deletedResolved.count,
+      ...counts,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -83,7 +51,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Cleanup job failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

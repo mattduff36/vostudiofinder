@@ -51,10 +51,11 @@ export async function GET(request: NextRequest) {
           'Authorization': `Bearer ${sentryAuthToken}`,
           'Content-Type': 'application/json',
         },
+        signal: AbortSignal.timeout(10000),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
+        const errorText = 'The Sentry request failed';
         console.error('❌ [ADMIN_SYNC] Sentry API error:', response.status, errorText);
         return NextResponse.json(
           { error: 'Sentry API error', status: response.status, message: errorText },
@@ -105,6 +106,7 @@ export async function GET(request: NextRequest) {
           status = 'IGNORED';
         }
 
+// Local dispositions live independently in error_log_triage and are never overwritten here.
         // Upsert the issue
         await db.error_log_groups.upsert({
           where: { sentry_issue_id: sentryIssueId },
@@ -136,7 +138,7 @@ export async function GET(request: NextRequest) {
         syncedCount++;
       } catch (error) {
         console.error(`❌ [ADMIN_SYNC] Error syncing issue ${issue.id}:`, error);
-        errors.push(`Issue ${issue.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        errors.push('An issue could not be imported. Retry the explicit sync after checking its configuration.');
         errorCount++;
       }
     }
@@ -156,11 +158,13 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ [ADMIN_SYNC] Manual sync failed:', error);
+    if (error instanceof Error && (error.message === 'Unauthorized' || error.message === 'Insufficient permissions')) {
+      return NextResponse.json({ error: error.message }, { status: error.message === 'Unauthorized' ? 401 : 403 });
+    }
+    console.error('❌ [ADMIN_SYNC] Manual sync failed');
     return NextResponse.json(
       {
         error: 'Sync failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

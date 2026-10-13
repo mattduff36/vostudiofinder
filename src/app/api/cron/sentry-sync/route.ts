@@ -62,10 +62,11 @@ export async function GET(request: NextRequest) {
         'Authorization': `Bearer ${sentryAuthToken}`,
         'Content-Type': 'application/json',
       },
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
+      const errorText = 'The Sentry request failed';
       console.error('❌ [SENTRY_SYNC] Sentry API error:', response.status, errorText);
       return NextResponse.json(
         {
@@ -110,6 +111,7 @@ export async function GET(request: NextRequest) {
         // For now, we'll skip individual event fetching to reduce API calls
         // The webhook will provide sample events when they occur
 
+// Local dispositions live independently in error_log_triage and are never overwritten here.
         // Upsert the issue - sync status from Sentry
         await db.error_log_groups.upsert({
           where: { sentry_issue_id: sentryIssueId },
@@ -142,7 +144,7 @@ export async function GET(request: NextRequest) {
         syncedCount++;
       } catch (error) {
         console.error(`❌ [SENTRY_SYNC] Error syncing issue ${issue.id}:`, error);
-        errors.push(`Issue ${issue.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        errors.push('An issue could not be imported. Retry the explicit sync after checking its configuration.');
         errorCount++;
       }
     }
@@ -164,7 +166,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Sync job failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

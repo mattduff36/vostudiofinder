@@ -1,150 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { z } from 'zod';
 import { db } from '@/lib/db';
-import { logger } from '@/lib/logger';
+import { nextTicketVersion, requireSupportAdmin, statusFields, SupportError, supportStatuses, ticketUserInclude } from '@/lib/admin/support/replies';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const session = await getServerSession(authOptions);
-
-    // Check admin authorization
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const user = await db.users.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
-
-    if (user?.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    const { status, priority, assigned_to } = await request.json();
-
-    // Validate status
-    const validStatuses = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
-    if (status && !validStatuses.includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid status' },
-        { status: 400 }
-      );
-    }
-
-    // Validate priority
-    const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
-    if (priority && !validPriorities.includes(priority)) {
-      return NextResponse.json(
-        { error: 'Invalid priority' },
-        { status: 400 }
-      );
-    }
-
-    // Build update data
-    const updateData: any = {
-      updated_at: new Date(),
-    };
-
-    if (status) {
-      updateData.status = status;
-      if (status === 'RESOLVED' || status === 'CLOSED') {
-        updateData.resolved_at = new Date();
-      }
-    }
-
-    if (priority) updateData.priority = priority;
-    if (assigned_to !== undefined) updateData.assigned_to = assigned_to;
-
-    // Update ticket
-    const ticket = await db.support_tickets.update({
-      where: { id },
-      data: updateData,
-      include: {
-        users: {
-          select: {
-            id: true,
-            email: true,
-            username: true,
-            display_name: true,
-          },
-        },
-      },
-    });
-
-    logger.log(`Support ticket ${id} updated by admin ${session.user.id}`);
-
-    return NextResponse.json({
-      success: true,
-      ticket,
-    });
-
-  } catch (error) {
-    logger.error('Error updating support ticket:', error);
-    return NextResponse.json(
-      { error: 'Failed to update support ticket' },
-      { status: 500 }
-    );
-  }
+type Context = { params: Promise<{ id: string }> };
+function failure(error: unknown) {
+  return NextResponse.json({ error: error instanceof SupportError ? error.message : 'The suggestion could not be updated. Please retry.' },
+    { status: error instanceof SupportError ? error.status : 500 });
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: Context) {
   try {
+    await requireSupportAdmin();
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-
-    // Check admin authorization
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const user = await db.users.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
+    const parsed = z.object({ status: z.enum(supportStatuses).optional(), priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+      assigned_to: z.string().min(1).max(200).nullable().optional() }).strict().refine(value => Object.keys(value).length > 0).safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid suggestion update' }, { status: 400 });
+    const ticket = await db.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM support_tickets WHERE id = ${id} FOR UPDATE`;
+      const current = await tx.support_tickets.findUnique({ where: { id } });
+      if (!current) throw new SupportError(404, 'Suggestion not found');
+      const now = nextTicketVersion(current.updated_at);
+      return tx.support_tickets.update({ where: { id }, data: {
+        updated_at: now,
+        ...(parsed.data.status ? statusFields(parsed.data.status, now) : {}),
+        ...(parsed.data.priority ? { priority: parsed.data.priority } : {}),
+        ...(parsed.data.assigned_to !== undefined ? { assigned_to: parsed.data.assigned_to } : {}),
+      }, include: ticketUserInclude });
     });
-
-    if (user?.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    // Delete the suggestion
-    await db.support_tickets.delete({
-      where: { id },
-    });
-
-    logger.log(`Support ticket ${id} deleted by admin ${session.user.id}`);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Suggestion deleted successfully',
-    });
-
-  } catch (error) {
-    logger.error('Error deleting support ticket:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete suggestion' },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({ success: true, ticket });
+  } catch (error) { return failure(error); }
 }
 
+export async function DELETE(_request: NextRequest, { params }: Context) {
+  try {
+    await requireSupportAdmin();
+    const { id } = await params;
+    await db.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM support_tickets WHERE id = ${id} FOR UPDATE`;
+      if (!await tx.support_tickets.findUnique({ where: { id }, select: { id: true } })) throw new SupportError(404, 'Suggestion not found');
+      const pending = await tx.support_reply_operations.findFirst({ where: { ticket_id: id, provider_status: { in: ['PREPARED', 'SUBMITTING', 'UNKNOWN', 'REVIEW_REQUIRED'] } }, select: { id: true } });
+      if (pending) throw new SupportError(409, 'Recover the pending reply before deleting this suggestion');
+      await tx.support_tickets.delete({ where: { id } });
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) { return failure(error); }
+}

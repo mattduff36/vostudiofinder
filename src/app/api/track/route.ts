@@ -3,29 +3,7 @@ import { db } from '@/lib/db';
 import { createHash } from 'crypto';
 import { headers } from 'next/headers';
 
-function parseUA(ua: string): { browser: string; os: string; device: string } {
-  let browser = 'Unknown';
-  let os = 'Unknown';
-  let device = 'Desktop';
-
-  if (/Mobile|Android|iPhone|iPad/i.test(ua)) {
-    device = /iPad|Tablet/i.test(ua) ? 'Tablet' : 'Mobile';
-  }
-
-  if (ua.includes('Firefox/')) browser = 'Firefox';
-  else if (ua.includes('Edg/')) browser = 'Edge';
-  else if (ua.includes('OPR/') || ua.includes('Opera')) browser = 'Opera';
-  else if (ua.includes('Chrome/') && !ua.includes('Edg/')) browser = 'Chrome';
-  else if (ua.includes('Safari/') && !ua.includes('Chrome')) browser = 'Safari';
-
-  if (ua.includes('Windows')) os = 'Windows';
-  else if (ua.includes('Mac OS')) os = 'macOS';
-  else if (ua.includes('Linux')) os = 'Linux';
-  else if (ua.includes('Android')) os = 'Android';
-  else if (/iPhone|iPad/.test(ua)) os = 'iOS';
-
-  return { browser, os, device };
-}
+import { parseAnalyticsUA } from '@/lib/analytics/user-agent';
 
 export async function POST(request: Request) {
   try {
@@ -49,7 +27,7 @@ export async function POST(request: Request) {
       .digest('hex')
       .slice(0, 16);
 
-    const { browser, os, device } = parseUA(ua);
+    const { browser, os, device } = parseAnalyticsUA(ua);
 
     const referrer = typeof body.referrer === 'string'
       ? body.referrer.slice(0, 500) || null

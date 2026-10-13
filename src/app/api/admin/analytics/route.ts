@@ -14,6 +14,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get('mode') ?? 'detail';
 
+    if (!['summary', 'detail'].includes(mode)) return NextResponse.json({ error: 'Invalid analytics mode' }, { status: 400 });
+
     if (mode === 'summary') {
       const result = await getVisitorSummary();
       if (!result.ok) {

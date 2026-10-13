@@ -53,13 +53,13 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
 
   // Transform signup trend for display (format dates)
   const signupChartData = insights.signupTrend.map(item => ({
-    date: new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+    date: new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' }),
     signups: item.count,
   }));
 
   // Transform payment trend for display (format dates and convert to pounds)
   const paymentChartData = insights.paymentTrend.map(item => ({
-    date: new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+    date: new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' }),
     payments: item.count,
     revenue: Math.round(item.amount / 100), // Convert pence to pounds
   }));
@@ -236,7 +236,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
             <div className="min-w-0">
               <h3 className="text-sm md:text-lg font-bold text-gray-900 truncate">Signups (30d)</h3>
-              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Daily user registrations</p>
+              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Daily user registrations (UTC)</p>
             </div>
           </div>
           {signupChartData.length > 0 ? (
@@ -282,7 +282,7 @@ export function AdminInsights({ insights }: AdminInsightsProps) {
             <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
             <div className="min-w-0">
               <h3 className="text-sm md:text-lg font-bold text-gray-900 truncate">Payments (30d)</h3>
-              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Daily revenue (£) and transaction count</p>
+              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Daily revenue (£) and transaction count (UTC)</p>
             </div>
           </div>
           {paymentChartData.length > 0 ? (

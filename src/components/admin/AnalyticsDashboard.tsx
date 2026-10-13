@@ -51,7 +51,7 @@ function formatNumber(n: number): string {
 function formatDateLabel(d: string): string {
   try {
     const date = new Date(d);
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
   } catch {
     return d;
   }
@@ -317,6 +317,7 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
 
   return (
     <div className="space-y-4 md:space-y-8">
+      <p className="text-xs text-gray-600">Reports use UTC. 24 hours is a rolling window; 7/30-day charts include today. Visitor IDs reset each UTC day, so a returning visitor can count on several dates. All breakdowns cover the seven UTC dates including today.</p>
       {/* KPI Row — semantic colors matching AdminDashboard stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         <KpiCard label="Visitors (24h)" value={summary.visitors24h} icon={Eye} color="bg-blue-500" />

@@ -4,6 +4,7 @@ import { Role, UserStatus } from '@prisma/client';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { db } from '@/lib/db';
 import { getVisitorSummary } from '@/lib/vercel-analytics';
+import { analyticsRanges, utcDates } from '@/lib/analytics/ranges';
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard - Voiceover Studio Finder',
@@ -13,6 +14,9 @@ export const metadata: Metadata = {
 export default async function AdminPage() {
   // Ensure user has admin permissions
   await requireRole(Role.ADMIN);
+
+  const now = new Date();
+  const reportRange = analyticsRanges(now);
 
   // Fetch dashboard statistics
   const [
@@ -122,7 +126,8 @@ export default async function AdminPage() {
     db.users.findMany({
       where: {
         created_at: {
-          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          gte: reportRange.days30,
+          lt: now,
         },
       },
       select: { created_at: true },
@@ -133,7 +138,8 @@ export default async function AdminPage() {
       where: {
         status: 'SUCCEEDED',
         created_at: {
-          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          gte: reportRange.days30,
+          lt: now,
         },
       },
       select: { 
@@ -231,12 +237,8 @@ export default async function AdminPage() {
 
   // Signups per day (last 30 days)
   const signupsByDay = new Map<string, number>();
-  const now = new Date();
-  // Initialize all 30 days with 0
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    const dateKey = date.toISOString().split('T')[0]!;
+  // Initialize exactly 30 UTC dates with 0
+  for (const dateKey of utcDates(30, now)) {
     signupsByDay.set(dateKey, 0);
   }
   // Fill in actual signup counts
@@ -244,7 +246,7 @@ export default async function AdminPage() {
     const dateKey = user.created_at.toISOString().split('T')[0]!;
     signupsByDay.set(dateKey, (signupsByDay.get(dateKey) || 0) + 1);
   });
-  const signupTrend = Array.from(signupsByDay.entries()).map(([date, count]) => ({
+  const signupTrend = Array.from(signupsByDay.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([date, count]) => ({
     date,
     count,
   }));
@@ -252,10 +254,7 @@ export default async function AdminPage() {
   // Payments per day (last 30 days) - both count and amount
   const paymentsByDay = new Map<string, { count: number; amount: number }>();
   // Initialize all 30 days with 0
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    const dateKey = date.toISOString().split('T')[0]!;
+  for (const dateKey of utcDates(30, now)) {
     paymentsByDay.set(dateKey, { count: 0, amount: 0 });
   }
   // Fill in actual payment data
@@ -267,7 +266,7 @@ export default async function AdminPage() {
       amount: current.amount + payment.amount,
     });
   });
-  const paymentTrend = Array.from(paymentsByDay.entries()).map(([date, data]) => ({
+  const paymentTrend = Array.from(paymentsByDay.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([date, data]) => ({
     date,
     count: data.count,
     amount: data.amount,
@@ -409,7 +408,7 @@ export default async function AdminPage() {
   ]);
 
   // Fetch Vercel Analytics visitor summary (non-blocking – falls back to null)
-  const visitorResult = await getVisitorSummary();
+  const visitorResult = await getVisitorSummary(now);
   const visitors24h = visitorResult.ok ? visitorResult.data.visitors24h : null;
   const visitors7d = visitorResult.ok ? visitorResult.data.visitors7d : null;
 
