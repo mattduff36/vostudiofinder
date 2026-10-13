@@ -16,13 +16,13 @@ type MembershipUpdateParams = {
 }
 
 /**
- * Handles membership expiry updates (subscription CRUD + status sync)
+ * Handles recorded membership expiry without deleting history or changing publication.
  */
 export async function handleMembershipExpiryUpdate(
   tx: any,
   params: MembershipUpdateParams
 ): Promise<void> {
-  const { userId, studioId, newExpiryValue, currentSubscription, skipStatusUpdate } = params;
+  const { userId, newExpiryValue, currentSubscription } = params;
   
   const currentExpiryDate = currentSubscription?.current_period_end?.toISOString() || null;
   
@@ -44,7 +44,6 @@ export async function handleMembershipExpiryUpdate(
         where: { id: currentSubscription.id },
         data: {
           current_period_end: expiryDate,
-          status: 'ACTIVE',
           updated_at: now
         }
       });
@@ -64,36 +63,16 @@ export async function handleMembershipExpiryUpdate(
       });
     }
 
-    // Update studio status based on expiry date (only if not explicitly set)
-    if (!skipStatusUpdate) {
-      const isExpired = expiryDate < now;
-      const newStatus = isExpired ? 'INACTIVE' : 'ACTIVE';
-      
-      await tx.studio_profiles.update({
-        where: { id: studioId },
-        data: { 
-          status: newStatus,
-          updated_at: now
-        }
-      });
-    }
-  } else {
-    // Being explicitly cleared - delete subscription and set to INACTIVE
-    await tx.subscriptions.deleteMany({
-      where: { user_id: userId }
+  } else if (currentSubscription) {
+    // Clearing an admin expiry is not deletion or provider cancellation. Keep
+    // historic subscriptions, provider references, status and benefit mappings.
+    await tx.subscriptions.update({
+      where: { id: currentSubscription.id },
+      data: { current_period_end: null, updated_at: now },
     });
-    
-    // Only change status if not explicitly set in request
-    if (!skipStatusUpdate) {
-      await tx.studio_profiles.update({
-        where: { id: studioId },
-        data: { 
-          status: 'INACTIVE',
-          updated_at: now
-        }
-      });
-    }
   }
+  // Publication remains an independent, explicit administrator decision.
+
 }
 
 /**

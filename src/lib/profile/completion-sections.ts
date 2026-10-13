@@ -13,13 +13,10 @@ export function completionEditSection(id: CompletionItemId, context: 'owner' | '
   return 'basic';
 }
 
-/** Preserve the editor's section groupings while using the score's exact predicates. */
-export function completionSectionStatus(completion: ReturnType<typeof getProfileCompletion>) {
-  const done = new Set(completion.items.filter(item => item.completed).map(item => item.id));
-  const status = (...ids: CompletionItemId[]) => ids.every(id => done.has(id)) ? 'complete' : 'incomplete';
-  return {
-    basic: status('username', 'display_name', 'email', 'studio_name', 'studio_types', 'short_about', 'about'),
-    contact: status('location', 'website_url'), connections: status('connections'), rates: status('rate'),
-    social: status('social'), images: status('images'), privacy: 'neutral', advanced: 'neutral', admin: 'neutral',
-  };
+/** Badges and Edit actions share one grouping, including optional items. */
+export function completionSectionStatus(completion: ReturnType<typeof getProfileCompletion>, context: 'owner' | 'admin' = 'owner') {
+  return Object.fromEntries(PROFILE_SECTION_IDS.map(section => {
+    const items = completion.items.filter(item => completionEditSection(item.id, context) === section);
+    return [section, !items.length ? 'neutral' : items.every(item => item.completed) ? 'complete' : 'incomplete'];
+  })) as Record<ProfileSectionId, 'complete' | 'incomplete' | 'neutral'>;
 }

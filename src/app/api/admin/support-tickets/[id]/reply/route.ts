@@ -12,12 +12,12 @@ function failure(error: unknown) {
 
 export async function GET(request: NextRequest, { params }: Context) {
   try {
-    const actorId = await requireSupportAdmin();
+    await requireSupportAdmin();
     const { id } = await params;
     const operationId = request.nextUrl.searchParams.get('operationId');
     if (operationId && !z.uuid().safeParse(operationId).success) return NextResponse.json({ error: 'Invalid operation ID' }, { status: 400 });
     const operation = operationId ? await getReplyOperation(id, operationId)
-      : await db.support_reply_operations.findFirst({ where: { ticket_id: id, actor_id: actorId }, orderBy: { created_at: 'desc' } });
+      : await db.support_reply_operations.findFirst({ where: { ticket_id: id }, orderBy: { created_at: 'desc' } });
     return NextResponse.json({ operation: operation ? replyOperationDto(operation) : null });
   } catch (error) { return failure(error); }
 }

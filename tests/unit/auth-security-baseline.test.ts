@@ -33,8 +33,8 @@ describe('Auth.js security baseline', () => {
     expect(adapter).toBe('2.11.3');
     expect(coreEntries).toHaveLength(1);
     expect(coreEntries[0][1]).toMatchObject({ version: '0.41.3' });
-    expect(pkg.dependencies.next).toMatch(/16\.3\.3/);
-    expect(lock.packages?.['node_modules/next']?.version).toBe('16.3.3');
+    expect(pkg.dependencies.next).toMatch(/16\.3\.8/);
+    expect(lock.packages?.['node_modules/next']?.version).toBe('16.3.8');
   });
 
   it('rejects unnamed exact-floor prereleases for next-auth and @auth/core', () => {

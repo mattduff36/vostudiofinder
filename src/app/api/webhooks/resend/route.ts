@@ -14,84 +14,46 @@
  * 4. Copy the signing secret → set as RESEND_WEBHOOK_SECRET in env
  * 
  * Security: Validates the webhook using the svix-id header and shared secret.
- * Falls back to accepting unsigned requests in dev when secret is not configured.
+ * Requires signed requests in every environment, including timestamp freshness.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import crypto from 'crypto';
+import { Resend } from 'resend';
+import { z } from 'zod';
 
-const WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET;
-
-interface ResendWebhookEvent {
-  type: string;
-  created_at: string;
-  data: {
-    email_id: string;
-    from: string;
-    to: string[];
-    subject: string;
-    click?: {
-      ipAddress: string;
-      link: string;
-      timestamp: string;
-      userAgent: string;
-    };
-    bounce?: {
-      message: string;
-      type: string;
-    };
-  };
-}
-
-function verifyWebhookSignature(body: string, svixId: string | null, svixTimestamp: string | null, svixSignature: string | null): boolean {
-  if (!WEBHOOK_SECRET || !svixId || !svixTimestamp || !svixSignature) {
-    return false;
-  }
-
-  const toSign = `${svixId}.${svixTimestamp}.${body}`;
-  const secretBytes = Buffer.from(WEBHOOK_SECRET.replace(/^whsec_/, ''), 'base64');
-  const expectedSignature = crypto
-    .createHmac('sha256', secretBytes)
-    .update(toSign)
-    .digest('base64');
-
-  const signatures = svixSignature.split(' ');
-  return signatures.some(sig => {
-    const sigValue = sig.replace(/^v1,/, '');
-    return sigValue === expectedSignature;
-  });
-}
+// Verification is entirely local; this instance never submits an API request.
+const verifier = new Resend('webhook-verification-only');
+const eventSchema = z.object({
+  type: z.string(),
+  data: z.object({
+    email_id: z.string().min(1).optional(),
+    click: z.object({ link: z.string().max(10_000), timestamp: z.iso.datetime({ offset: true }) }).optional(),
+    bounce: z.object({ message: z.string().optional() }).optional(),
+  }),
+});
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
 
-    const svixId = request.headers.get('svix-id');
-    const svixTimestamp = request.headers.get('svix-timestamp');
-    const svixSignature = request.headers.get('svix-signature');
-
-    if (WEBHOOK_SECRET) {
-      const isValid = verifyWebhookSignature(body, svixId, svixTimestamp, svixSignature);
-      if (!isValid) {
-        console.error('❌ [RESEND_WEBHOOK] Invalid signature');
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-      }
-    } else if (process.env.NODE_ENV === 'production') {
-      console.error('❌ [RESEND_WEBHOOK] RESEND_WEBHOOK_SECRET not configured in production');
-      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
-    } else {
-      console.warn('⚠️  [RESEND_WEBHOOK] No RESEND_WEBHOOK_SECRET - accepting unsigned (dev only)');
+    const secret = process.env.RESEND_WEBHOOK_SECRET;
+    if (!secret) return NextResponse.json({ error: 'Webhook signing is not configured' }, { status: 503 });
+    let verified: unknown;
+    try {
+      verified = verifier.webhooks.verify({ payload: body, webhookSecret: secret, headers: {
+        id: request.headers.get('svix-id') ?? '',
+        timestamp: request.headers.get('svix-timestamp') ?? '',
+        signature: request.headers.get('svix-signature') ?? '',
+      } });
+    } catch {
+      return NextResponse.json({ error: 'Invalid webhook signature or timestamp' }, { status: 401 });
     }
-
-    const event: ResendWebhookEvent = JSON.parse(body);
+    const parsed = eventSchema.safeParse(verified);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid webhook event' }, { status: 400 });
+    const event = parsed.data;
     const emailId = event.data.email_id;
-
-    console.log(`📨 [RESEND_WEBHOOK] ${event.type} for email ${emailId}`);
-
-    if (!emailId) {
-      return NextResponse.json({ success: true, message: 'No email_id' });
-    }
+    if (!emailId) return NextResponse.json({ success: true, message: 'No email_id' });
 
     switch (event.type) {
       case 'email.delivered':
@@ -111,8 +73,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('❌ [RESEND_WEBHOOK] Error processing webhook:', error);
+  } catch {
+    console.error('[RESEND_WEBHOOK] Processing failed');
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }
@@ -165,7 +127,7 @@ async function handleClicked(resendId: string, click?: { link: string; timestamp
         opened_at: delivery.opened_at ?? new Date(),
       },
     });
-    console.log(`🔗 [RESEND_WEBHOOK] Link clicked: ${delivery.id} → ${click?.link}`);
+    console.log(`🔗 [RESEND_WEBHOOK] Link clicked: ${delivery.id}`);
   }
 }
 

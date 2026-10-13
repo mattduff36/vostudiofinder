@@ -38,8 +38,14 @@ export function buildStudioUpdate(
   if (body._meta?.city !== undefined) studioUpdateData.city = body._meta.city;
   if (body._meta?.phone !== undefined) studioUpdateData.phone = body._meta.phone;
   if (body._meta?.url !== undefined) studioUpdateData.website_url = body._meta.url;
-  if (body._meta?.latitude !== undefined) studioUpdateData.latitude = parseFloat(String(body._meta.latitude)) || null;
-  if (body._meta?.longitude !== undefined) studioUpdateData.longitude = parseFloat(String(body._meta.longitude)) || null;
+  if (body._meta?.latitude !== undefined) {
+    const value = parseFloat(String(body._meta.latitude));
+    studioUpdateData.latitude = Number.isFinite(value) ? value : null;
+  }
+  if (body._meta?.longitude !== undefined) {
+    const value = parseFloat(String(body._meta.longitude));
+    studioUpdateData.longitude = Number.isFinite(value) ? value : null;
+  }
   if (body._meta?.show_exact_location !== undefined) {
     studioUpdateData.show_exact_location = normalizeBoolean(body._meta.show_exact_location);
   }

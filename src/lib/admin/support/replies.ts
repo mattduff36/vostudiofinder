@@ -96,11 +96,19 @@ export async function prepareReply(ticketId: string, actorId: string, input: Rep
           || ticket.updated_at.toISOString() !== new Date(input.expectedUpdatedAt).toISOString()) {
         throw new SupportError(409, 'The suggestion or recipient changed. Refresh it and review the reply before sending.');
       }
+      const unresolved = await tx.support_reply_operations.findFirst({ where: {
+        ticket_id: ticketId, provider_status: { in: ['PREPARED', 'SUBMITTING', 'UNKNOWN', 'REVIEW_REQUIRED'] },
+      } });
+      if (unresolved) throw new SupportError(409, 'This ticket already has an unresolved reply. Refresh and recover or review it before sending another.');
+      // Reserve the reviewed ticket version as well as the request key. A
+      // second administrator's stale draft cannot send after fast acceptance.
+      const ticketVersion = nextTicketVersion(ticket.updated_at);
+      await tx.support_tickets.update({ where: { id: ticketId }, data: { updated_at: ticketVersion } });
       const payload = buildSupportPayload(ticket, input.message);
       return tx.support_reply_operations.create({ data: {
         id: input.requestKey, ticket_id: ticketId, ticket_user_id: ticket.user_id, actor_id: actorId,
         recipient: payload.to, message: input.message, payload_hash: hash, payload: JSON.parse(JSON.stringify(payload)) as Prisma.InputJsonObject,
-        requested_status: input.updateStatus ?? null, ticket_version: ticket.updated_at,
+        requested_status: input.updateStatus ?? null, ticket_version: ticketVersion,
         provider_key: `support-reply/${input.requestKey}`, status_result: input.updateStatus ? 'PENDING' : 'NOT_REQUESTED',
       } });
     });

@@ -8,8 +8,8 @@ jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/lib/auth', () => ({ authOptions: {} }));
 jest.mock('@/lib/email/campaign-provider', () => ({ ...jest.requireActual('@/lib/email/campaign-provider'), submitFrozenEmail: jest.fn() }));
 jest.mock('@/lib/db', () => ({ db: {
-  users: { findUnique: jest.fn() }, support_tickets: { findUnique: jest.fn(), updateMany: jest.fn() },
-  support_reply_operations: { findUnique: jest.fn(), findUniqueOrThrow: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
+  users: { findUnique: jest.fn() }, support_tickets: { findUnique: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
+  support_reply_operations: { findFirst: jest.fn(), findUnique: jest.fn(), findUniqueOrThrow: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
   $queryRaw: jest.fn(), $transaction: jest.fn(),
 } }));
 const database = db as any;
@@ -45,13 +45,15 @@ beforeEach(() => {
   ticket = { id: 'ticket-b', user_id: 'customer-b', status: 'OPEN', updated_at: date, resolved_at: null,
     type: 'SUGGESTION', category: 'A & B', subject: '<b>subject</b>', message: '<img src=x>',
     users: { id: 'customer-b', email: 'b@example.test', display_name: '<script>Name</script>' } };
+  database.support_tickets.update.mockImplementation(async ({ data }: any) => { ticket = { ...ticket, ...data }; return copy(ticket); });
+  database.support_reply_operations.findFirst.mockImplementation(async ({ where }: any) => matches(operation, where) ? copy(operation) : null);
   database.support_tickets.findUnique.mockImplementation(async () => copy(ticket));
   database.support_tickets.updateMany.mockImplementation(async ({ where, data }: any) => {
     if (failStatusWrite) throw new Error('isolated mocked failure');
     if (!matches(ticket, where)) return { count: 0 };
     ticket = { ...ticket, ...data }; return { count: 1 };
   });
-  database.support_reply_operations.findUnique.mockImplementation(async () => copy(operation));
+  database.support_reply_operations.findUnique.mockImplementation(async ({ where }: any) => matches(operation, where) ? copy(operation) : null);
   database.support_reply_operations.findUniqueOrThrow.mockImplementation(async () => copy(operation));
   database.support_reply_operations.create.mockImplementation(async ({ data }: any) => {
     if (operation) throw new Prisma.PrismaClientKnownRequestError('unique', { code: 'P2002', clientVersion: '6' });
@@ -146,4 +148,13 @@ it('reopening clears resolved_at and versions are distinct', () => {
   expect(statusFields('OPEN', date).resolved_at).toBeNull();
   expect(statusFields('IN_PROGRESS', date).resolved_at).toBeNull();
   expect(statusFields('RESOLVED', date).resolved_at).toEqual(date);
+});
+
+it('blocks a second admin while an earlier reply is unresolved, and versions fast accepted replies', async () => {
+  const first = await prepareReply('ticket-b', 'admin-a', input);
+  const reviewedVersion = ticket.updated_at.toISOString();
+  await expect(prepareReply('ticket-b', 'admin-b', { ...input, requestKey: '3de28b4e-129d-4b57-92ab-4452b39b324b', expectedUpdatedAt: reviewedVersion })).rejects.toMatchObject({ status: 409 });
+  await dispatchReply(first, date);
+  await expect(prepareReply('ticket-b', 'admin-b', { ...input, requestKey: '3de28b4e-129d-4b57-92ab-4452b39b324b' })).rejects.toMatchObject({ status: 409 });
+  expect(provider).toHaveBeenCalledTimes(1);
 });

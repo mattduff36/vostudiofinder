@@ -205,3 +205,12 @@ describe('Admin Studio Update Field Mapping', () => {
     });
   });
 });
+
+describe('coordinate zero regression', () => {
+  it.each([0, '0'])('preserves valid zero coordinates (%s)', value => {
+    expect(buildStudioUpdate({ _meta: { latitude: value, longitude: value } })).toMatchObject({ latitude: 0, longitude: 0 });
+  });
+  it('rejects non-finite coordinates', () => {
+    expect(buildStudioUpdate({ _meta: { latitude: Infinity, longitude: 'NaN' } })).toMatchObject({ latitude: null, longitude: null });
+  });
+});

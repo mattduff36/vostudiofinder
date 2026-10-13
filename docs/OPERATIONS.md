@@ -143,3 +143,12 @@ Apply verifies the host/database, snapshot hash, and current selected rows under
 An `.applied.json` receipt stores the resulting state. `--rollback` with the original arguments restores the original selected fields/metadata only when the live rows still exactly match that receipt. If members or billing have changed them since, rollback refuses; investigate and reconcile rather than overwriting newer work. Never roll back publication by broad status updates.
 
 Deploy the corrected workflow before applying a freshly verified recovery plan. Confirm production deployment SHA and domain, compare exclusion states, and verify representative public pages and search/map counts afterward. Do not invoke a mutating cron merely as an authentication smoke test.
+
+
+### Admin follow-up safeguards (13 October 2026)
+
+Clearing the recorded membership expiry updates only the selected latest subscription date; it preserves older records, provider references, cancellation status and purchased-benefit associations. It does not cancel provider billing, delete history or change listing publication. Changing an existing date also preserves its subscription status. A missing date does not grant Premium access to a non-admin account; the existing membership helper remains authoritative. The legacy creation of a local subscription period without a provider ID remains unchanged and is not evidence of a Stripe purchase.
+
+Support reply preparation locks and advances the reviewed ticket version, and rejects another unresolved operation for the ticket across all administrators. Recovery lookup is ticket-wide, so a second administrator can see the same pending reply. Provider-uncertain or review-required replies must be resolved before creating another send; a fresh request key is not a recovery method.
+
+The follow-up code/security fixes do not activate campaigns, refund lifecycle, new admin refunds or notifications. Keep all four activation flags closed until the separately documented operational gates and owner-approved rollout are complete.

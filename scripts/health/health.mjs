@@ -33,8 +33,8 @@ function run(cmd, args, label) {
   add(r.status === 0 ? 'PASS' : 'FAIL', 'verification', label, output.slice(-1200) || `exit ${r.status}`);
 }
 
-/** August 2026 Next.js Active-LTS security floor. Bump when a later required secure release ships. */
-const NEXT_MIN_SECURE = { major: 16, minor: 3, patch: 3 };
+/** October 2026 Next.js security floor adopted by the admin follow-up review. */
+const NEXT_MIN_SECURE = { major: 16, minor: 3, patch: 8 };
 
 for (const tool of ['node', 'npm', 'git']) {
   add(commandExists(tool) ? 'PASS' : 'FAIL', 'tooling', `tool:${tool}`, commandExists(tool) ? 'available' : 'missing');
@@ -131,7 +131,7 @@ if (exists('Dockerfile')) {
   const resolvedOk = lockVersion ? semverGte(resolved, NEXT_MIN_SECURE) : declaredOk;
   const prerelease = isPrereleaseSpec(declaredSpec) || isPrereleaseSpec(lockVersion);
   const minLabel = formatSemver(NEXT_MIN_SECURE);
-  const detail = `declared ${declaredSpec || 'missing'} (core ${formatSemver(declared)}); lockfile ${lockVersion || 'unknown'}; minimum secure baseline ${minLabel} (Next.js August 2026 Active LTS: GHSA-2xp9-vwfh-vxw4, CVE-2026-75604 / GHSA-p293-qw3h-jr36)`;
+  const detail = `declared ${declaredSpec || 'missing'} (core ${formatSemver(declared)}); lockfile ${lockVersion || 'unknown'}; minimum secure baseline ${minLabel} (Next.js October 2026 review: GHSA-vcvr-r3jv-pc5j and subsequent 16.3.x fixes)`;
   if (prerelease) {
     add('FAIL', 'framework', 'next-security-baseline', `Next.js prerelease is not an allowed security baseline. ${detail}`);
   } else if (!declaredOk || !resolvedOk) {

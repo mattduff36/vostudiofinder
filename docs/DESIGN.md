@@ -37,6 +37,8 @@ On mobile, details appear inside the existing card. In the table, they occupy a 
 
 The details use the same completion items as the dashboard. Show required and optional groups, completed and outstanding states, counts and percentage. Status must be available as text to assistive technology, not colour alone. Each item's Edit action opens its relevant section. Include studio/owner/contact/visibility/membership information and a Copy outstanding items action; when clipboard access fails, offer selectable text instead of reporting a successful copy.
 
+Expanded details stay compact. The panel sizes itself with container queries, because the desktop table is scaled: one column on a narrow card, two columns at intermediate width, and four columns on a wide desktop (required checklist, optional checklist, identity/contact, listing/membership). The full description body is not shown; its completion item and Edit action remain. The short description stays visible and wraps within the listing facts. Keep the existing text size. Do not clip the panel to a fixed height or scroll inside it, and do not let wrapped content widen the parent table.
+
 ## Admin loading, editing and feedback
 
 - Keep the page shell, active controls and accepted rows visible during background refresh. Distinguish initial loading, refreshing, empty results and failed reads. Provide a recoverable error/retry state rather than rendering a failure as an empty list or zero statistic.

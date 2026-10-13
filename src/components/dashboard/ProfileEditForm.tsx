@@ -515,7 +515,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     ? completionInputFromLegacy({ user: profile.user, profile: profile.profile,
         studio: { name: profile.studio?.name, website_url: profile.studio?.website_url,
           studio_types: profile.studio_types, images: profile.studio?.images } })
-    : {})), [profile]);
+    : {}), dataSource === 'admin' ? 'admin' : 'owner'), [profile, dataSource]);
 
   const performSave = async () => {
     const profile = profileRef.current;
@@ -782,7 +782,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       ...prev,
       _adminOnly: { ...prev._adminOnly!, [field]: value },
     } : null);
-  }, []);
+  }, [setProfile, writes.saving]);
 
   // Helper to update user fields (including admin-editable ones)
   const updateUserField = useCallback((field: string, value: any) => {
@@ -791,7 +791,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       ...prev,
       user: { ...prev.user, [field]: value },
     } : null);
-  }, []);
+  }, [setProfile, writes.saving]);
 
   // Helper to update studio fields (including admin-editable ones)
   const updateStudioField = useCallback((field: string, value: any) => {
@@ -800,7 +800,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       ...prev,
       studio: { ...prev.studio, [field]: value } as any,
     } : null);
-  }, []);
+  }, [setProfile, writes.saving]);
 
   const updateUser = useCallback((field: string, value: any) => {
     if (writes.saving) return;
@@ -808,7 +808,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       ...prev,
       user: { ...prev.user, [field]: value },
     } : null);
-  }, []);
+  }, [setProfile, writes.saving]);
 
   const updateProfile = useCallback((field: string, value: any) => {
     if (writes.saving) return;
@@ -816,7 +816,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       ...prev,
       profile: { ...prev.profile, [field]: value },
     } : null);
-  }, []);
+  }, [setProfile, writes.saving]);
 
   const updateStudio = useCallback((field: string, value: any) => {
     if (writes.saving) return;
@@ -824,7 +824,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       ...prev,
       studio: { ...prev.studio, [field]: value } as any,
     } : null);
-  }, []);
+  }, [setProfile, writes.saving]);
 
   const handleCoordinatesChange = useCallback((lat: number, lng: number) => {
     updateStudio('latitude', lat);
@@ -878,7 +878,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       // Normal case: add the type
       return { ...prev, studio_types: [...types, type] };
     });
-  }, [isSessionAdmin]);
+  }, [isSessionAdmin, setProfile, writes.saving]);
 
   if (loadError) return <div role="alert" className="rounded-xl bg-white p-6 text-gray-900"><p>{loadError}</p><Button className="mt-4" onClick={() => void fetchProfile()}>Retry loading profile</Button></div>;
 
@@ -1520,7 +1520,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-sm text-amber-800">
                     Custom connection methods require a Premium membership.{' '}
-                    <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900">Upgrade now</a> for £30/year to add custom connections.
+                    <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900">Upgrade now</a> for Â£30/year to add custom connections.
                   </p>
                 </div>
               ) : (
@@ -1666,7 +1666,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
                 <p className="text-sm text-amber-800 font-medium">
                   Advanced settings require a Premium membership.{' '}
-                  <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-900">Upgrade now</a> for £30/year to customise your SEO meta title.
+                  <a href="/dashboard/settings?section=membership" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-900">Upgrade now</a> for Â£30/year to customise your SEO meta title.
                 </p>
               </div>
             )}
@@ -1905,7 +1905,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                         <>
                           {/* Admin Account Toggle */}
                           <div className="flex items-center space-x-3 mb-3 p-1.5 bg-blue-50 rounded-md border border-blue-200">
-                            <span className="text-lg ml-2">👑</span>
+                            <span className="text-lg ml-2">ðŸ‘‘</span>
                             <div className="flex-1">
                               <p className="text-sm font-semibold text-blue-900">Admin Account</p>
                               <p className="text-xs text-blue-700">Toggle to set expiry for testing renewal features</p>
@@ -1960,7 +1960,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                           />
                           <p className="text-xs text-gray-500 mt-1">
-                            Set when the user's membership expires. Studio will become INACTIVE after this date. Leave empty to clear.
+                            Set the recorded membership expiry. Clearing removes the recorded date, preserves subscription history, and does not cancel provider billing or change listing visibility. A blank date does not grant Premium access to a non-admin account.
                           </p>
                         </>
                       )}

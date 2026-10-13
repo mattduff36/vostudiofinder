@@ -40,3 +40,15 @@ describe('Dashboard, admin and editor completion contract', () => {
     expect(completionEditSection('images', 'admin')).toBe('images');
   });
 });
+
+it('section badges use the same owner/admin routing as every completion Edit action', () => {
+  const complete = getProfileCompletion({});
+  for (const context of ['owner', 'admin'] as const) {
+    for (const item of complete.items) {
+      const oneMissing = { ...complete, items: complete.items.map(candidate => ({ ...candidate, completed: candidate.id !== item.id })) };
+      const statuses = completionSectionStatus(oneMissing, context);
+      expect(statuses[completionEditSection(item.id, context)]).toBe('incomplete');
+      expect(Object.values(statuses).filter(status => status === 'incomplete')).toHaveLength(1);
+    }
+  }
+});
