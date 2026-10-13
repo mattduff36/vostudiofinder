@@ -2,7 +2,8 @@
 
 import { useMemo, useState, type ReactNode } from 'react';
 import { CheckCircle, Circle, Pencil } from 'lucide-react';
-import { calculateCompletionStats } from '@/lib/utils/profile-completion';
+import { getProfileCompletion } from '@/lib/utils/profile-completion';
+import { completionEditSection } from '@/lib/profile/completion-sections';
 
 interface ProfileCompletionProgressProps {
   profileData: {
@@ -66,127 +67,14 @@ export function ProfileCompletionProgress({
   renderWidget
 }: ProfileCompletionProgressProps) {
 
-  // Use the single source of truth for calculation
-  const completionStats = useMemo(() => {
-    return calculateCompletionStats({
-      user: {
-        username: profileData.username || '',
-        display_name: profileData.display_name || '',
-        email: profileData.email || '',
-        avatar_url: profileData.avatar_url || null,
-      },
-      profile: {
-        short_about: profileData.short_about || null,
-        about_me: profileData.about_me || null,
-        about: profileData.about || null,
-        phone: profileData.phone || null,
-        location: profileData.location || null,
-        connection1: profileData.connection1 || null,
-        connection2: profileData.connection2 || null,
-        connection3: profileData.connection3 || null,
-        connection4: profileData.connection4 || null,
-        connection5: profileData.connection5 || null,
-        connection6: profileData.connection6 || null,
-        connection7: profileData.connection7 || null,
-        connection8: profileData.connection8 || null,
-        connection9: profileData.connection9 || null,
-        connection10: profileData.connection10 || null,
-        connection11: profileData.connection11 || null,
-        connection12: profileData.connection12 || null,
-        rate_tier_1: profileData.rate_tier_1 || null,
-        equipment_list: profileData.equipment_list || null,
-        services_offered: profileData.services_offered || null,
-        facebook_url: profileData.facebook_url || null,
-        x_url: profileData.x_url || null,
-        linkedin_url: profileData.linkedin_url || null,
-        instagram_url: profileData.instagram_url || null,
-        youtube_url: profileData.youtube_url || null,
-        tiktok_url: profileData.tiktok_url || null,
-        threads_url: profileData.threads_url || null,
-        soundcloud_url: profileData.soundcloud_url || null,
-        vimeo_url: profileData.vimeo_url || null,
-        bluesky_url: profileData.bluesky_url || null,
-      },
-      studio: {
-        name: profileData.studio_name || null,
-        studio_types: profileData.studio_types_count ? Array(profileData.studio_types_count).fill('type') : [],
-        images: profileData.images_count ? Array(profileData.images_count).fill({}) : [],
-        website_url: profileData.website_url || null,
-      },
-    });
-  }, [profileData]);
-
+  const completionStats = useMemo(() => getProfileCompletion(profileData), [profileData]);
   const completionPercentage = completionStats.overall.percentage;
-
-  // Count social media links (need at least 2) - memoized to prevent recalculation on every render
-  const socialMediaCount = useMemo(() => [
-    profileData.facebook_url,
-    profileData.x_url,
-    profileData.linkedin_url,
-    profileData.instagram_url,
-    profileData.youtube_url,
-    profileData.tiktok_url,
-    profileData.threads_url,
-    profileData.soundcloud_url,
-    profileData.vimeo_url,
-    profileData.bluesky_url,
-  ].filter(url => url && url.trim() !== '').length, [
-    profileData.facebook_url,
-    profileData.x_url,
-    profileData.linkedin_url,
-    profileData.instagram_url,
-    profileData.youtube_url,
-    profileData.tiktok_url,
-    profileData.threads_url,
-    profileData.soundcloud_url,
-    profileData.vimeo_url,
-    profileData.bluesky_url,
-  ]);
-
-  // Check if at least one connection method is selected
-  const hasConnectionMethod = !!(
-    profileData.connection1 === '1' || 
-    profileData.connection2 === '1' || 
-    profileData.connection3 === '1' || 
-    profileData.connection4 === '1' || 
-    profileData.connection5 === '1' || 
-    profileData.connection6 === '1' || 
-    profileData.connection7 === '1' || 
-    profileData.connection8 === '1' ||
-    profileData.connection9 === '1' ||
-    profileData.connection10 === '1' ||
-    profileData.connection11 === '1' ||
-    profileData.connection12 === '1'
-  );
-
-  // REQUIRED fields - must complete all required fields to publish profile - memoized
-  const requiredFields = useMemo((): ProfileField[] => [
-    { label: 'Username', completed: !!(profileData.username && !profileData.username.startsWith('temp_')), required: true, sectionId: 'basic' },
-    { label: 'Display Name', completed: !!(profileData.display_name && profileData.display_name.trim()), required: true, sectionId: 'basic' },
-    { label: 'Email', completed: !!(profileData.email && profileData.email.trim()), required: true, sectionId: 'basic' },
-    { label: 'Studio Name', completed: !!(profileData.studio_name && profileData.studio_name.trim()), required: true, sectionId: 'basic' },
-    { label: 'Short Description', completed: !!(profileData.short_about && profileData.short_about.trim()), required: true, sectionId: 'basic' },
-    { label: 'Full Description', completed: !!(profileData.about && profileData.about.trim()), required: true, sectionId: 'basic' },
-    { label: 'Studio Type selected', completed: (profileData.studio_types_count || 0) >= 1, required: true, sectionId: 'basic' },
-    { label: 'Location', completed: !!(profileData.location && profileData.location.trim()), required: true, sectionId: 'contact' },
-    { label: 'Connection Methods', completed: hasConnectionMethod, required: true, sectionId: 'connections' },
-    { label: 'Website URL', completed: !!(profileData.website_url && profileData.website_url.trim()), required: true, sectionId: 'contact' },
-    { label: 'At least 1 image', completed: (profileData.images_count || 0) >= 1, required: true, sectionId: 'images' },
-  ], [profileData.username, profileData.display_name, profileData.email, profileData.studio_name, profileData.short_about, profileData.about, profileData.studio_types_count, profileData.location, hasConnectionMethod, profileData.website_url, profileData.images_count]);
-
-  // OPTIONAL fields - boost profile quality, also count toward 100% - memoized
-  const optionalFields = useMemo((): ProfileField[] => [
-    { label: 'Avatar', completed: !!(profileData.avatar_url && profileData.avatar_url.trim()), required: false, sectionId: 'basic' },
-    { label: 'About Me', completed: !!(profileData.about_me && profileData.about_me.trim()), required: false, sectionId: 'basic' },
-    { label: 'Phone', completed: !!(profileData.phone && profileData.phone.trim()), required: false, sectionId: 'contact' },
-    { label: 'Social Media (min 2 links)', completed: socialMediaCount >= 2, required: false, sectionId: 'social' },
-    { label: 'Session Rate Tier(s)', completed: !!(profileData.rate_tier_1 && (typeof profileData.rate_tier_1 === 'number' ? profileData.rate_tier_1 > 0 : parseFloat(profileData.rate_tier_1) > 0)), required: false, sectionId: 'rates' },
-    { label: 'Equipment List', completed: !!(profileData.equipment_list && profileData.equipment_list.trim()), required: false, sectionId: 'rates' },
-    { label: 'Services Offered', completed: !!(profileData.services_offered && profileData.services_offered.trim()), required: false, sectionId: 'rates' },
-  ], [profileData.avatar_url, profileData.about_me, profileData.phone, socialMediaCount, profileData.rate_tier_1, profileData.equipment_list, profileData.services_offered]);
-
-  // Count completed optional fields
-  const completedOptionalCount = optionalFields.filter(field => field.completed).length;
+  const fields: ProfileField[] = completionStats.items.map(item => ({
+    ...item, sectionId: completionEditSection(item.id, 'owner'),
+  }));
+  const requiredFields = fields.filter(field => field.required);
+  const optionalFields = fields.filter(field => !field.required);
+  const completedOptionalCount = completionStats.optional.completed;
 
   // Handler for field clicks (desktop only) - opens Edit Profile Modal with section selection
   const handleFieldClick = (sectionId?: string) => {

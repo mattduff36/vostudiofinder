@@ -2,17 +2,21 @@
 
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
+import { useAdminSandbox, updateAdminSandbox } from '@/lib/admin/sandbox-store';
+import { showError } from '@/lib/toast';
 import { BuildInfoFloatingBadge } from '@/components/profile/BuildInfoFloatingBadge';
 
-function isAdminSession(session: any): boolean {
+function isAdminSession(session: Session | null): boolean {
   const u = session?.user;
   if (!u) return false;
-  return u.role === 'ADMIN' || u.email === 'admin@mpdee.co.uk' || u.username === 'VoiceoverGuy';
+  return u.role === 'ADMIN';
 }
 
 export function AdminBuildInfoBadge() {
   const { data: session, status } = useSession();
-  const [sandboxActive, setSandboxActive] = useState(false);
+  const sandbox = useAdminSandbox();
+  const sandboxActive = sandbox.enabled;
   const [confirmDisable, setConfirmDisable] = useState(false);
   const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -21,25 +25,6 @@ export function AdminBuildInfoBadge() {
     if (!session?.user?.id) return false;
     return isAdminSession(session);
   }, [session, status]);
-
-  // Poll sessionStorage for sandbox state so the badge stays in sync
-  useEffect(() => {
-    if (!show) return;
-    const check = () => {
-      try {
-        const stored = sessionStorage.getItem('adminSandbox');
-        if (stored) {
-          const s = JSON.parse(stored);
-          setSandboxActive(!!s.enabled);
-        } else {
-          setSandboxActive(false);
-        }
-      } catch { setSandboxActive(false); }
-    };
-    check();
-    const id = setInterval(check, 1000);
-    return () => clearInterval(id);
-  }, [show]);
 
   // Clean up confirm timer on unmount
   useEffect(() => {
@@ -57,15 +42,7 @@ export function AdminBuildInfoBadge() {
       // Second click within 3s — disable sandbox
       if (confirmTimer.current) clearTimeout(confirmTimer.current);
       setConfirmDisable(false);
-      try {
-        const stored = sessionStorage.getItem('adminSandbox');
-        if (stored) {
-          const s = JSON.parse(stored);
-          s.enabled = false;
-          sessionStorage.setItem('adminSandbox', JSON.stringify(s));
-        }
-      } catch { /* ignore */ }
-      setSandboxActive(false);
+      if (!updateAdminSandbox({ enabled: false })) showError('Sandbox could not be disabled. The previous settings remain active.');
     }
   }, [confirmDisable]);
 

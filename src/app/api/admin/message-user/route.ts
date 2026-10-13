@@ -22,12 +22,7 @@ const messageSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    const isAdmin =
-      session?.user?.role === 'ADMIN' ||
-      session?.user?.email === 'admin@mpdee.co.uk' ||
-      session?.user?.username === 'VoiceoverGuy';
-
-    if (!session?.user || !isAdmin) {
+    if (session?.user?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

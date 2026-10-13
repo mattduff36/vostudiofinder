@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader2, X, Copy, Check, FlaskConical, UserPlus, RefreshCw } from 'lucide-react';
+import { ManagedOverlay } from '@/components/ui/ManagedOverlay';
 import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { generateTestProfile } from '@/lib/admin/test-data-generator';
@@ -25,6 +26,7 @@ interface CreatedAccountInfo {
 
 export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudioModalProps) {
   const [activeTab, setActiveTab] = useState<ModalTab>('add-account');
+  const pending = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,18 +61,6 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
     }
   }, [isOpen, testEmail, regenerateTestEmail]);
 
-  // Hide navigation when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.classList.add('admin-modal-open');
-    } else {
-      document.body.classList.remove('admin-modal-open');
-    }
-    return () => {
-      document.body.classList.remove('admin-modal-open');
-    };
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   const resetAddAccountForm = () => {
@@ -95,6 +85,7 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
   };
 
   const handleClose = () => {
+    if (pending.current) return;
     onClose();
     resetAddAccountForm();
     resetTestForm();
@@ -103,12 +94,14 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
 
   // ── Add Account submit (original flow) ──
   const handleAddAccountSubmit = async () => {
+    if (pending.current) return;
+    pending.current = true;
     setIsLoading(true);
     setError(null);
 
     if (!username.trim() || !displayName.trim() || !email.trim()) {
       setError('Username, Display Name, and Email are required');
-      setIsLoading(false);
+      pending.current = false; setIsLoading(false);
       return;
     }
 
@@ -132,24 +125,29 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
         throw new Error(result.error || 'Failed to create studio');
       }
 
+      // Creation has settled; allow the successful close through the same guard
+      // that protects an in-flight submission from backdrop/escape dismissal.
+      pending.current = false;
       onSuccess(`Account created for ${email}. Tell the user to use "Forgot Password" to set their password.`);
       handleClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsLoading(false);
+      pending.current = false; setIsLoading(false);
     }
   };
 
   // ── Test Account submit ──
   const handleTestAccountSubmit = async () => {
+    if (pending.current) return;
+    pending.current = true;
     setIsLoading(true);
     setError(null);
 
     const trimmedPassword = testPassword.trim();
     if (trimmedPassword.length > 0 && trimmedPassword.length < 8) {
       setError('Password must be at least 8 characters');
-      setIsLoading(false);
+      pending.current = false; setIsLoading(false);
       return;
     }
 
@@ -196,7 +194,7 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsLoading(false);
+      pending.current = false; setIsLoading(false);
     }
   };
 
@@ -217,7 +215,7 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
   // ── Render: Post-creation summary ──
   if (createdAccount) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-50 p-0 md:p-8">
+      <ManagedOverlay title={createdAccount ? "Test account created" : "Add studio"} onClose={handleClose} bodyClass="admin-modal-open" className="bg-black/50 flex items-start md:items-center justify-center p-0 md:p-8">
         <div className="bg-white md:rounded-lg shadow-xl max-w-lg w-full h-full md:h-auto md:max-h-[85vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
@@ -280,13 +278,13 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
             </button>
           </div>
         </div>
-      </div>
+      </ManagedOverlay>
     );
   }
 
   // ── Render: Main modal with tabs ──
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-50 p-0 md:p-8">
+    <ManagedOverlay title={createdAccount ? "Test account created" : "Add studio"} onClose={handleClose} bodyClass="admin-modal-open" className="bg-black/50 flex items-start md:items-center justify-center p-0 md:p-8">
       <div className="bg-white md:rounded-lg shadow-xl max-w-2xl w-full h-full md:h-auto md:max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
@@ -392,7 +390,7 @@ export default function AddStudioModal({ isOpen, onClose, onSuccess }: AddStudio
           </button>
         </div>
       </div>
-    </div>
+    </ManagedOverlay>
   );
 }
 

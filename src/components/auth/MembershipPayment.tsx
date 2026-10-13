@@ -1,5 +1,6 @@
 'use client';
 
+import { ManagedOverlay } from '@/components/ui/ManagedOverlay';
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Check, Loader2, AlertCircle, X, Crown } from 'lucide-react';
@@ -27,16 +28,8 @@ export function MembershipPayment() {
   let name = searchParams?.get('name') || '';
   let username = searchParams?.get('username') || '';
 
-  // Lock body scroll when premium payment modal is open; reset option state on close
   useEffect(() => {
-    if (selectedTier === 'premium') {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-      setPaymentOptionConfirmed(false);
-      setAutoRenew(true);
-    }
-    return () => { document.body.style.overflow = ''; };
+    if (selectedTier !== 'premium') { setPaymentOptionConfirmed(false); setAutoRenew(true); }
   }, [selectedTier]);
 
   // Enable back button protection only (not beforeunload)
@@ -446,15 +439,12 @@ export function MembershipPayment() {
 
         {/* Premium Payment Modal */}
         {selectedTier === 'premium' && (
-          <div
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-            onClick={(e) => { if (e.target === e.currentTarget) setSelectedTier(null); }}
-          >
+          <ManagedOverlay title="Premium membership payment" onClose={() => setSelectedTier(null)} className="flex items-center justify-center p-4">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedTier(null)} />
 
             {/* Modal Container */}
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-[201] py-5">
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden py-5">
               {/* Modal Close Button */}
               <button
                 onClick={() => setSelectedTier(null)}
@@ -612,7 +602,7 @@ export function MembershipPayment() {
                 </>
               )}
             </div>
-          </div>
+          </ManagedOverlay>
         )}
 
         {/* Footer Note */}

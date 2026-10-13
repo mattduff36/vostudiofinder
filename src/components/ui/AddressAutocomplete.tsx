@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
+import { ownAutocompletePopup } from '@/lib/ui/overlay-manager';
 import { cn } from '@/lib/utils';
 
 interface AddressAutocompleteProps {
@@ -33,6 +34,16 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const [isUpdatingFromAutocomplete, setIsUpdatingFromAutocomplete] = useState(false);
   const inputId = id || `address-autocomplete-${label.toLowerCase().replace(/\s/g, '-')}`;
 
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    const bind = () => { if (document.activeElement === input) ownAutocompletePopup(input); };
+    const observer = new MutationObserver(bind);
+    observer.observe(document.body, { childList: true, subtree: true });
+    input.addEventListener('focus', bind); input.addEventListener('input', bind);
+    return () => { observer.disconnect(); input.removeEventListener('focus', bind); input.removeEventListener('input', bind); };
+  }, []);
+
   // Update refs when callbacks change
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -53,18 +64,19 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     if (!apiKey) {
       console.warn('Google Maps API key not configured - address autocomplete will not be available');
       setIsLoaded(true);
-      return;
+      return undefined;
     }
 
     if (window.google && window.google.maps && window.google.maps.places) {
       setIsLoaded(true);
-      return;
+      return undefined;
     }
 
     const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
     if (existingScript) {
-      existingScript.addEventListener('load', () => setIsLoaded(true));
-      return;
+      const onLoad = () => setIsLoaded(true);
+      existingScript.addEventListener('load', onLoad);
+      return () => existingScript.removeEventListener('load', onLoad);
     }
 
     const script = document.createElement('script');
@@ -77,6 +89,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       setIsLoaded(true);
     };
     document.head.appendChild(script);
+    return () => { script.onload = null; script.onerror = null; };
   }, []);
 
   useEffect(() => {
@@ -118,6 +131,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     return () => {
       if (autocompleteRef.current && window.google && window.google.maps && window.google.maps.event) {
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
       }
     };
   }, [isLoaded]); // Removed onChange from dependencies to prevent re-initialization
@@ -137,7 +151,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         ref={inputRef}
         id={inputId}
         type="text"
-        name={`address-field-${Math.random()}`}
+        name={inputId}
         value={inputValue}
         onChange={handleChange}
         placeholder={placeholder || 'Start typing an address...'}

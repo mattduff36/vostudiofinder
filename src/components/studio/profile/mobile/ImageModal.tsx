@@ -13,6 +13,7 @@
 
 import { useState, useEffect, useRef, TouchEvent } from 'react';
 import Image from 'next/image';
+import { ManagedOverlay } from '@/components/ui/ManagedOverlay';
 import { X } from 'lucide-react';
 
 interface ImageModalProps {
@@ -45,21 +46,6 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
     setTranslateX(0);
     setTranslateY(0);
   }, [currentIndex]);
-
-  // Prevent body scroll and hide nav bars when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.classList.add('image-modal-open');
-    } else {
-      document.body.style.overflow = '';
-      document.documentElement.classList.remove('image-modal-open');
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.classList.remove('image-modal-open');
-    };
-  }, [isOpen]);
 
   // Reset to initial index when modal opens
   useEffect(() => {
@@ -155,6 +141,7 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
   if (!isOpen) return null;
 
   return (
+    <ManagedOverlay title="Studio images" documentClass="image-modal-open" onClose={onClose}>
     <div
       className="fixed inset-0 z-50 bg-black"
       onTouchStart={handleTouchStart}
@@ -220,6 +207,7 @@ export function ImageModal({ images, initialIndex, isOpen, onClose }: ImageModal
         </div>
       )}
     </div>
+    </ManagedOverlay>
   );
 }
 

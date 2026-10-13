@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ManagedOverlay } from '@/components/ui/ManagedOverlay';
 import { X, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AdminDrawerProps {
   isOpen: boolean;
+  breakpoint?: 'md' | 'lg';
   onClose: () => void;
   title: string;
   children: React.ReactNode;
@@ -26,30 +28,26 @@ export function AdminDrawer({
   children,
   showBackButton = false,
   className = '',
+  breakpoint = 'md',
 }: AdminDrawerProps) {
-  // Prevent body scroll when drawer is open
+  const [drawerMode, setDrawerMode] = useState(false);
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
+    const media = window.matchMedia(`(max-width: ${breakpoint === 'lg' ? 1023 : 767}px)`);
+    const update = () => setDrawerMode(media.matches); update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, [breakpoint]);
   return (
     <AnimatePresence>
-      {isOpen && (
-        <>
+      {isOpen && drawerMode && (
+        <ManagedOverlay title={title} onClose={onClose}>
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="md:hidden fixed inset-0 bg-black/50 z-[200]"
+            className="absolute inset-0 bg-black/50"
           />
           
           {/* Drawer */}
@@ -58,7 +56,7 @@ export function AdminDrawer({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="md:hidden fixed inset-0 z-[201] bg-white flex flex-col"
+            className="absolute inset-0 bg-white flex flex-col"
           >
             {/* Sticky Header */}
             <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
@@ -83,7 +81,7 @@ export function AdminDrawer({
               {children}
             </div>
           </motion.div>
-        </>
+        </ManagedOverlay>
       )}
     </AnimatePresence>
   );

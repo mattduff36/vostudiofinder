@@ -7,6 +7,7 @@
  */
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { GoogleMap } from '@/components/maps/GoogleMap';
@@ -87,11 +88,12 @@ export function MapCollapsible({
     };
   }, [supportsNativeFullscreen]);
 
+  useBodyScrollLock(!supportsNativeFullscreen && isFullscreen);
+
   // Lock body scroll and hide nav bars when in CSS-based fullscreen (iOS)
   useEffect(() => {
     if (!supportsNativeFullscreen && isFullscreen) {
       // Prevent body scroll on iOS
-      document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
       document.body.style.height = '100%';
@@ -99,7 +101,6 @@ export function MapCollapsible({
       document.documentElement.setAttribute('data-map-fullscreen', 'true');
       
       return () => {
-        document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.width = '';
         document.body.style.height = '';

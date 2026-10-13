@@ -1,27 +1,50 @@
-export interface Studio {
+import type { CompletionBreakdown, CompletionInput } from '@/lib/utils/profile-completion';
+
+export interface Studio extends CompletionInput {
   id: string;
   name: string;
-  description?: string;
-  studio_type: string;
-  studio_studio_types?: Array<{ studio_type: string }>;
+  description?: string | null;
+  studio_type?: string;
+  studio_studio_types: Array<{ studio_type: string }>;
+  studio_images: Array<{ id: string }>;
   status: string;
   is_verified: boolean;
   is_premium: boolean;
-  is_featured?: boolean;
-  featured_until?: string | null;
-  is_spotlight?: boolean;
-  is_profile_visible?: boolean;
-  profile_completion?: number;
-  last_login?: string | null;
-  membership_expires_at?: string | null;
+  is_featured: boolean;
+  featured_until: string | null;
+  is_spotlight: boolean;
+  is_profile_visible: boolean;
+  admin_review: boolean;
+  profile_completion: number;
+  completion: CompletionBreakdown;
+  last_login: string | null;
+  membership_expires_at: string | null;
+  membership_tier: string;
+  latitude: number | null;
+  longitude: number | null;
   users: {
+    id: string;
     display_name: string;
     email: string;
     username: string;
+    email_verified: boolean;
+    avatar_url: string | null;
   };
   created_at: string;
   updated_at: string;
 }
+
+export interface StudiosResponse {
+  studios: Studio[];
+  pagination: { total: number; hasMore: boolean; offset: number; limit: number; returned: number; maxLimit: number };
+}
+export interface BulkActionResult {
+  status: 'success' | 'partial' | 'cancelled' | 'failed';
+  processedIds: string[];
+}
+export const STUDIO_PAGE_SIZE = 80;
+// Larger sets remain browsable in bounded windows; never concatenate snapshots.
+export const STUDIO_MAX_WINDOW = 400;
 
 export interface ColumnConfig {
   id: string;
@@ -31,6 +54,7 @@ export interface ColumnConfig {
 
 export const COLUMN_CONFIG: ColumnConfig[] = [
   { id: 'select', label: 'Select', protected: false },
+  { id: 'adminReview', label: 'Admin Review', protected: false },
   { id: 'studio', label: 'Studio', protected: true },
   { id: 'type', label: 'Type', protected: false },
   { id: 'owner', label: 'Owner', protected: false },

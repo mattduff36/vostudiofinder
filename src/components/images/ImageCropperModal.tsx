@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { ManagedOverlay } from '@/components/ui/ManagedOverlay';
 import Cropper from 'react-easy-crop';
 import 'react-easy-crop/react-easy-crop.css';
 import { X, ZoomIn, ZoomOut, Grid3x3 } from 'lucide-react';
@@ -119,21 +119,6 @@ export function ImageCropperModal({
     };
   }, [file]);
 
-  // Prevent body scroll and hide navigation when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.classList.add('image-modal-open');
-    } else {
-      document.body.style.overflow = '';
-      document.documentElement.classList.remove('image-modal-open');
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.classList.remove('image-modal-open');
-    };
-  }, [isOpen]);
-
   const onCropComplete = useCallback(
     (_croppedArea: any, croppedAreaPixels: any) => {
       setCroppedAreaPixels(croppedAreaPixels);
@@ -183,7 +168,7 @@ export function ImageCropperModal({
   }
 
   const modalContent = (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm">
+    <ManagedOverlay title="Crop image" documentClass="image-modal-open" onClose={() => { if (!processing) handleCancel(); }} className="flex items-center justify-center bg-black/90 backdrop-blur-sm">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-black/70 border-b border-white/10">
         <div className="flex items-center justify-between p-4">
@@ -323,7 +308,7 @@ export function ImageCropperModal({
           </div>
         </div>
       </div>
-    </div>
+    </ManagedOverlay>
   );
 
   // Render modal in a portal at document.body level
@@ -331,6 +316,6 @@ export function ImageCropperModal({
     return null;
   }
   
-  return createPortal(modalContent, document.body);
+  return modalContent;
 }
 

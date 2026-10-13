@@ -15,8 +15,8 @@ import { CountryAutocomplete } from '@/components/ui/CountryAutocomplete';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { AddressPreviewMap } from '@/components/maps/AddressPreviewMap';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
-import { ImageGalleryManager } from '@/components/dashboard/ImageGalleryManager';
-import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
+import { ImageGalleryManager, type StudioImage } from '@/components/dashboard/ImageGalleryManager';
+import { calculateCompletionStats, getProfileCompletion, completionInputFromLegacy, type CompletionStats } from '@/lib/utils/profile-completion';
 import { getCurrencySymbol } from '@/lib/utils/currency';
 import { extractCity } from '@/lib/utils/address';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
@@ -29,23 +29,34 @@ import { buildProfileMetaTitle } from '@/lib/seo/profile-title';
 
 import { adminProfileToProfileData, profileDataToAdminPayload } from '@/lib/profile/adminProfileAdapter';
 import { formatIsoDateToDateInputValue, parseDateInputValueToIsoUtc } from '@/lib/date-input';
+import { completionSectionStatus, isProfileSection, type ProfileSectionId } from '@/lib/profile/completion-sections';
+import { useUnsavedNavigationGuard } from '@/hooks/useUnsavedNavigationGuard';
+import { showUnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
+import { createProfileWriteCoordinator } from '@/lib/profile/write-coordinator';
+import type { PersistedProfileChange } from '@/lib/profile/persisted-change';
+import { useAdminSandbox } from '@/lib/admin/sandbox-store';
+import type { PrivacyField } from '@/components/dashboard/PrivacySettingsToggles';
 
 export interface ProfileEditFormHandle {
   saveIfDirty: () => Promise<boolean>;
   hasUnsavedChanges: () => boolean;
+  waitForPendingSaves: () => Promise<void>;
 }
 
 interface ProfileEditFormProps {
   userId: string;
   mode?: 'page' | 'modal';
   autoSaveOnSectionChange?: boolean;
-  onSaveSuccess?: () => void;
+  onSaveSuccess?: (() => void) | undefined;
+  onNavigateAway?: (() => void) | undefined;
   dataSource?: 'user' | 'admin';
   adminStudioId?: string | undefined;
   isAdminUI?: boolean;
   /** When true, admin sandbox overrides (e.g. legacy profile simulation) are ignored.
    *  Set this when the form is editing another user's profile via the admin panel. */
   disableSandboxOverrides?: boolean;
+  initialSection?: ProfileSectionId | undefined;
+  onPersistedChange?: ((change: PersistedProfileChange) => void) | undefined;
 }
 
 interface ProfileData {
@@ -181,13 +192,46 @@ const CONNECTION_TYPES = [
 ];
 
 export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditFormProps>(
-  function ProfileEditForm({ userId, mode = 'page', onSaveSuccess, dataSource = 'user', adminStudioId, isAdminUI = false, disableSandboxOverrides = false }, ref) {
+  function ProfileEditForm({ userId, mode = 'page', onSaveSuccess, onNavigateAway, dataSource = 'user', adminStudioId, isAdminUI = false, disableSandboxOverrides = false, initialSection, onPersistedChange }, ref) {
   const { data: session } = useSession();
   const isSessionAdmin = session?.user?.role === 'ADMIN';
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
+  const [profile, setProfileState] = useState<ProfileData | null>(null);
+  const [originalProfile, setOriginalProfileState] = useState<ProfileData | null>(null);
+  const profileRef = useRef<ProfileData | null>(null);
+  const originalProfileRef = useRef<ProfileData | null>(null);
+  const setProfile = useCallback((value: React.SetStateAction<ProfileData | null>) => {
+    const next = typeof value === 'function' ? value(profileRef.current) : value;
+    profileRef.current = next; setProfileState(next);
+  }, []);
+  const setOriginalProfile = useCallback((value: React.SetStateAction<ProfileData | null>) => {
+    const next = typeof value === 'function' ? value(originalProfileRef.current) : value;
+    originalProfileRef.current = next; setOriginalProfileState(next);
+  }, []);
+  const writes = useRef(createProfileWriteCoordinator()).current;
+  const [pendingControls, setPendingControls] = useState(0);
+  const beginWrite = useCallback((key: string) => {
+    if (!writes.begin(key)) return false;
+    setPendingControls(value => value + 1); return true;
+  }, [writes]);
+  const endWrite = useCallback((key: string) => {
+    writes.end(key); setPendingControls(value => Math.max(0, value - 1));
+  }, [writes]);
+  const notifyPersisted = useCallback((kind: PersistedProfileChange['kind']) => {
+    const studioId = adminStudioId ?? (profileRef.current?.studio as { id?: string } | undefined)?.id;
+    if (studioId) onPersistedChange?.({ studioId, kind });
+  }, [adminStudioId, onPersistedChange]);
+  const loadEpoch = useRef(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const sectionInitialized = useRef(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobileViewport(media.matches); update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
   const [activeSection, setActiveSection] = useState('basic');
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const [socialMediaErrors, setSocialMediaErrors] = useState<{ [key: string]: string }>({});
@@ -312,6 +356,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
 
   // Listen for visibility changes from other components (e.g., Overview page, burger menu)
   useEffect(() => {
+    if (dataSource === 'admin') return;
     const handleVisibilityChange = (event: CustomEvent<{ isVisible: boolean }>) => {
       setIsProfileVisible(event.detail.isVisible);
     };
@@ -320,107 +365,71 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     return () => {
       window.removeEventListener('profile-visibility-changed', handleVisibilityChange as EventListener);
     };
-  }, []);
+  }, [dataSource]);
 
-  // Check for sessionStorage to open specific section (e.g., from ProfileCompletionProgress)
-  // Run this whenever the modal opens (isOpen state would be ideal, but we use loading as proxy)
+  // One initial destination per editor session; admin editors never consume owner navigation state.
   useEffect(() => {
-    // Only check when profile has loaded (not on initial mount while loading)
-    if (loading) return;
-    
-    const targetSection = sessionStorage.getItem('openProfileSection');
-    if (targetSection) {
-      setActiveSection(targetSection);
-      sessionStorage.removeItem('openProfileSection'); // Clean up after use
+    if (loading || sectionInitialized.current) return;
+    sectionInitialized.current = true;
+    let target: unknown = initialSection;
+    if (!target && dataSource !== 'admin') {
+      try { target = sessionStorage.getItem('openProfileSection'); sessionStorage.removeItem('openProfileSection'); } catch { /* storage is optional */ }
     }
-  }, [loading]); // Re-run when loading completes (modal opened and data loaded)
+    if (isProfileSection(target) && (target !== 'admin' || isAdminUI)) {
+      setActiveSection(target); setExpandedMobileSection(target);
+    }
+  }, [loading, initialSection, dataSource, isAdminUI]);
 
-  // Scroll to expanded card on mobile
   useEffect(() => {
-    if (expandedMobileSection && sectionRefs.current[expandedMobileSection]) {
-      // Wait for DOM to update (card expansion animation)
-      setTimeout(() => {
-        const card = sectionRefs.current[expandedMobileSection];
-        if (card) {
-          const navbarHeight = 64; // pt-16 = 64px
-          const extraSpacing = 16; // Additional spacing below navbar
-          const cardTop = card.getBoundingClientRect().top + window.scrollY;
-          const scrollTo = cardTop - navbarHeight - extraSpacing;
-          
-          window.scrollTo({
-            top: scrollTo,
-            behavior: 'smooth'
-          });
-        }
-      }, 100); // Small delay to ensure expansion has started
-    }
-  }, [expandedMobileSection]);
+    if (!expandedMobileSection) return;
+    const timer = window.setTimeout(() => {
+      const card = sectionRefs.current[expandedMobileSection];
+      if (!card || !window.matchMedia('(max-width: 767px)').matches) return;
+      const overlay = mode === 'modal' ? card.closest<HTMLElement>('[data-overlay-root]') : null;
+      if (overlay) overlay.scrollTo({ top: overlay.scrollTop + card.getBoundingClientRect().top - overlay.getBoundingClientRect().top - 16, behavior: 'smooth' });
+      else window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, [expandedMobileSection, mode, loading]);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (options: { quiet?: boolean; signal?: AbortSignal } = {}) => {
+    const epoch = ++loadEpoch.current;
+    if (!options.quiet) { setLoading(true); setLoadError(null); }
     try {
-      setLoading(true);
-      
-      if (dataSource === 'admin' && adminStudioId) {
-        // Admin mode: fetch from admin endpoint
-        const response = await fetch(`/api/admin/studios/${adminStudioId}`);
-        if (!response.ok) throw new Error('Failed to fetch admin profile');
-        
-        const adminData = await response.json();
-        const profileData = adminProfileToProfileData(adminData);
-        setProfile(profileData);
-        setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
-        
-        // Set initial visibility state
-        if (profileData.studio) {
-          setIsProfileVisible(profileData.studio.is_profile_visible !== false);
-        }
-        
-        // Initialize admin never expires toggle based on membership expiry
-        const isAdminAccount = profileData.user.email === 'admin@mpdee.co.uk' || profileData.user.email === 'guy@voiceoverguy.co.uk';
-        if (isAdminAccount) {
-          setAdminNeverExpires(!profileData._adminOnly?.membership_expires_at);
-        }
-      } else {
-        // User mode: fetch from user endpoint
-        const response = await fetch('/api/user/profile');
-        if (!response.ok) throw new Error('Failed to fetch profile');
-        
-        const data = await response.json();
-        const profileData = {
-          user: data.data.user,
-          profile: data.data.profile || {},
-          studio: data.data.studio,
-          studio_types: data.data.studio?.studio_types || [],
-          metadata: {
-            custom_meta_title: data.data.metadata?.custom_meta_title || '',
-          },
-          tierLimits: data.data.tierLimits || null,
-          legacyVoiceoverRestriction: data.data.legacyVoiceoverRestriction || null,
-        };
-        setProfile(profileData);
-        setOriginalProfile(JSON.parse(JSON.stringify(profileData))); // Deep clone
-        
-        // Set initial visibility state
-        if (profileData.studio) {
-          setIsProfileVisible(profileData.studio.is_profile_visible !== false);
-        }
-      }
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to load profile', true);
+      if (dataSource === 'admin' && !adminStudioId) throw new Error('No studio selected. Close the editor and select a studio again.');
+      const url = dataSource === 'admin' ? `/api/admin/studios/${encodeURIComponent(adminStudioId!)}` : '/api/user/profile';
+      const response = await fetch(url, { ...(options.signal ? { signal: options.signal } : {}), cache: 'no-store' });
+      if (!response.ok) throw new Error('Failed to load profile. Please retry.');
+      const data = await response.json();
+      if (epoch !== loadEpoch.current || options.signal?.aborted) return;
+      const loaded: ProfileData = dataSource === 'admin' ? adminProfileToProfileData(data) : {
+        user: data.data.user, profile: data.data.profile || {}, studio: data.data.studio,
+        studio_types: data.data.studio?.studio_types || [],
+        metadata: { custom_meta_title: data.data.metadata?.custom_meta_title || '' },
+        tierLimits: data.data.tierLimits || null, legacyVoiceoverRestriction: data.data.legacyVoiceoverRestriction || null,
+      };
+      setProfile(loaded); setOriginalProfile(structuredClone(loaded));
+      if (loaded.studio) setIsProfileVisible(loaded.studio.is_profile_visible !== false);
+      setAdminNeverExpires(!loaded._adminOnly?.membership_expires_at);
+    } catch (error) {
+      if (epoch !== loadEpoch.current || options.signal?.aborted) return;
+      if (options.quiet) showWarning('Saved successfully, but the latest profile could not be reloaded.');
+      else setLoadError(error instanceof Error ? error.message : 'Failed to load profile');
     } finally {
-      setLoading(false);
+      if (epoch === loadEpoch.current && !options.signal?.aborted && !options.quiet) setLoading(false);
     }
-  }, [dataSource, adminStudioId]);
+  }, [dataSource, adminStudioId, setProfile, setOriginalProfile]);
 
-  // Fetch profile data - refetch when userId, dataSource, or adminStudioId changes
   useEffect(() => {
-    fetchProfile();
+    const controller = new AbortController();
+    void fetchProfile({ signal: controller.signal });
+    return () => { controller.abort(); ++loadEpoch.current; };
   }, [userId, fetchProfile]);
 
   // Handle image changes from ImageGalleryManager without discarding unsaved form edits.
   // Only updates the images array in both profile and originalProfile state,
   // so that image operations (upload, reorder, delete) don't reset other form fields.
-  const handleImagesChanged = useCallback((updatedImages: any[]) => {
+  const handleImagesChanged = useCallback((updatedImages: StudioImage[]) => {
     setProfile(prev => {
       if (!prev || !prev.studio) return prev;
       return { ...prev, studio: { ...prev.studio, images: updatedImages } };
@@ -429,7 +438,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       if (!prev || !prev.studio) return prev;
       return { ...prev, studio: { ...prev.studio, images: updatedImages } };
     });
-  }, []);
+    notifyPersisted('images');
+  }, [setProfile, setOriginalProfile, notifyPersisted]);
 
   // Check if there are unsaved changes
   const hasChanges = useMemo(() => {
@@ -440,7 +450,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   // Warn user before leaving page with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasChanges) {
+      if (hasChanges || writes.pending) {
         e.preventDefault();
         e.returnValue = ''; // Chrome requires returnValue to be set
       }
@@ -448,7 +458,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasChanges]);
+  }, [hasChanges, writes, pendingControls]);
 
   // Calculate completion stats for progress indicators
   const completionStats: CompletionStats = useMemo(() => {
@@ -476,41 +486,14 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     });
   }, [profile]);
 
-  // Admin sandbox: read legacy profile override from sessionStorage on mount
-  // (sessionStorage is only ever written by the ADMIN TEST tab in Settings.tsx)
-  // Sandbox overrides are DISABLED when editing another user's profile via the admin panel,
-  // because the sandbox is only for testing the admin's own profile behaviour.
-  const [sandboxLegacyOverride, setSandboxLegacyOverride] = useState(false);
-  const [sandboxVoiceoverRestriction, setSandboxVoiceoverRestriction] = useState<ProfileData['legacyVoiceoverRestriction']>(null);
-  useEffect(() => {
-    if (disableSandboxOverrides) {
-      setSandboxLegacyOverride(false);
-      setSandboxVoiceoverRestriction(null);
-      return;
-    }
-    try {
-      const stored = sessionStorage.getItem('adminSandbox');
-      if (stored) {
-        const sandbox = JSON.parse(stored);
-        if (sandbox.enabled && sandbox.legacyProfile) {
-          setSandboxLegacyOverride(true);
-        }
-        if (sandbox.enabled && sandbox.legacyVoiceoverRestricted) {
-          const graceEndsAt = sandbox.legacyVoiceoverGrace
-            ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-            : null;
-          setSandboxVoiceoverRestriction({
-            isRestricted: true,
-            graceActive: !!sandbox.legacyVoiceoverGrace,
-            graceEndsAt,
-            hasVoiceoverUnlock: false,
-          });
-        } else {
-          setSandboxVoiceoverRestriction(null);
-        }
-      }
-    } catch { /* ignore */ }
-  }, [disableSandboxOverrides]);
+  const sandbox = useAdminSandbox();
+  const sandboxApplies = !disableSandboxOverrides && dataSource !== 'admin' && isSessionAdmin && sandbox.enabled;
+  const sandboxLegacyOverride = sandboxApplies && sandbox.legacyProfile;
+  const sandboxVoiceoverRestriction = useMemo<ProfileData['legacyVoiceoverRestriction']>(() => {
+    if (!sandboxApplies || !sandbox.legacyVoiceoverRestricted) return null;
+    return { isRestricted: true, graceActive: sandbox.legacyVoiceoverGrace,
+      graceEndsAt: sandbox.legacyVoiceoverGrace ? new Date(Date.now() + 14 * 86400000).toISOString() : null, hasVoiceoverUnlock: false };
+  }, [sandboxApplies, sandbox.legacyVoiceoverRestricted, sandbox.legacyVoiceoverGrace]);
 
   // Legacy profiles (created before 2026-01-01) can enable visibility without completing all required fields.
   // Admin sandbox override: if the admin sandbox has "legacyProfile" enabled, treat any profile as legacy.
@@ -528,94 +511,16 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     return profile?.legacyVoiceoverRestriction ?? null;
   }, [sandboxVoiceoverRestriction, profile?.legacyVoiceoverRestriction]);
 
-  // Calculate per-section completion status for mobile accordion icons
-  const sectionStatusById = useMemo(() => {
-    if (!profile) {
-      return {
-        basic: 'incomplete',
-        contact: 'incomplete',
-        connections: 'incomplete',
-        rates: 'incomplete',
-        social: 'incomplete',
-        images: 'incomplete',
-        privacy: 'neutral',
-        advanced: 'neutral',
-      };
-    }
+  const sectionStatusById = useMemo(() => completionSectionStatus(getProfileCompletion(profile
+    ? completionInputFromLegacy({ user: profile.user, profile: profile.profile,
+        studio: { name: profile.studio?.name, website_url: profile.studio?.website_url,
+          studio_types: profile.studio_types, images: profile.studio?.images } })
+    : {})), [profile]);
 
-    // Basic section: username, display_name, email, studio.name, studio_types>=1, short_about, about
-    const isBasicComplete = !!(
-      profile.user.username &&
-      !profile.user.username.startsWith('temp_') &&
-      profile.user.display_name?.trim() &&
-      profile.user.email?.trim() &&
-      profile.studio?.name?.trim() &&
-      (profile.studio_types?.length || 0) >= 1 &&
-      profile.profile.short_about?.trim() &&
-      profile.profile.about?.trim()
-    );
-
-    // Contact section: location, website_url
-    const isContactComplete = !!(
-      profile.profile.location?.trim() &&
-      profile.studio?.website_url?.trim()
-    );
-
-    // Connections section: at least one connection1-12 === '1'
-    const isConnectionsComplete = !!(
-      profile.profile.connection1 === '1' ||
-      profile.profile.connection2 === '1' ||
-      profile.profile.connection3 === '1' ||
-      profile.profile.connection4 === '1' ||
-      profile.profile.connection5 === '1' ||
-      profile.profile.connection6 === '1' ||
-      profile.profile.connection7 === '1' ||
-      profile.profile.connection8 === '1' ||
-      profile.profile.connection9 === '1' ||
-      profile.profile.connection10 === '1' ||
-      profile.profile.connection11 === '1' ||
-      profile.profile.connection12 === '1'
-    );
-
-    // Rates section: rate_tier_1 > 0
-    const isRatesComplete = !!(
-      profile.profile.rate_tier_1 &&
-      (typeof profile.profile.rate_tier_1 === 'number'
-        ? profile.profile.rate_tier_1 > 0
-        : parseFloat(profile.profile.rate_tier_1 as any) > 0)
-    );
-
-    // Social section: at least 2 social links
-    const socialLinks = [
-      profile.profile.facebook_url,
-      profile.profile.x_url,
-      profile.profile.youtube_url,
-      profile.profile.instagram_url,
-      profile.profile.soundcloud_url,
-      profile.profile.tiktok_url,
-      profile.profile.linkedin_url,
-      profile.profile.threads_url,
-    ].filter((url) => url && url.trim() !== '');
-    const isSocialComplete = socialLinks.length >= 2;
-
-    // Images section: at least 1 image
-    const isImagesComplete = !!(
-      profile.studio?.images && profile.studio.images.length >= 1
-    );
-
-    return {
-      basic: isBasicComplete ? 'complete' : 'incomplete',
-      contact: isContactComplete ? 'complete' : 'incomplete',
-      connections: isConnectionsComplete ? 'complete' : 'incomplete',
-      rates: isRatesComplete ? 'complete' : 'incomplete',
-      social: isSocialComplete ? 'complete' : 'incomplete',
-      images: isImagesComplete ? 'complete' : 'incomplete',
-      privacy: 'neutral',
-      advanced: 'neutral',
-    };
-  }, [profile]);
-
-  const handleSave = async () => {
+  const performSave = async () => {
+    const profile = profileRef.current;
+    if (!profile) return false;
+    if (dataSource === 'admin' && !adminStudioId) { showError('No studio selected.'); return false; }
     try {
       // Validate all social media URLs before saving
       const socialMediaFields = [
@@ -665,12 +570,6 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       
       if (dataSource === 'admin' && adminStudioId) {
         // Admin mode: use admin endpoint
-        // Handle admin never expires logic for admin accounts
-        const isAdminAccount = normalizedProfile.user.email === 'admin@mpdee.co.uk' || normalizedProfile.user.email === 'guy@voiceoverguy.co.uk';
-        if (isAdminAccount && adminNeverExpires && normalizedProfile._adminOnly) {
-          normalizedProfile._adminOnly.membership_expires_at = null;
-        }
-        
         const adminPayload = profileDataToAdminPayload(normalizedProfile);
         response = await fetch(`/api/admin/studios/${adminStudioId}`, {
           method: 'PUT',
@@ -706,7 +605,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       showSuccess('Profile updated successfully!');
       
       if (dataSource !== 'admin') {
-        sessionStorage.setItem('invalidateProfileCache', '1');
+        try { sessionStorage.setItem('invalidateProfileCache', '1'); } catch { /* cache hint is optional */ }
         // Notify dashboard to refresh profile data immediately
         window.dispatchEvent(new CustomEvent('profileDataUpdated'));
       }
@@ -721,8 +620,10 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         showWarning(warningMessage, 6000); // Show warning for 6 seconds
       }
       
-      // Refresh profile data
-      await fetchProfile();
+      // The write lock keeps the form mounted and prevents newer draft edits being overwritten.
+      setProfile(normalizedProfile); setOriginalProfile(structuredClone(normalizedProfile));
+      notifyPersisted('profile');
+      await fetchProfile({ quiet: true });
       
       // Notify parent (modal) of successful save
       if (onSaveSuccess) {
@@ -733,23 +634,39 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
     } catch (err) {
       showError(err instanceof Error ? err.message : 'Failed to save profile');
       return false;
-    } finally {
-      setSaving(false);
     }
   };
+
+  const handleSave = () => {
+    setSaving(true);
+    return writes.runSave(performSave).finally(() => setSaving(false));
+  };
+
+  useUnsavedNavigationGuard({
+    enabled: mode === 'modal' && (hasChanges || pendingControls > 0 || saving),
+    confirmLeave: async () => {
+      await writes.waitForPendingSaves();
+      if (JSON.stringify(profileRef.current) === JSON.stringify(originalProfileRef.current)) return true;
+      const decision = await showUnsavedChangesDialog();
+      return decision === 'discard' || (decision === 'save' && await handleSave());
+    },
+    ...(onNavigateAway ? { onAccepted: onNavigateAway } : {}),
+  });
 
   // Expose saveIfDirty and hasUnsavedChanges methods via ref for modal to call on close
   useImperativeHandle(ref, () => ({
     saveIfDirty: async () => {
-      if (hasChanges) {
+      if (JSON.stringify(profileRef.current) !== JSON.stringify(originalProfileRef.current)) {
         return await handleSave();
       }
       return true; // No changes, nothing to save
     },
-    hasUnsavedChanges: () => hasChanges,
+    hasUnsavedChanges: () => JSON.stringify(profileRef.current) !== JSON.stringify(originalProfileRef.current),
+    waitForPendingSaves: () => writes.waitForPendingSaves(),
   }));
 
   const handleVisibilityToggle = async (visible: boolean) => {
+    if ((dataSource === 'admin' && !adminStudioId) || !beginWrite('visibility')) return;
     setVisibilitySaving(true);
     try {
       let response;
@@ -789,6 +706,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
           studio: { ...prev.studio, is_profile_visible: visible } as any,
         } : null);
         
+        notifyPersisted('visibility');
         // Broadcast visibility change to other components
         if (dataSource !== 'admin') {
           window.dispatchEvent(new CustomEvent('profile-visibility-changed', { 
@@ -806,12 +724,13 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       setIsProfileVisible(!visible);
     } finally {
       setVisibilitySaving(false);
+      endWrite('visibility');
     }
   };
 
   // Admin-only function to verify email
   const handleVerifyEmailNow = async () => {
-    if (!adminStudioId) return;
+    if (!adminStudioId || !beginWrite('emailVerification')) return;
     setVerifyingEmail(true);
     try {
       const response = await fetch(`/api/admin/studios/${adminStudioId}/verify-email`, {
@@ -825,17 +744,40 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       }
 
       showSuccess(result?.alreadyVerified ? 'Email is already verified.' : 'Email marked as verified.');
-      await fetchProfile();
+      const confirmEmail = (previous: ProfileData | null): ProfileData | null => previous ? {
+        ...previous, user: { ...previous.user, email_verified: true },
+        ...(previous._adminOnly ? { _adminOnly: { ...previous._adminOnly, email_verified: true } } : {}),
+      } : previous;
+      setProfile(confirmEmail); setOriginalProfile(confirmEmail); notifyPersisted('emailVerification');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to verify email.';
       showError(errorMessage);
     } finally {
-      setVerifyingEmail(false);
+      setVerifyingEmail(false); endWrite('emailVerification');
     }
+  };
+
+  const savePrivacySetting = async (field: PrivacyField, value: boolean) => {
+    if ((dataSource === 'admin' && !adminStudioId) || !beginWrite('privacy')) throw new Error('A profile save is already in progress.');
+    try {
+      const metaFields: Record<PrivacyField, string> = { show_email: 'showemail', show_phone: 'showphone', show_address: 'showaddress', show_directions: 'showdirections' };
+      const response = await fetch(dataSource === 'admin' ? `/api/admin/studios/${encodeURIComponent(adminStudioId!)}` : '/api/user/profile', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataSource === 'admin' ? { _meta: { [metaFields[field]]: value ? '1' : '0' } } : { profile: { [field]: value } }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to update privacy setting');
+      const tierLimited = (result.tierLimitReached?.droppedFields ?? []).includes(field);
+      const confirmed = tierLimited ? false : value;
+      const merge = (previous: ProfileData | null) => previous ? { ...previous, profile: { ...previous.profile, [field]: confirmed } } : previous;
+      setProfile(merge); setOriginalProfile(merge); notifyPersisted('privacy');
+      return { value: confirmed, tierLimited };
+    } finally { endWrite('privacy'); }
   };
 
   // Helper to update admin-only fields
   const updateAdminField = useCallback((field: string, value: any) => {
+    if (writes.saving) return;
     setProfile(prev => prev ? {
       ...prev,
       _adminOnly: { ...prev._adminOnly!, [field]: value },
@@ -844,6 +786,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
 
   // Helper to update user fields (including admin-editable ones)
   const updateUserField = useCallback((field: string, value: any) => {
+    if (writes.saving) return;
     setProfile(prev => prev ? {
       ...prev,
       user: { ...prev.user, [field]: value },
@@ -852,6 +795,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
 
   // Helper to update studio fields (including admin-editable ones)
   const updateStudioField = useCallback((field: string, value: any) => {
+    if (writes.saving) return;
     setProfile(prev => prev ? {
       ...prev,
       studio: { ...prev.studio, [field]: value } as any,
@@ -859,6 +803,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   }, []);
 
   const updateUser = useCallback((field: string, value: any) => {
+    if (writes.saving) return;
     setProfile(prev => prev ? {
       ...prev,
       user: { ...prev.user, [field]: value },
@@ -866,6 +811,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   }, []);
 
   const updateProfile = useCallback((field: string, value: any) => {
+    if (writes.saving) return;
     setProfile(prev => prev ? {
       ...prev,
       profile: { ...prev.profile, [field]: value },
@@ -873,6 +819,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   }, []);
 
   const updateStudio = useCallback((field: string, value: any) => {
+    if (writes.saving) return;
     setProfile(prev => prev ? {
       ...prev,
       studio: { ...prev.studio, [field]: value } as any,
@@ -885,6 +832,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   }, [updateStudio]);
 
   const toggleStudioType = useCallback((type: string) => {
+    if (writes.saving) return;
     setProfile(prev => {
       if (!prev) return null;
       const types = prev.studio_types || [];
@@ -931,6 +879,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       return { ...prev, studio_types: [...types, type] };
     });
   }, [isSessionAdmin]);
+
+  if (loadError) return <div role="alert" className="rounded-xl bg-white p-6 text-gray-900"><p>{loadError}</p><Button className="mt-4" onClick={() => void fetchProfile()}>Retry loading profile</Button></div>;
 
   if (loading) {
     return (
@@ -1635,7 +1585,12 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               studioId={dataSource === 'admin' && adminStudioId ? adminStudioId : undefined}
               isAdminMode={dataSource === 'admin'}
               embedded={true}
+              images={profile.studio?.images ?? []}
+              imageLimit={profile.tierLimits?.imagesMax}
               onImagesChanged={handleImagesChanged}
+              disabled={saving}
+              beginWrite={() => beginWrite('images')}
+              endWrite={() => endWrite('images')}
             />
           </div>
         );
@@ -1657,19 +1612,8 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 show_directions: profile.profile.show_directions !== false,
               }}
               tierLimits={profile?.tierLimits as import('@/lib/membership-tiers').TierLimits | undefined}
-              onUpdate={(updatedSettings) => {
-                // Update local profile state
-                setProfile(prev => {
-                  if (!prev) return prev;
-                  return {
-                    ...prev,
-                    profile: {
-                      ...prev.profile,
-                      ...updatedSettings,
-                    },
-                  };
-                });
-              }}
+              disabled={saving}
+              saveSetting={savePrivacySetting}
             />
           </div>
         );
@@ -1968,7 +1912,13 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                             </div>
                             <Toggle
                               checked={adminNeverExpires}
-                              onChange={(checked) => setAdminNeverExpires(checked)}
+                              onChange={(checked) => {
+                                if (writes.saving) return;
+                                setAdminNeverExpires(checked);
+                                // This is a draft change, so Save and the close
+                                // guard must see it before any other field changes.
+                                if (checked) updateAdminField('membership_expires_at', null);
+                              }}
                               label="Never Expires"
                             />
                           </div>
@@ -1978,6 +1928,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                             <>
                               <input
                                 type="date"
+                                aria-label="Membership expiry date"
                                 value={formatIsoDateToDateInputValue(profile._adminOnly.membership_expires_at)}
                                 onChange={(e) => {
                                   const isoValue = parseDateInputValueToIsoUtc(e.target.value);
@@ -1986,7 +1937,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
                               <p className="text-xs text-blue-600 mt-1">
-                                ⚠️ Testing mode: Set expiry date to test renewal features. Toggle back to "Never Expires" when done.
+                                Choose a date to set an expiry for testing renewal features. Until a date is chosen, the membership has no expiry.
                               </p>
                             </>
                           )}
@@ -2070,7 +2021,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
   };
 
   return (
-    <>
+    <fieldset disabled={saving} aria-busy={saving} className="m-0 min-w-0 border-0 p-0">
       {/* Desktop Container - Enhanced with animations and backdrop blur - Fixed height with internal scroll */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -2090,7 +2041,10 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
               {/* Avatar */}
               <AvatarUpload
                 currentAvatar={profile.user.avatar_url}
-                onAvatarChange={(url) => updateUser('avatar_url', url)}
+                onAvatarChange={(url) => setProfile(previous => previous ? { ...previous, user: { ...previous.user, avatar_url: url } } : previous)}
+                disabled={saving}
+                beginWrite={() => beginWrite('avatar')}
+                endWrite={() => endWrite('avatar')}
                 size="medium"
                 editable={true}
                 userName={profile.user.display_name || profile.user.username}
@@ -2196,7 +2150,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
         {/* Desktop Content - Scrollable area */}
         <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0 bg-white">
           <div className="w-full max-w-5xl mx-auto">
-            {renderSectionContent(activeSection)}
+            {!isMobileViewport && renderSectionContent(activeSection)}
           </div>
         </div>
 
@@ -2282,7 +2236,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
                 {/* Section Content */}
                 {isExpanded && (
                   <div className="border-t border-gray-100 p-4 bg-white">
-                    <div className="space-y-4">{renderSectionContent(section.id)}</div>
+                    <div className="space-y-4">{isMobileViewport && renderSectionContent(section.id)}</div>
                   </div>
                 )}
               </div>
@@ -2293,7 +2247,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
       {/* Mobile Save Button - Sticky at bottom above nav */}
       {hasChanges && (
         <div className={`md:hidden fixed left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-40 transition-all duration-300 ${
-          scrollDirection === 'down' && !isAtTop ? 'bottom-0' : 'bottom-16'
+          mode === 'modal' || (scrollDirection === 'down' && !isAtTop) ? 'bottom-0' : 'bottom-16'
         }`}>
             <Button
               onClick={handleSave}
@@ -2309,7 +2263,7 @@ export const ProfileEditForm = forwardRef<ProfileEditFormHandle, ProfileEditForm
             </Button>
         </div>
       )}
-    </>
+    </fieldset>
   );
 });
 

@@ -14,7 +14,7 @@ import { TEST_EMAIL_DOMAIN } from '@/lib/admin/test-data-generator';
 export async function DELETE() {
   try {
     const session = await getServerSession(authOptions);
-    const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy';
+    const isAdmin = session?.user?.role === 'ADMIN';
     if (!session?.user || !isAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },

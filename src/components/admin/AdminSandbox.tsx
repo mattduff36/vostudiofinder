@@ -1,89 +1,44 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Lightbulb, Loader2 } from 'lucide-react';
 import { Toggle } from '@/components/ui/Toggle';
 import { showSuccess, showError } from '@/lib/toast';
 
-const SANDBOX_STORAGE_KEY = 'adminSandbox';
+import { useAdminSandbox, updateAdminSandbox, resetAdminSandbox, useSandboxStorageError } from '@/lib/admin/sandbox-store';
 
 export function AdminSandbox() {
-  // Sandbox state
-  const [sandboxEnabled, setSandboxEnabled] = useState(false);
-  const [sandboxProfileCompletion, setSandboxProfileCompletion] = useState<number>(100);
-  const [sandboxIsVerified, setSandboxIsVerified] = useState(false);
-  const [sandboxMembershipActive, setSandboxMembershipActive] = useState(true);
-  const [sandboxMembershipTier, setSandboxMembershipTier] = useState<'BASIC' | 'PREMIUM'>('PREMIUM');
-  const [sandboxStudioIsFeatured, setSandboxStudioIsFeatured] = useState(false);
-  const [sandboxFeaturedRemaining, setSandboxFeaturedRemaining] = useState<number>(6);
-  const [sandboxNextAvailableDate, setSandboxNextAvailableDate] = useState<string>('');
-  const [sandboxLegacyProfile, setSandboxLegacyProfile] = useState(false);
-  const [sandboxLegacyVoiceoverRestricted, setSandboxLegacyVoiceoverRestricted] = useState(false);
-  const [sandboxLegacyVoiceoverGrace, setSandboxLegacyVoiceoverGrace] = useState(false);
+  const sandbox = useAdminSandbox();
+  const storageError = useSandboxStorageError();
   const [sendingPreviewEmail, setSendingPreviewEmail] = useState(false);
-  const initialised = useRef(false);
-
-  // Restore sandbox state from sessionStorage on mount
-  useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(SANDBOX_STORAGE_KEY);
-      if (stored) {
-        const s = JSON.parse(stored);
-        if (s.enabled) setSandboxEnabled(true);
-        if (typeof s.profileCompletion === 'number') setSandboxProfileCompletion(s.profileCompletion);
-        if (s.isVerified) setSandboxIsVerified(true);
-        if (typeof s.membershipActive === 'boolean') setSandboxMembershipActive(s.membershipActive);
-        if (s.membershipTier === 'BASIC' || s.membershipTier === 'PREMIUM') setSandboxMembershipTier(s.membershipTier);
-        if (s.studioIsFeatured) setSandboxStudioIsFeatured(true);
-        if (typeof s.featuredRemaining === 'number') setSandboxFeaturedRemaining(s.featuredRemaining);
-        if (typeof s.nextAvailableDate === 'string') setSandboxNextAvailableDate(s.nextAvailableDate);
-        if (s.legacyProfile) setSandboxLegacyProfile(true);
-        if (s.legacyVoiceoverRestricted) setSandboxLegacyVoiceoverRestricted(true);
-        if (s.legacyVoiceoverGrace) setSandboxLegacyVoiceoverGrace(true);
-      }
-    } catch { /* ignore corrupt data */ }
-    initialised.current = true;
-  }, []);
-
-  // Persist sandbox state to sessionStorage whenever any value changes
-  useEffect(() => {
-    if (!initialised.current) return;
-    try {
-      const state = {
-        enabled: sandboxEnabled,
-        profileCompletion: sandboxProfileCompletion,
-        isVerified: sandboxIsVerified,
-        membershipActive: sandboxMembershipActive,
-        membershipTier: sandboxMembershipTier,
-        studioIsFeatured: sandboxStudioIsFeatured,
-        featuredRemaining: sandboxFeaturedRemaining,
-        nextAvailableDate: sandboxNextAvailableDate,
-        legacyProfile: sandboxLegacyProfile,
-        legacyVoiceoverRestricted: sandboxLegacyVoiceoverRestricted,
-        legacyVoiceoverGrace: sandboxLegacyVoiceoverGrace,
-      };
-      sessionStorage.setItem(SANDBOX_STORAGE_KEY, JSON.stringify(state));
-    } catch { /* sessionStorage full or unavailable */ }
-  }, [sandboxEnabled, sandboxProfileCompletion, sandboxIsVerified, sandboxMembershipActive, sandboxMembershipTier, sandboxStudioIsFeatured, sandboxFeaturedRemaining, sandboxNextAvailableDate, sandboxLegacyProfile, sandboxLegacyVoiceoverRestricted, sandboxLegacyVoiceoverGrace]);
-
-  const handleReset = () => {
-    setSandboxEnabled(false);
-    setSandboxProfileCompletion(100);
-    setSandboxIsVerified(false);
-    setSandboxMembershipActive(true);
-    setSandboxMembershipTier('PREMIUM');
-    setSandboxStudioIsFeatured(false);
-    setSandboxFeaturedRemaining(6);
-    setSandboxNextAvailableDate('');
-    setSandboxLegacyProfile(false);
-    setSandboxLegacyVoiceoverRestricted(false);
-    setSandboxLegacyVoiceoverGrace(false);
-    try { sessionStorage.removeItem(SANDBOX_STORAGE_KEY); } catch {}
-  };
+  const sandboxEnabled = sandbox.enabled;
+  const setSandboxEnabled = (value: typeof sandbox.enabled) => { updateAdminSandbox({ enabled: value }); };
+  const sandboxProfileCompletion = sandbox.profileCompletion;
+  const setSandboxProfileCompletion = (value: typeof sandbox.profileCompletion) => { updateAdminSandbox({ profileCompletion: value }); };
+  const sandboxIsVerified = sandbox.isVerified;
+  const setSandboxIsVerified = (value: typeof sandbox.isVerified) => { updateAdminSandbox({ isVerified: value }); };
+  const sandboxMembershipActive = sandbox.membershipActive;
+  const setSandboxMembershipActive = (value: typeof sandbox.membershipActive) => { updateAdminSandbox({ membershipActive: value }); };
+  const sandboxMembershipTier = sandbox.membershipTier;
+  const setSandboxMembershipTier = (value: typeof sandbox.membershipTier) => { updateAdminSandbox({ membershipTier: value }); };
+  const sandboxStudioIsFeatured = sandbox.studioIsFeatured;
+  const setSandboxStudioIsFeatured = (value: typeof sandbox.studioIsFeatured) => { updateAdminSandbox({ studioIsFeatured: value }); };
+  const sandboxFeaturedRemaining = sandbox.featuredRemaining;
+  const setSandboxFeaturedRemaining = (value: typeof sandbox.featuredRemaining) => { updateAdminSandbox({ featuredRemaining: value }); };
+  const sandboxNextAvailableDate = sandbox.nextAvailableDate;
+  const setSandboxNextAvailableDate = (value: typeof sandbox.nextAvailableDate) => { updateAdminSandbox({ nextAvailableDate: value }); };
+  const sandboxLegacyProfile = sandbox.legacyProfile;
+  const setSandboxLegacyProfile = (value: typeof sandbox.legacyProfile) => { updateAdminSandbox({ legacyProfile: value }); };
+  const sandboxLegacyVoiceoverRestricted = sandbox.legacyVoiceoverRestricted;
+  const setSandboxLegacyVoiceoverRestricted = (value: typeof sandbox.legacyVoiceoverRestricted) => { updateAdminSandbox({ legacyVoiceoverRestricted: value }); };
+  const sandboxLegacyVoiceoverGrace = sandbox.legacyVoiceoverGrace;
+  const setSandboxLegacyVoiceoverGrace = (value: typeof sandbox.legacyVoiceoverGrace) => { updateAdminSandbox({ legacyVoiceoverGrace: value }); };
+  const handleReset = () => { resetAdminSandbox(); };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="space-y-5">
+        {storageError && <p role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{storageError}</p>}
         <div className="relative overflow-hidden rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white shadow-sm">
           <div className="p-6">
             <div className="flex items-start justify-between gap-4">
@@ -108,7 +63,7 @@ export function AdminSandbox() {
                 onChange={setSandboxEnabled}
               />
 
-              <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${sandboxEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
+              <fieldset disabled={!sandboxEnabled} className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${sandboxEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
                 {/* Membership tier emulation */}
                 <div className="bg-white rounded-lg border border-amber-100 p-4 md:col-span-2">
                   <p className="text-sm font-semibold text-gray-900 mb-3">Membership tier</p>
@@ -243,7 +198,7 @@ export function AdminSandbox() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </fieldset>
 
               {/* Email Preview Section */}
               <div className="mt-6 pt-6 border-t border-amber-200">

@@ -1,7 +1,7 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Upload, Edit2, Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronDown, Star, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
@@ -11,20 +11,25 @@ import { ImageCropperModal } from '@/components/images/ImageCropperModal';
 import { ProgressIndicators } from '@/components/dashboard/ProgressIndicators';
 import { calculateCompletionStats, type CompletionStats } from '@/lib/utils/profile-completion';
 import { showConfirm } from '@/components/ui/ConfirmDialog';
-import { showSuccess } from '@/lib/toast';
+import { showError, showSuccess } from '@/lib/toast';
 import { IMAGE_RIGHTS_CONFIRMATION_TEXT } from '@/lib/legal/image-rights';
 
-interface StudioImage {
+export interface StudioImage {
   id: string;
   image_url: string;
-  alt_text?: string;
+  alt_text?: string | null;
   sort_order: number;
 }
 
 interface ImageGalleryManagerProps {
+  disabled?: boolean;
+  beginWrite?: () => boolean;
+  endWrite?: () => void;
   studioId?: string | undefined; // Optional: for admin mode
   isAdminMode?: boolean; // Optional: to use admin API endpoints
   embedded?: boolean; // Optional: hide header/progress when embedded in edit profile
+  images?: StudioImage[] | undefined; // Embedded editors own the acknowledged image list across section remounts.
+  imageLimit?: number | undefined;
   onImagesChanged?: (images: StudioImage[]) => void; // Optional: callback when images change (passes updated images array)
 }
 
@@ -32,15 +37,27 @@ export function ImageGalleryManager({
   studioId, 
   isAdminMode = false,
   embedded = false,
-  onImagesChanged,
+  images: acknowledgedImages,
+  imageLimit,
+  onImagesChanged, disabled = false, beginWrite, endWrite,
 }: ImageGalleryManagerProps = {}) {
-  const [images, setImages] = useState<StudioImage[]>([]);
-  const [loading, setLoading] = useState(true);
+  const hasParentImages = embedded && acknowledgedImages !== undefined;
+  const [storedImages, setImages] = useState<StudioImage[]>([]);
+  const [reorderPreview, setReorderPreview] = useState<StudioImage[] | null>(null);
+  const images = hasParentImages ? (reorderPreview ?? acknowledgedImages) : storedImages;
+  const [loading, setLoading] = useState(!hasParentImages);
   const [uploading, setUploading] = useState(false);
   const [editingImageId, setEditingImageId] = useState<string | null>(null);
   const [editAltText, setEditAltText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const writingRef = useRef(false);
+  const [writing, setWriting] = useState(false);
+  const startWrite = () => {
+    if (disabled || writingRef.current || (isAdminMode && !studioId) || (beginWrite && !beginWrite())) return false;
+    writingRef.current = true; setWriting(true); return true;
+  };
+  const finishWrite = () => { writingRef.current = false; setWriting(false); endWrite?.(); };
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Cropper state
@@ -59,7 +76,7 @@ export function ImageGalleryManager({
   // return tierLimits and admins shouldn't be gated by the studio owner's tier.
   // User mode: default to the most restrictive limit (Basic = 2) while loading to
   // prevent unauthorised uploads before the actual tier data arrives from the server.
-  const maxImages = isAdminMode ? 10 : (profileData?.tierLimits?.imagesMax ?? 2);
+  const maxImages = isAdminMode ? 10 : (hasParentImages ? imageLimit ?? 2 : profileData?.tierLimits?.imagesMax ?? 2);
   
   // Calculate completion stats
   const completionStats: CompletionStats | null = profileData ? calculateCompletionStats({
@@ -78,39 +95,30 @@ export function ImageGalleryManager({
     },
   }) : null;
 
-  useEffect(() => {
-    fetchImages();
-  }, [studioId, isAdminMode]);
-
-  const fetchImages = async () => {
+  const fetchImages = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true); setError(null);
     try {
-      setLoading(true);
-      const endpoint = isAdminMode && studioId 
-        ? `/api/admin/studios/${studioId}`
-        : '/api/user/profile';
-        
-      const response = await fetch(endpoint);
+      if (isAdminMode && !studioId) throw new Error('No studio selected. Close the editor and select a studio.');
+      const endpoint = isAdminMode ? `/api/admin/studios/${encodeURIComponent(studioId!)}` : '/api/user/profile';
+      const response = await fetch(endpoint, { ...(signal ? { signal } : {}), cache: 'no-store' });
       if (!response.ok) throw new Error('Failed to fetch images');
-      
       const data = await response.json();
-      const imageData = isAdminMode 
-        ? data.profile?.images || []
-        : data.data.studio?.images || [];
-      setImages(imageData);
-      
-      // Store full profile data for completion stats (only for non-admin mode)
-      if (!isAdminMode && data.data) {
-        setProfileData(data.data);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load images');
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (signal?.aborted) return;
+      setImages(isAdminMode ? data.profile?.images || [] : data.data.studio?.images || []);
+      if (!isAdminMode && data.data) setProfileData(data.data);
+    } catch (err) { if (!signal?.aborted) setError(err instanceof Error ? err.message : 'Failed to load images'); }
+    finally { if (!signal?.aborted) setLoading(false); }
+  }, [isAdminMode, studioId]);
+  useEffect(() => {
+    // The profile form already loaded these images. A separate GET could return
+    // an older snapshot after a mutation from the previous section mount finishes.
+    if (hasParentImages) { setLoading(false); return; }
+    const controller = new AbortController(); void fetchImages(controller.signal);
+    return () => controller.abort();
+  }, [fetchImages, hasParentImages]);
 
   const handleFileSelect = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
+    if (disabled || writingRef.current || !files || files.length === 0) return;
 
     // Require image rights confirmation before any upload
     if (!imageRightsConfirmed) {
@@ -162,6 +170,7 @@ export function ImageGalleryManager({
   };
 
   const handleCropConfirm = async (croppedFile: File) => {
+    if (!startWrite()) return;
     try {
       setUploading(true);
       setIsCropperOpen(false);
@@ -235,8 +244,9 @@ export function ImageGalleryManager({
         });
       }
       setError(err instanceof Error ? err.message : 'Failed to upload image');
+      showError('Image upload failed. Please try again.');
     } finally {
-      setUploading(false);
+      setUploading(false); finishWrite();
     }
   };
 
@@ -255,11 +265,11 @@ export function ImageGalleryManager({
   };
 
   const handleReorder = async (fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex) return;
+    if (fromIndex === toIndex || !images[fromIndex] || toIndex < 0 || toIndex >= images.length || !startWrite()) return;
 
     const newImages = [...images];
     const [movedImage] = newImages.splice(fromIndex, 1);
-    if (!movedImage) return;
+    if (!movedImage) { finishWrite(); return; }
     newImages.splice(toIndex, 0, movedImage);
 
     // Update sort orders
@@ -268,7 +278,8 @@ export function ImageGalleryManager({
       sort_order: index,
     }));
 
-    setImages(updatedImages);
+    if (hasParentImages) setReorderPreview(updatedImages);
+    else setImages(updatedImages);
 
     try {
       const endpoint = isAdminMode && studioId
@@ -294,23 +305,24 @@ export function ImageGalleryManager({
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reorder images');
-      // Revert on error
-      fetchImages();
-    }
+      showError('Image order could not be saved. Please try again.');
+      // Only this reorder owns this snapshot; another write cannot start until it settles.
+      setImages(images);
+    } finally { setReorderPreview(null); finishWrite(); }
   };
 
   const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
+    if (!disabled && !writingRef.current) setDraggedIndex(index);
   };
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
   };
 
-  const handleDragEnter = (index: number) => {
-    if (draggedIndex === null || draggedIndex === index) return;
-    handleReorder(draggedIndex, index);
-    setDraggedIndex(index);
+  const handleImageDrop = (event: React.DragEvent<HTMLDivElement>, index: number) => {
+    event.preventDefault(); event.stopPropagation();
+    if (draggedIndex !== null) void handleReorder(draggedIndex, index);
+    setDraggedIndex(null);
   };
 
   const handleEditAltText = (image: StudioImage) => {
@@ -319,6 +331,7 @@ export function ImageGalleryManager({
   };
 
   const handleSaveAltText = async (imageId: string) => {
+    if (!startWrite()) return;
     try {
       const endpoint = isAdminMode && studioId
         ? `/api/admin/studios/${studioId}/images/${imageId}`
@@ -332,14 +345,14 @@ export function ImageGalleryManager({
 
       if (!response.ok) throw new Error('Failed to update image');
 
-      setImages(images.map(img => 
-        img.id === imageId ? { ...img, alt_text: editAltText } : img
-      ));
+      const updatedImages = images.map(img => img.id === imageId ? { ...img, alt_text: editAltText } : img);
+      setImages(updatedImages); onImagesChanged?.(updatedImages);
       setEditingImageId(null);
       setEditAltText('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update image');
-    }
+      showError('The image description could not be saved. Please try again.');
+    } finally { finishWrite(); }
   };
 
   const handleDelete = async (imageId: string) => {
@@ -350,7 +363,7 @@ export function ImageGalleryManager({
       isDangerous: true,
     });
     
-    if (!confirmed) return;
+    if (!confirmed || !startWrite()) return;
 
     setError(null); // Clear any previous errors
 
@@ -375,7 +388,8 @@ export function ImageGalleryManager({
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete image');
-    }
+      showError('The image could not be deleted. Please try again.');
+    } finally { finishWrite(); }
   };
 
   if (loading) {
@@ -402,6 +416,7 @@ export function ImageGalleryManager({
     : {};
 
   return (
+    <fieldset disabled={disabled || writing} aria-busy={writing} className="m-0 min-w-0 border-0 p-0">
     <Container 
       {...containerProps}
       className={isAdminMode || embedded ? "" : "bg-white rounded-lg border border-gray-200 shadow-sm md:bg-white/95 md:backdrop-blur-md md:rounded-2xl md:border-gray-100 md:shadow-2xl"}
@@ -554,10 +569,11 @@ export function ImageGalleryManager({
               return (
               <motion.div
                 key={image.id}
-                draggable={!isBasicWithExtraImages}
+                draggable={!disabled && !writing && !isBasicWithExtraImages}
                 onDragStart={() => !isBasicWithExtraImages && handleDragStart(index)}
                 onDragEnd={handleDragEnd}
-                onDragEnter={() => !isBasicWithExtraImages && handleDragEnter(index)}
+                onDragOver={handleDragOver}
+                onDrop={(event: React.DragEvent<HTMLDivElement>) => { if (!isBasicWithExtraImages) handleImageDrop(event, index); }}
                 whileHover={isBasicWithExtraImages ? {} : { scale: 1.02, y: -4 }}
                 transition={{ duration: 0.3 }}
                 className={`group relative aspect-[25/12] bg-gray-100 rounded-lg overflow-hidden ${
@@ -796,5 +812,6 @@ export function ImageGalleryManager({
         maxHeight={960}
       />
     </Container>
+    </fieldset>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { ManagedOverlay } from '@/components/ui/ManagedOverlay';
 import { create } from 'zustand';
 import { AlertTriangle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -90,12 +91,6 @@ export function ConfirmDialog() {
     resolveAndNext(false);
   };
   
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleCancel();
-    }
-  };
-  
   const isOpen = !!current;
   const title = current?.options.title || '';
   const message = current?.options.message || '';
@@ -106,16 +101,13 @@ export function ConfirmDialog() {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-          onClick={handleBackdropClick}
-        >
+        <ManagedOverlay key={current?.id} title={title} onClose={handleCancel} level="confirmation" className="flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-black/60" onClick={handleCancel}
           />
           
           {/* Dialog */}
@@ -176,7 +168,7 @@ export function ConfirmDialog() {
               </div>
             </div>
           </motion.div>
-        </div>
+        </ManagedOverlay>
       )}
     </AnimatePresence>
   );

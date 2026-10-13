@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useScrollDrivenNav } from '@/hooks/useScrollDrivenNav';
 import { 
   TrendingUp, 
@@ -61,14 +61,18 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopBurgerOpen, setIsDesktopBurgerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const router = useRouter();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuBtnRef = useRef<HTMLButtonElement>(null);
   const desktopBurgerRef = useRef<HTMLDivElement>(null);
   const desktopBurgerBtnRef = useRef<HTMLButtonElement>(null);
   
   // Check if we're on mobile viewport
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setIsDesktopBurgerOpen(false);
+      else setIsMobileMenuOpen(false);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -82,45 +86,25 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
     enabled: isMobile
   });
 
-  // Close desktop burger menu on outside click
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (
-        desktopBurgerRef.current && 
-        !desktopBurgerRef.current.contains(target) &&
-        desktopBurgerBtnRef.current &&
-        !desktopBurgerBtnRef.current.contains(target)
-      ) {
-        setIsDesktopBurgerOpen(false);
+    if (!isDesktopBurgerOpen && !isMobileMenuOpen) return;
+    const panel = isDesktopBurgerOpen ? desktopBurgerRef.current : mobileMenuRef.current;
+    const trigger = isDesktopBurgerOpen ? desktopBurgerBtnRef.current : mobileMenuBtnRef.current;
+    panel?.querySelector<HTMLElement>('a')?.focus();
+    const close = () => { setIsDesktopBurgerOpen(false); setIsMobileMenuOpen(false); };
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !panel?.contains(event.target) && !trigger?.contains(event.target)) close();
+    };
+    const key = (event: KeyboardEvent) => {
+      // A dialog opened above this menu owns its own Escape key.
+      if (event.key === 'Escape' && (panel?.contains(document.activeElement) || document.activeElement === trigger)) {
+        event.preventDefault(); event.stopPropagation(); close(); trigger?.focus();
       }
     };
-
-    if (isDesktopBurgerOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isDesktopBurgerOpen]);
-
-  // Close on Escape key
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsDesktopBurgerOpen(false);
-      }
-    };
-
-    if (isDesktopBurgerOpen) {
-      document.addEventListener('keydown', handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isDesktopBurgerOpen]);
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', key);
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', key); };
+  }, [isDesktopBurgerOpen, isMobileMenuOpen]);
 
   return (
     <>
@@ -133,7 +117,9 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
               ref={desktopBurgerBtnRef}
               onClick={() => setIsDesktopBurgerOpen(!isDesktopBurgerOpen)}
               className="flex items-center justify-center p-2 rounded-lg border-2 border-white/30 text-white hover:bg-red-700 hover:border-white transition-all duration-300 w-10 h-10"
-              aria-label="More menu"
+              aria-label="More admin pages"
+              aria-expanded={isDesktopBurgerOpen}
+              aria-controls="admin-desktop-menu"
               title="More options"
             >
               {isDesktopBurgerOpen ? (
@@ -145,17 +131,17 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
           </div>
 
           {/* Main Navigation Tabs - CENTER */}
-          <div className="flex space-x-8">
+          <div className="flex max-w-full space-x-8 overflow-x-auto md:mr-14 xl:mr-0">
             {mainTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               
               return (
-                <button
+                <Link
                   key={tab.id}
-                  onClick={() => router.push(tab.href)}
+                  href={tab.href}
                   className={`
-                    flex items-center gap-2 py-4 px-2 font-medium text-sm transition-colors
+                    flex shrink-0 items-center gap-2 py-4 px-2 font-medium text-sm transition-colors
                     ${isActive
                       ? 'border-b-[6px] border-white text-white'
                       : 'border-b-4 border-transparent text-white hover:text-white hover:border-b-[5px] hover:border-red-400'
@@ -165,7 +151,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
                 >
                   <Icon className="w-4 h-4" />
                   {tab.label}
-                </button>
+                </Link>
               );
             })}
           </div>
@@ -184,9 +170,9 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
           {/* Menu Panel */}
           <div 
             ref={desktopBurgerRef}
-            className="hidden md:block fixed top-[136px] right-6 z-[110] w-56 bg-red-600 rounded-lg shadow-xl border border-red-700"
-            role="menu"
-            aria-orientation="vertical"
+            className="hidden md:block fixed top-[136px] right-6 z-[110] w-56 max-h-[calc(100dvh-152px)] overflow-y-auto bg-red-600 rounded-lg shadow-xl border border-red-700"
+            id="admin-desktop-menu"
+            aria-label="More admin pages"
           >
             <div className="py-2">
               {secondaryTabs.map((tab) => {
@@ -194,23 +180,20 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
                 const isActive = activeTab === tab.id;
                 
                 return (
-                  <button
+                  <Link
                     key={tab.id}
-                    type="button"
-                    onClick={() => {
-                      router.push(tab.href);
-                      setIsDesktopBurgerOpen(false);
-                    }}
+                    href={tab.href}
+                    onNavigate={() => setIsDesktopBurgerOpen(false)}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-red-700 text-white'
                         : 'text-white hover:bg-red-700 active:bg-red-800'
                     }`}
-                    role="menuitem"
+                    aria-current={isActive ? 'page' : undefined}
                   >
                     <Icon className="w-5 h-5" aria-hidden="true" />
                     <span>{tab.label}</span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>
@@ -228,6 +211,10 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
       >
         <div className="px-4 py-3">
           <button
+            ref={mobileMenuBtnRef}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="admin-mobile-menu"
+            aria-label="Admin pages"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="w-full flex items-center justify-between text-left font-medium text-white"
           >
@@ -253,18 +240,17 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
 
         {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div className="border-t border-red-700">
+          <div ref={mobileMenuRef} id="admin-mobile-menu" aria-label="Admin pages" className="max-h-[calc(100dvh-140px)] overflow-y-auto border-t border-red-700">
             {allTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               
               return (
-                <button
+                <Link
                   key={tab.id}
-                  onClick={() => {
-                    router.push(tab.href);
-                    setIsMobileMenuOpen(false);
-                  }}
+                  href={tab.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  onNavigate={() => setIsMobileMenuOpen(false)}
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 text-left transition-colors
                     ${isActive
@@ -275,7 +261,7 @@ export function AdminTabs({ activeTab }: AdminTabsProps) {
                 >
                   <Icon className="w-5 h-5" />
                   {tab.label}
-                </button>
+                </Link>
               );
             })}
           </div>

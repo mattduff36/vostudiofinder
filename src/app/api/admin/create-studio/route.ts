@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   try {
     // Check if user is admin
     const session = await getServerSession(authOptions);
-    const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.email === 'admin@mpdee.co.uk' || session?.user?.username === 'VoiceoverGuy';
+    const isAdmin = session?.user?.role === 'ADMIN';
     if (!session?.user || !isAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },

@@ -1,5 +1,7 @@
 'use client';
 
+import { useAdminSandbox } from '@/lib/admin/sandbox-store';
+
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Shield,
@@ -113,42 +115,15 @@ export function Settings({ data }: SettingsProps) {
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Admin sandbox overrides — read-only from sessionStorage (controls live on /admin/sandbox)
-  const [sandboxEnabled, setSandboxEnabled] = useState(false);
-  const [sandboxProfileCompletion, setSandboxProfileCompletion] = useState<number>(100);
-  const [sandboxIsVerified, setSandboxIsVerified] = useState(false);
-  const [sandboxMembershipActive, setSandboxMembershipActive] = useState(true);
-  const [sandboxMembershipTier, setSandboxMembershipTier] = useState<'BASIC' | 'PREMIUM'>('PREMIUM');
-  const [sandboxStudioIsFeatured, setSandboxStudioIsFeatured] = useState(false);
-  const [sandboxFeaturedRemaining, setSandboxFeaturedRemaining] = useState<number>(6);
-  const [sandboxNextAvailableDate, setSandboxNextAvailableDate] = useState<string>('');
-  // sandboxLegacyProfile is consumed directly by ProfileEditForm via its own sessionStorage read
-
-  // Poll sessionStorage so changes from /admin/sandbox are reflected here
-  useEffect(() => {
-    const readSandbox = () => {
-      try {
-        const stored = sessionStorage.getItem('adminSandbox');
-        if (stored) {
-          const s = JSON.parse(stored);
-          setSandboxEnabled(!!s.enabled);
-          if (typeof s.profileCompletion === 'number') setSandboxProfileCompletion(s.profileCompletion);
-          setSandboxIsVerified(!!s.isVerified);
-          if (typeof s.membershipActive === 'boolean') setSandboxMembershipActive(s.membershipActive);
-          if (s.membershipTier === 'BASIC' || s.membershipTier === 'PREMIUM') setSandboxMembershipTier(s.membershipTier);
-          setSandboxStudioIsFeatured(!!s.studioIsFeatured);
-          if (typeof s.featuredRemaining === 'number') setSandboxFeaturedRemaining(s.featuredRemaining);
-          if (typeof s.nextAvailableDate === 'string') setSandboxNextAvailableDate(s.nextAvailableDate);
-          // sandboxLegacyProfile handled by ProfileEditForm directly
-        } else {
-          setSandboxEnabled(false);
-        }
-      } catch { /* ignore */ }
-    };
-    readSandbox();
-    const id = setInterval(readSandbox, 1000);
-    return () => clearInterval(id);
-  }, []);
+  const sandbox = useAdminSandbox();
+  const sandboxEnabled = sandbox.enabled && (profileData?.user?.role || data?.user?.role) === 'ADMIN';
+  const sandboxProfileCompletion = sandbox.profileCompletion;
+  const sandboxIsVerified = sandbox.isVerified;
+  const sandboxMembershipActive = sandbox.membershipActive;
+  const sandboxMembershipTier = sandbox.membershipTier;
+  const sandboxStudioIsFeatured = sandbox.studioIsFeatured;
+  const sandboxFeaturedRemaining = sandbox.featuredRemaining;
+  const sandboxNextAvailableDate = sandbox.nextAvailableDate;
 
   // Compute isAdminUser from profileData or data
   const isAdminUser = useMemo(() => {

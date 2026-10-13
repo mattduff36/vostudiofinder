@@ -1,6 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { StudioDetails } from '@/components/admin/studios/StudioDetails';
+import { COLUMN_CONFIG, type Studio, type BulkActionResult } from '@/components/admin/studios/types';
+import { useAdminStudioList } from '@/hooks/useAdminStudioList';
+import type { ProfileSectionId } from '@/lib/profile/completion-sections';
+import { Modal } from '@/components/ui/Modal';
 import { Lightbulb, Check, X, Columns, ChevronDown, RotateCcw, FlaskConical, Trash2 } from 'lucide-react';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import AddStudioModal from '@/components/admin/AddStudioModal';
@@ -13,60 +18,43 @@ import { showSuccess, showError } from '@/lib/toast';
 import { showConfirm } from '@/components/ui/ConfirmDialog';
 import { TEST_EMAIL_DOMAIN } from '@/lib/admin/test-data-generator';
 
-interface Studio {
-  id: string;
-  name: string;
-  description?: string;
-  studio_type: string;
-  studio_studio_types?: Array<{ studio_type: string }>;
-  status: string;
-  is_verified: boolean;
-  is_premium: boolean;
-  is_featured?: boolean;
-  featured_until?: string | null;
-  is_spotlight?: boolean;
-  is_profile_visible?: boolean;
-  admin_review?: boolean;
-  profile_completion?: number;
-  last_login?: string | null;
-  membership_expires_at?: string | null;
-  membership_tier?: string;
-  users: {
-    display_name: string;
-    email: string;
-    username: string;
-  };
-  created_at: string;
-  updated_at: string;
-}
-
-interface StudiosResponse {
-  studios: Studio[];
-  pagination: {
-    total: number;
-    hasMore: boolean;
-  };
-}
-
 export default function AdminStudiosPage() {
-  const [studios, setStudios] = useState<Studio[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [pagination, setPagination] = useState({ 
-    offset: 0, 
-    limit: 80, 
-    total: 0, 
-    hasMore: false 
-  });
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
   const [editingStudio, setEditingStudio] = useState<Studio | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [refreshKey, setRefreshKey] = useState(0);
+  const { studios, pagination, pending: loading, initialLoading, error,
+    refresh: fetchStudios, refreshStudio, beginMutation, endMutation, pendingIds,
+    loadMore, previousWindow, isNextWindow } = useAdminStudioList({ search: debouncedSearch, status: statusFilter, sortBy, sortOrder });
+  const [expandedStudios, setExpandedStudios] = useState<Set<string>>(new Set());
+  const [initialEditSection, setInitialEditSection] = useState<ProfileSectionId>('basic');
+  const [editSession, setEditSession] = useState(0);
+  const bulkPending = useRef(false);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [tableHeight, setTableHeight] = useState(0);
+  useEffect(() => {
+    const visibleIds = new Set(studios.map(studio => studio.id));
+    setExpandedStudios(current => new Set([...current].filter(id => visibleIds.has(id))));
+    setSelectedStudios(current => current.filter(id => visibleIds.has(id)));
+  }, [studios]);
+  const toggleExpanded = (id: string) => setExpandedStudios(current => {
+    const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next;
+  });
+  const handleSummaryClick = (event: React.MouseEvent, id: string) => {
+    if ((event.target as HTMLElement).closest('button,a,input,select,textarea,[data-studio-details]')) return;
+    if (window.getSelection()?.toString()) return;
+    toggleExpanded(id);
+  };
+  const handlePersistedChange = useCallback(({ studioId }: { studioId: string }) => { void refreshStudio(studioId); }, [refreshStudio]);
   
   // Featured expiry modal state
   const [featuredExpiryModalOpen, setFeaturedExpiryModalOpen] = useState(false);
@@ -82,23 +70,6 @@ export default function AdminStudiosPage() {
   
   // Column visibility configuration
   // Protected columns: 'studio' and 'actions' (always visible)
-  const COLUMN_CONFIG = [
-    { id: 'select', label: 'Select', protected: false },
-    { id: 'adminReview', label: 'Admin Review', protected: false },
-    { id: 'studio', label: 'Studio', protected: true },
-    { id: 'type', label: 'Type', protected: false },
-    { id: 'owner', label: 'Owner', protected: false },
-    { id: 'status', label: 'Status', protected: false },
-    { id: 'visible', label: 'Visible', protected: false },
-    { id: 'complete', label: 'Complete', protected: false },
-    { id: 'verified', label: 'Verified', protected: false },
-    { id: 'featured', label: 'Featured', protected: false },
-    { id: 'lastLogin', label: 'Last Login', protected: false },
-    { id: 'membershipExpires', label: 'Membership Expires', protected: false },
-    { id: 'updated', label: 'Updated', protected: false },
-    { id: 'actions', label: 'Actions', protected: true },
-  ];
-  
   const STORAGE_KEY = 'admin-studios-hidden-columns';
   
   // User-controlled hidden columns (loaded from localStorage)
@@ -180,6 +151,15 @@ export default function AdminStudiosPage() {
     return () => clearTimeout(timer);
   }, [loading, studios.length, hiddenColumns, computeTableScale]);
   
+  useEffect(() => {
+    const table = tableRef.current;
+    if (!table || loading && studios.length === 0) return;
+    const measure = () => { setTableHeight(table.scrollHeight); computeTableScale(); };
+    measure();
+    const observer = new ResizeObserver(measure); observer.observe(table);
+    return () => observer.disconnect();
+  }, [studios.length, expandedStudios, hiddenColumns, loading, computeTableScale]);
+
   // Compute scale on window resize
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -221,78 +201,30 @@ export default function AdminStudiosPage() {
   // Count visible columns
   const visibleColumnCount = COLUMN_CONFIG.filter(c => !hiddenColumns.includes(c.id)).length;
 
-  const fetchStudios = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        limit: pagination.limit.toString(),
-        offset: pagination.offset.toString(),
-        sortBy: sortBy,
-        sortOrder: sortOrder,
-      });
-
-      if (search) params.append('search', search);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-
-      const response = await fetch(`/api/admin/studios?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch studios');
-
-      const data: StudiosResponse = await response.json();
-      
-      if (pagination.offset === 0) {
-        setStudios(data.studios || []);
-      } else {
-        setStudios(prev => [...prev, ...(data.studios || [])]);
-      }
-      
-      setPagination(prev => ({
-        ...prev,
-        total: data.pagination?.total || 0,
-        hasMore: data.pagination?.hasMore || false
-      }));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  }, [search, statusFilter, pagination.offset, pagination.limit, sortBy, sortOrder, refreshKey]);
-
-  useEffect(() => {
-    fetchStudios();
-  }, [fetchStudios]);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    setStudios([]); // Clear studios to prevent duplicates
-    setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value); setSelectedStudios([]);
   };
-
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
-    setStudios([]); // Clear studios to prevent duplicates
-    setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page
+  const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatusFilter(event.target.value); setSelectedStudios([]);
   };
-
-  const handleEditStudio = (studio: Studio) => {
-    setEditingStudio(studio);
-    setIsEditModalOpen(true);
+  const handleEditStudio = (studio: Studio, section: ProfileSectionId = 'basic') => {
+    setEditingStudio(studio); setInitialEditSection(section); setEditSession(value => value + 1); setIsEditModalOpen(true);
   };
-
   const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingStudio(null);
-    // Refresh data to show any changes
-    setPagination(prev => ({ ...prev, offset: 0 }));
-    setRefreshKey(prev => prev + 1);
+    setIsEditModalOpen(false); setEditingStudio(null);
   };
-
-  const handleSaveSuccess = () => {
-    // Refresh the studios list after save by incrementing refreshKey.
-    // This causes fetchStudios to be recreated (refreshKey is in its deps),
-    // which triggers the useEffect that calls fetchStudios().
-    // Reset offset to 0 so the fetch replaces (not appends) the list.
-    setPagination(prev => ({ ...prev, offset: 0 }));
-    setRefreshKey(prev => prev + 1);
+  const mutateStudio = async (studio: Studio, operation: string, body: object, message: string) => {
+    if (!beginMutation([studio.id])) return false;
+    try {
+      const response = await fetch(`/api/admin/studios/${studio.id}/${operation}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      if (!response.ok) throw new Error(`Failed to update ${operation}. Please retry.`);
+      showSuccess(message);
+      await refreshStudio(studio.id);
+      return true;
+    } catch (failure) { showError(failure instanceof Error ? failure.message : 'Unable to update studio.'); return false; }
+    finally { endMutation([studio.id]); }
   };
 
   const handleDeleteStudio = async (studio: Studio) => {
@@ -303,7 +235,7 @@ export default function AdminStudiosPage() {
       isDangerous: true,
     });
     
-    if (!confirmed) return;
+    if (!confirmed || !beginMutation([studio.id])) return;
 
     try {
       const response = await fetch(`/api/admin/studios/${studio.id}`, {
@@ -315,15 +247,18 @@ export default function AdminStudiosPage() {
       }
 
       showSuccess('Studio and user account deleted successfully');
-      setPagination(prev => ({ ...prev, offset: 0 }));
-      setRefreshKey(prev => prev + 1);
+      await refreshStudio(studio.id);
     } catch (error) {
       console.error('Error deleting studio:', error);
       showError('Failed to delete studio and user account. Please try again.');
-    }
+    } finally { endMutation([studio.id]); }
   };
 
+  const deleteTestsPending = useRef(false);
   const handleDeleteTestAccounts = async () => {
+    if (deleteTestsPending.current) return;
+    deleteTestsPending.current = true;
+    try {
     // Count test accounts in current list
     const testCount = studios.filter(s => s.users.email.endsWith(`@${TEST_EMAIL_DOMAIN}`)).length;
     
@@ -348,196 +283,31 @@ export default function AdminStudiosPage() {
 
       const result = await response.json();
       showSuccess(result.message);
-      setPagination(prev => ({ ...prev, offset: 0 }));
-      setRefreshKey(prev => prev + 1);
+      fetchStudios();
     } catch (error) {
       console.error('Error deleting test accounts:', error);
       showError(error instanceof Error ? error.message : 'Failed to delete test accounts');
     }
+    } finally { deleteTestsPending.current = false; }
   };
 
-  const handleToggleVisibility = async (studio: Studio, isVisible: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/studios/${studio.id}/visibility`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isVisible }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update visibility');
-      }
-
-      // Update the local state
-      setStudios(prev => prev.map(s => 
-        s.id === studio.id ? { ...s, is_profile_visible: isVisible } : s
-      ));
-
-      showSuccess(`Profile visibility ${isVisible ? 'enabled' : 'disabled'} for ${studio.name}`);
-    } catch (error) {
-      console.error('Error toggling visibility:', error);
-      showError('Failed to update visibility. Please try again.');
-    }
+  const handleToggleVisibility = (studio: Studio, value: boolean) => mutateStudio(studio, 'visibility', { isVisible: value }, `Profile visibility ${value ? 'enabled' : 'disabled'} for ${studio.name}`);
+  const handleToggleVerified = (studio: Studio, value: boolean) => mutateStudio(studio, 'verified', { isVerified: value }, `Studio ${value ? 'verified' : 'unverified'}: ${studio.name}`);
+  const handleToggleAdminReview = (studio: Studio, value: boolean) => mutateStudio(studio, 'admin-review', { adminReview: value }, `Admin review ${value ? 'enabled' : 'disabled'} for ${studio.name}`);
+  const handleToggleStatus = (studio: Studio, value: 'ACTIVE' | 'INACTIVE') => mutateStudio(studio, 'status', { status: value }, `Studio status updated to ${value}: ${studio.name}`);
+  const handleToggleFeatured = (studio: Studio, value: boolean) => {
+    if (pendingIds.has(studio.id)) return;
+    if (!value) { void mutateStudio(studio, 'featured', { isFeatured: false }, `Studio unfeatured: ${studio.name}`); return; }
+    const expiry = new Date(); expiry.setMonth(expiry.getMonth() + 6);
+    setFeaturedStudioId(studio.id); setFeaturedExpiryDate(expiry.toISOString().slice(0, 10)); setFeaturedExpiryModalOpen(true);
   };
-
-  const handleToggleVerified = async (studio: Studio, isVerified: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/studios/${studio.id}/verified`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isVerified }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update verified status');
-      }
-
-      // Update the local state
-      setStudios(prev => prev.map(s => 
-        s.id === studio.id ? { ...s, is_verified: isVerified } : s
-      ));
-
-      showSuccess(`Studio ${isVerified ? 'verified' : 'unverified'}: ${studio.name}`);
-    } catch (error) {
-      console.error('Error toggling verified status:', error);
-      showError('Failed to update verified status. Please try again.');
-    }
-  };
-
-  const handleToggleAdminReview = async (studio: Studio, adminReview: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/studios/${studio.id}/admin-review`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminReview }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update admin review');
-      }
-
-      setStudios((prev) =>
-        prev.map((s) => (s.id === studio.id ? { ...s, admin_review: adminReview } : s)),
-      );
-
-      showSuccess(`Admin review ${adminReview ? 'enabled' : 'disabled'} for ${studio.name}`);
-    } catch (error) {
-      console.error('Error toggling admin review:', error);
-      showError('Failed to update admin review. Please try again.');
-    }
-  };
-
-  const handleToggleFeatured = async (studio: Studio, isFeatured: boolean) => {
-    try {
-      if (isFeatured) {
-        // Show modal to get expiry date
-        setFeaturedStudioId(studio.id);
-        // Set default to 6 months from now
-        const sixMonthsFromNow = new Date();
-        sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-        setFeaturedExpiryDate(sixMonthsFromNow.toISOString().slice(0, 10));
-        setFeaturedExpiryModalOpen(true);
-      } else {
-        // Unfeature directly
-        const response = await fetch(`/api/admin/studios/${studio.id}/featured`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isFeatured: false }),
-        });
-
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || 'Failed to update featured status');
-        }
-
-        // Update the local state
-        setStudios(prev => prev.map(s => 
-          s.id === studio.id ? { ...s, is_featured: false } : s
-        ));
-
-        showSuccess(`Studio unfeatured: ${studio.name}`);
-      }
-    } catch (error) {
-      console.error('Error toggling featured status:', error);
-      showError(error instanceof Error ? error.message : 'Failed to update featured status. Please try again.');
-    }
-  };
-  
   const handleConfirmFeatured = async () => {
-    if (!featuredStudioId || !featuredExpiryDate) return;
-    
-    try {
-      const featuredUntilIso = parseDateInputValueToIsoUtc(featuredExpiryDate);
-      if (!featuredUntilIso) {
-        showError('Please enter a valid featured expiry date.');
-        return;
-      }
-
-      const response = await fetch(`/api/admin/studios/${featuredStudioId}/featured`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          isFeatured: true,
-          featuredUntil: featuredUntilIso,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to update featured status');
-      }
-
-      // Update the local state and get studio name from updated state
-      setStudios(prev => {
-        const updatedStudios = prev.map(s => 
-          s.id === featuredStudioId ? { 
-            ...s, 
-            is_featured: true,
-            featured_until: featuredExpiryDate 
-          } : s
-        );
-        
-        // Get studio name from the updated array
-        const studio = updatedStudios.find(s => s.id === featuredStudioId);
-        if (studio) {
-          showSuccess(`Studio featured: ${studio.name}`);
-        }
-        
-        return updatedStudios;
-      });
-      
-      // Close modal
-      setFeaturedExpiryModalOpen(false);
-      setFeaturedStudioId(null);
-      setFeaturedExpiryDate('');
-    } catch (error) {
-      console.error('Error featuring studio:', error);
-      showError(error instanceof Error ? error.message : 'Failed to feature studio. Please try again.');
-    }
-  };
-
-  const handleToggleStatus = async (studio: Studio, newStatus: 'ACTIVE' | 'INACTIVE') => {
-    try {
-      const response = await fetch(`/api/admin/studios/${studio.id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update status');
-      }
-
-      // Update the local state
-      setStudios(prev => prev.map(s => 
-        s.id === studio.id ? { ...s, status: newStatus } : s
-      ));
-
-      showSuccess(`Studio status updated to ${newStatus}: ${studio.name}`);
-    } catch (error) {
-      console.error('Error toggling status:', error);
-      showError('Failed to update status. Please try again.');
-    }
+    const id = featuredStudioId;
+    const studio = studios.find(row => row.id === id);
+    const expiry = parseDateInputValueToIsoUtc(featuredExpiryDate);
+    if (!studio || !expiry) { showError('Please select a studio and valid expiry date.'); return; }
+    const success = await mutateStudio(studio, 'featured', { isFeatured: true, featuredUntil: expiry }, `Studio featured: ${studio.name}`);
+    if (success) { setFeaturedExpiryModalOpen(false); setFeaturedStudioId(null); setFeaturedExpiryDate(''); }
   };
 
   const handleSort = (field: string) => {
@@ -550,8 +320,6 @@ export default function AdminStudiosPage() {
       setSortOrder('asc');
     }
     // Clear studios and reset pagination
-    setStudios([]);
-    setPagination(prev => ({ ...prev, offset: 0 }));
   };
 
   const getSortIcon = (field: string) => {
@@ -571,7 +339,11 @@ export default function AdminStudiosPage() {
     setSelectedStudios([]);
   };
 
-  const handleBulkAction = async (action: string, studioIds: string[]) => {
+  const handleBulkAction = async (action: string, studioIds: string[]): Promise<BulkActionResult> => {
+    if (bulkPending.current || studioIds.some(id => pendingIds.has(id))) return { status: 'failed', processedIds: [] };
+    bulkPending.current = true;
+    let ownsMutation = false;
+    try {
     // Add confirmation for delete action
     if (action === 'delete') {
       const count = studioIds.length;
@@ -582,9 +354,13 @@ export default function AdminStudiosPage() {
         isDangerous: true,
       });
       
-      if (!confirmed) return;
+      if (!confirmed) return { status: 'cancelled', processedIds: [] };
     }
 
+    if (action !== 'export') {
+      ownsMutation = beginMutation(studioIds);
+      if (!ownsMutation) return { status: 'failed', processedIds: [] };
+    }
     try {
       const response = await fetch('/api/admin/bulk', {
         method: 'POST',
@@ -592,6 +368,7 @@ export default function AdminStudiosPage() {
         body: JSON.stringify({ action, studioIds })
       });
 
+      if (!response.ok) throw new Error('Bulk operation failed');
       if (action === 'export') {
         // Handle file download
         const blob = await response.blob();
@@ -603,7 +380,7 @@ export default function AdminStudiosPage() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        return;
+        return { status: 'success', processedIds: studioIds };
       }
 
       if (!response.ok) throw new Error('Bulk operation failed');
@@ -611,36 +388,20 @@ export default function AdminStudiosPage() {
       const result = await response.json();
       showSuccess(result.message);
       
-      // Refresh the studios list
       fetchStudios();
+      const processedIds: string[] = Array.isArray(result.processedIds) ? result.processedIds.filter((id: unknown): id is string => typeof id === 'string' && studioIds.includes(id)) : [];
+      return { status: processedIds.length === studioIds.length ? 'success' : 'partial', processedIds };
     } catch (error) {
       showError(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return { status: 'failed', processedIds: [] };
     }
+    } finally { if (ownsMutation) endMutation(studioIds); bulkPending.current = false; }
   };
-
-  const loadMore = () => {
-    setPagination(prev => ({ ...prev, offset: prev.offset + prev.limit }));
-  };
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 className="text-red-800 font-medium">Error Loading Studios</h3>
-        <p className="text-red-600 mt-1">{error}</p>
-        <button 
-          onClick={fetchStudios}
-          className="mt-3 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
 
   return (
     <>
       <AdminTabs activeTab="studios" />
-      <div className="px-4 py-4 md:p-8 min-h-screen">
+      <div ref={toolbarRef} tabIndex={-1} className="px-4 py-4 md:p-8 min-h-screen">
         <div className="max-w-full mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -678,6 +439,7 @@ export default function AdminStudiosPage() {
         selectedStudios={selectedStudios}
         onBulkAction={handleBulkAction}
         onClearSelection={handleClearSelection}
+        onProcessed={(ids) => setSelectedStudios(current => current.filter(id => !ids.includes(id)))}
       />
 
       {/* Search and Filters */}
@@ -786,8 +548,11 @@ export default function AdminStudiosPage() {
         )}
       </div>
 
+      {error && <div role="alert" className="my-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800"><p>{error}</p><button type="button" onClick={fetchStudios} className="underline mt-2">Retry</button></div>}
+      {loading && !initialLoading && <p role="status" className="my-2 text-sm text-gray-600">Updating studios…</p>}
+      {pagination.offset > 0 && <div className="my-3 flex gap-4 items-center"><button type="button" disabled={loading} onClick={previousWindow} className="text-blue-700 underline">Previous studios</button><span className="text-sm text-gray-600">Showing {pagination.offset + 1}–{pagination.offset + studios.length} of {pagination.total}</span></div>}
       {/* Studios Table */}
-      {loading && pagination.offset === 0 ? (
+      {initialLoading ? (
         <div className="flex items-center justify-center min-h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
@@ -796,7 +561,7 @@ export default function AdminStudiosPage() {
           {/* Mobile Card List - Hidden on desktop */}
           <div className="md:hidden space-y-4">
             {studios.map((studio) => (
-              <div key={studio.id} className="bg-white rounded-lg shadow border border-gray-200 p-4 cursor-pointer hover:border-blue-300 transition-colors" onClick={() => handleEditStudio(studio)}>
+              <div key={studio.id} className="bg-white rounded-lg shadow border border-gray-200 p-4 cursor-pointer hover:border-blue-300 transition-colors" onClick={(event) => handleSummaryClick(event, studio.id)} data-studio-id={studio.id}>
                 {/* Studio Name and Avatar */}
                 <div className="flex items-start gap-3 mb-3">
                   <div className="h-12 w-12 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
@@ -807,6 +572,7 @@ export default function AdminStudiosPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base font-semibold text-gray-900 break-words">
                       {studio.name}
+                      <button type="button" onClick={(event) => { event.stopPropagation(); toggleExpanded(studio.id); }} aria-expanded={expandedStudios.has(studio.id)} aria-controls={`studio-mobile-${studio.id}`} aria-label={`${expandedStudios.has(studio.id) ? 'Collapse' : 'Expand'} ${studio.name}`} className="inline-flex align-middle ml-2 p-1 rounded hover:bg-gray-100"><ChevronDown className={`w-4 h-4 transition-transform ${expandedStudios.has(studio.id) ? 'rotate-180' : ''}`} /></button>
                     </h3>
                     <p className="text-sm text-gray-600">@{studio.users.username}</p>
                     <p className="text-xs text-gray-500">
@@ -824,7 +590,7 @@ export default function AdminStudiosPage() {
                 {/* Status Badges Row */}
                 <div className="flex flex-wrap gap-2 mb-3" onClick={e => e.stopPropagation()}>
                   {/* Status */}
-                  <button
+                  <button disabled={pendingIds.has(studio.id)}
                     onClick={() => handleToggleStatus(studio, studio.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
                     className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                       studio.status === 'ACTIVE' 
@@ -837,7 +603,7 @@ export default function AdminStudiosPage() {
                   </button>
 
                   {/* Visibility */}
-                  <button
+                  <button disabled={pendingIds.has(studio.id)}
                     onClick={() => handleToggleVisibility(studio, !studio.is_profile_visible)}
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       studio.is_profile_visible ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'
@@ -847,7 +613,7 @@ export default function AdminStudiosPage() {
                   </button>
 
                   {/* Admin Review */}
-                  <button
+                  <button disabled={pendingIds.has(studio.id)}
                     onClick={() => handleToggleAdminReview(studio, !studio.admin_review)}
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       studio.admin_review ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-600'
@@ -858,7 +624,7 @@ export default function AdminStudiosPage() {
                   </button>
 
                   {/* Verified */}
-                  <button
+                  <button disabled={pendingIds.has(studio.id)}
                     onClick={() => handleToggleVerified(studio, !studio.is_verified)}
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       studio.is_verified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
@@ -868,7 +634,7 @@ export default function AdminStudiosPage() {
                   </button>
 
                   {/* Featured */}
-                  <button
+                  <button disabled={pendingIds.has(studio.id)}
                     onClick={() => handleToggleFeatured(studio, !studio.is_featured)}
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       studio.is_featured ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
@@ -922,13 +688,14 @@ export default function AdminStudiosPage() {
                   >
                     Edit
                   </button>
-                  <button 
+                  <button disabled={pendingIds.has(studio.id)}
                     onClick={() => handleDeleteStudio(studio)}
                     className="px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
                   >
                     Delete
                   </button>
                 </div>
+                <div id={`studio-mobile-${studio.id}`} hidden={!expandedStudios.has(studio.id)}>{expandedStudios.has(studio.id) && <StudioDetails studio={studio} onEdit={section => handleEditStudio(studio, section)} />}</div>
               </div>
             ))}
 
@@ -939,12 +706,12 @@ export default function AdminStudiosPage() {
                 disabled={loading}
                 className="w-full py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
               >
-                {loading ? 'Loading...' : 'Load More Studios'}
+                {loading ? 'Loading...' : isNextWindow ? 'Next Studios' : 'Load More Studios'}
               </button>
             )}
 
             {/* Mobile No Results */}
-            {studios.length === 0 && (
+            {studios.length === 0 && !loading && !error && (
               <div className="bg-white rounded-lg shadow border border-gray-200 p-8 text-center">
                 <p className="text-gray-600">No studios found</p>
               </div>
@@ -956,6 +723,7 @@ export default function AdminStudiosPage() {
             <div 
               ref={tableContainerRef} 
               className="overflow-hidden"
+              style={tableScale < 1 && tableHeight ? { height: tableHeight * tableScale } : undefined}
             >
               <div
                 style={{
@@ -1095,11 +863,12 @@ export default function AdminStudiosPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {studios.map((studio) => (
-                    <tr key={studio.id} className={`hover:bg-gray-50 cursor-pointer ${selectedStudios.includes(studio.id) ? 'bg-blue-50' : ''}`} onClick={() => handleEditStudio(studio)}>
+                    <Fragment key={studio.id}><tr className={`hover:bg-gray-50 cursor-pointer ${selectedStudios.includes(studio.id) ? 'bg-blue-50' : ''}`} onClick={(event) => handleSummaryClick(event, studio.id)} data-studio-id={studio.id}>
                       {isColumnVisible('select') && (
                         <td data-column="select" className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
                           <input
                             type="checkbox"
+                            aria-label={`Select ${studio.name}`}
                             checked={selectedStudios.includes(studio.id)}
                             onChange={(e) => handleSelectStudio(studio.id, e.target.checked)}
                             className="rounded border-gray-300"
@@ -1112,7 +881,7 @@ export default function AdminStudiosPage() {
                           className="px-6 py-4 whitespace-nowrap text-center"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <button
+                          <button disabled={pendingIds.has(studio.id)}
                             onClick={() => handleToggleAdminReview(studio, !studio.admin_review)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
                               studio.admin_review ? 'bg-orange-500' : 'bg-gray-300'
@@ -1142,8 +911,9 @@ export default function AdminStudiosPage() {
                               </span>
                             </div>
                             <div className="min-w-0">
-                              <div className="text-sm font-medium text-gray-900 line-clamp-2">
-                                {studio.name}
+                              <div className="flex items-start text-sm font-medium text-gray-900">
+                                <span className="min-w-0 line-clamp-2">{studio.name}</span>
+                                <button type="button" onClick={(event) => { event.stopPropagation(); toggleExpanded(studio.id); }} aria-expanded={expandedStudios.has(studio.id)} aria-controls={`studio-desktop-${studio.id}`} aria-label={`${expandedStudios.has(studio.id) ? 'Collapse' : 'Expand'} ${studio.name}`} className="inline-flex shrink-0 align-middle ml-2 p-1 rounded hover:bg-gray-100"><ChevronDown className={`w-4 h-4 transition-transform ${expandedStudios.has(studio.id) ? 'rotate-180' : ''}`} /></button>
                               </div>
                               <div className="text-sm text-gray-500 max-w-xs truncate">
                                 {studio.users.username}
@@ -1184,7 +954,7 @@ export default function AdminStudiosPage() {
                       )}
                       {isColumnVisible('status') && (
                         <td data-column="status" className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                          <button
+                          <button disabled={pendingIds.has(studio.id)}
                             onClick={() => handleToggleStatus(studio, studio.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
                             className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                               studio.status === 'ACTIVE' 
@@ -1212,7 +982,7 @@ export default function AdminStudiosPage() {
                       )}
                       {isColumnVisible('visible') && (
                         <td data-column="visible" className="px-6 py-4 whitespace-nowrap text-center" onClick={e => e.stopPropagation()}>
-                          <button
+                          <button disabled={pendingIds.has(studio.id)}
                             onClick={() => handleToggleVisibility(studio, !studio.is_profile_visible)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                               studio.is_profile_visible ? 'bg-blue-600' : 'bg-gray-300'
@@ -1244,7 +1014,7 @@ export default function AdminStudiosPage() {
                       )}
                       {isColumnVisible('verified') && (
                         <td data-column="verified" className="px-6 py-4 whitespace-nowrap text-center" onClick={e => e.stopPropagation()}>
-                          <button
+                          <button disabled={pendingIds.has(studio.id)}
                             onClick={() => handleToggleVerified(studio, !studio.is_verified)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
                               studio.is_verified ? 'bg-green-600' : 'bg-gray-300'
@@ -1261,7 +1031,7 @@ export default function AdminStudiosPage() {
                       )}
                       {isColumnVisible('featured') && (
                         <td data-column="featured" className="px-6 py-4 whitespace-nowrap text-center" onClick={e => e.stopPropagation()}>
-                          <button
+                          <button disabled={pendingIds.has(studio.id)}
                             onClick={() => handleToggleFeatured(studio, !studio.is_featured)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 ${
                               studio.is_featured ? 'bg-yellow-500' : 'bg-gray-300'
@@ -1320,7 +1090,7 @@ export default function AdminStudiosPage() {
                             >
                               Edit
                             </button>
-                            <button 
+                            <button disabled={pendingIds.has(studio.id)}
                               onClick={() => handleDeleteStudio(studio)}
                               className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                             >
@@ -1330,6 +1100,8 @@ export default function AdminStudiosPage() {
                         </td>
                       )}
                     </tr>
+                    <tr id={`studio-desktop-${studio.id}`} hidden={!expandedStudios.has(studio.id)}><td colSpan={visibleColumnCount} className="px-6 pb-5">{expandedStudios.has(studio.id) && <StudioDetails studio={studio} onEdit={section => handleEditStudio(studio, section)} />}</td></tr>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
@@ -1351,7 +1123,7 @@ export default function AdminStudiosPage() {
                     </>
                   ) : (
                     <>
-                      Load More Studios
+                      {isNextWindow ? 'Next Studios' : 'Load More Studios'}
                       <svg className="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
@@ -1362,7 +1134,7 @@ export default function AdminStudiosPage() {
             )}
 
             {/* Desktop No Results */}
-            {studios.length === 0 && !loading && (
+            {studios.length === 0 && !loading && !error && (
               <div className="px-6 py-12 text-center">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1381,10 +1153,14 @@ export default function AdminStudiosPage() {
       <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
-        onSaveSuccess={handleSaveSuccess}
+        onPersistedChange={handlePersistedChange}
+        initialSection={initialEditSection}
+        openSessionId={editSession}
+        fallbackFocusRef={toolbarRef}
         mode="admin"
         {...(editingStudio?.users?.username && { targetUsername: editingStudio.users.username })}
         studioId={editingStudio?.id}
+        userId={editingStudio?.users.id}
       />
 
       <AddStudioModal
@@ -1392,18 +1168,14 @@ export default function AdminStudiosPage() {
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={(message) => {
           showSuccess(message);
-          setPagination(prev => ({ ...prev, offset: 0 }));
-          setRefreshKey(prev => prev + 1);
+          fetchStudios();
         }}
       />
 
       {/* Featured Expiry Modal */}
-      {featuredExpiryModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setFeaturedExpiryModalOpen(false)} />
-            
-            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+      <Modal isOpen={featuredExpiryModalOpen} title="Set Featured expiry date" maxWidth="lg"
+        onClose={() => { if (!featuredStudioId || !pendingIds.has(featuredStudioId)) setFeaturedExpiryModalOpen(false); }}>
+        <div className="px-4 pt-5 pb-4 sm:p-6">
               <div>
                 <div className="mt-3 text-center sm:mt-5">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -1416,6 +1188,7 @@ export default function AdminStudiosPage() {
                     <input
                       type="date"
                       id="featuredExpiry"
+                      disabled={!!featuredStudioId && pendingIds.has(featuredStudioId)}
                       value={featuredExpiryDate}
                       onChange={(e) => setFeaturedExpiryDate(e.target.value)}
                       min={new Date().toISOString().split('T')[0]}
@@ -1432,13 +1205,14 @@ export default function AdminStudiosPage() {
                 <button
                   type="button"
                   onClick={handleConfirmFeatured}
-                  disabled={!featuredExpiryDate}
+                  disabled={!featuredExpiryDate || (!!featuredStudioId && pendingIds.has(featuredStudioId))}
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Confirm
                 </button>
                 <button
                   type="button"
+                  disabled={!!featuredStudioId && pendingIds.has(featuredStudioId)}
                   onClick={() => {
                     setFeaturedExpiryModalOpen(false);
                     setFeaturedStudioId(null);
@@ -1449,10 +1223,8 @@ export default function AdminStudiosPage() {
                   Cancel
                 </button>
               </div>
-            </div>
-          </div>
         </div>
-      )}
+      </Modal>
         </div>
       </div>
     </>

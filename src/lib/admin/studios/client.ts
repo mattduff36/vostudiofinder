@@ -1,3 +1,4 @@
+import type { Studio, StudiosResponse } from '@/components/admin/studios/types';
 /**
  * Admin Studios API Client
  * Typed fetch wrappers for admin studio operations
@@ -101,10 +102,17 @@ export class AdminStudiosClient {
       body: JSON.stringify({ action, studioIds }),
     });
 
-    if (!response.ok && action !== 'export') {
+    if (!response.ok) {
       throw new Error('Bulk operation failed');
     }
 
     return response;
   }
+}
+
+export async function fetchStudioSummary(id: string, signal?: AbortSignal): Promise<Studio | null> {
+  const response = await fetch(`/api/admin/studios?studioId=${encodeURIComponent(id)}`, { ...(signal ? { signal } : {}) });
+  if (!response.ok) throw new Error('Saved studio could not be refreshed. Retry to load its latest details.');
+  const result: StudiosResponse = await response.json();
+  return result.studios.find(studio => studio.id === id) ?? null;
 }

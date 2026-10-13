@@ -38,6 +38,7 @@ export function Toggle({
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={label}
         disabled={disabled}
         onClick={() => !disabled && onChange(!checked)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${

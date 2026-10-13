@@ -1,5 +1,6 @@
 'use client';
 
+import { ManagedOverlay } from '@/components/ui/ManagedOverlay';
 import { create } from 'zustand';
 import { AlertTriangle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,10 +23,7 @@ const useUnsavedChangesDialogStore = create<UnsavedChangesDialogStore>((set, get
 
   show: (item) => {
     const state = get();
-    // If a dialog is already open, resolve it as cancel first
-    if (state.current) {
-      state.current.resolve('cancel');
-    }
+    if (state.current) return;
     set({ current: item });
   },
 
@@ -42,14 +40,16 @@ const useUnsavedChangesDialogStore = create<UnsavedChangesDialogStore>((set, get
  * Show an unsaved changes dialog with 3 options: Cancel, Discard, Save.
  * @returns Promise that resolves to 'cancel', 'discard', or 'save'
  */
+let pendingDecision: Promise<UnsavedChangesResult> | null = null;
 export const showUnsavedChangesDialog = (): Promise<UnsavedChangesResult> => {
-  return new Promise((resolve) => {
-    const item: UnsavedChangesDialogItem = {
+  if (pendingDecision) return pendingDecision;
+  pendingDecision = new Promise(resolve => {
+    useUnsavedChangesDialogStore.getState().show({
       id: `unsaved-${Date.now()}-${Math.random()}`,
-      resolve,
-    };
-    useUnsavedChangesDialogStore.getState().show(item);
+      resolve: value => { pendingDecision = null; resolve(value); },
+    });
   });
+  return pendingDecision;
 };
 
 /**
@@ -63,27 +63,18 @@ export function UnsavedChangesDialog() {
   const handleDiscard = () => resolve('discard');
   const handleSave = () => resolve('save');
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleDismiss();
-    }
-  };
-
   const isOpen = !!current;
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-          onClick={handleBackdropClick}
-        >
+        <ManagedOverlay key="unsaved-changes" title={'Unsaved Changes'} onClose={handleDismiss} level="confirmation" className="flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-black/60" onClick={handleDismiss}
           />
 
           {/* Dialog */}
@@ -123,6 +114,7 @@ export function UnsavedChangesDialog() {
 
               {/* Actions - 3 buttons */}
               <div className="flex gap-3 justify-end mt-6">
+                <button onClick={handleDismiss} data-overlay-autofocus className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
                 <button
                   onClick={handleDiscard}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
@@ -138,7 +130,7 @@ export function UnsavedChangesDialog() {
               </div>
             </div>
           </motion.div>
-        </div>
+        </ManagedOverlay>
       )}
     </AnimatePresence>
   );

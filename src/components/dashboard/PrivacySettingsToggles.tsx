@@ -1,13 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Toggle } from '@/components/ui/Toggle';
 import { Loader2, Lock } from 'lucide-react';
 import { showSuccess, showError } from '@/lib/toast';
 import { logger } from '@/lib/logger';
 import type { TierLimits } from '@/lib/membership-tiers';
 
+export type PrivacyField = 'show_email' | 'show_phone' | 'show_address' | 'show_directions';
+
 interface PrivacySettingsTogglesProps {
+  disabled?: boolean;
+  saveSetting?: (field: PrivacyField, value: boolean) => Promise<{ value: boolean; tierLimited?: boolean }>;
   initialSettings: {
     show_email: boolean;
     show_phone: boolean;
@@ -23,62 +27,38 @@ interface PrivacySettingsTogglesProps {
   }>) => void;
 }
 
-export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }: PrivacySettingsTogglesProps) {
+export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate, disabled = false, saveSetting }: PrivacySettingsTogglesProps) {
   const [settings, setSettings] = useState(initialSettings);
   const [updating, setUpdating] = useState<string | null>(null);
+  const pending = useRef(false);
+  useEffect(() => setSettings(initialSettings), [initialSettings.show_email, initialSettings.show_phone, initialSettings.show_address, initialSettings.show_directions]);
 
   // Default to restrictive (false) when tier data hasn't loaded yet.
   // Server-side validation is the final authority, but the UI should not
   // expose Premium-only controls while waiting for tier data.
   const isPremium = tierLimits?.phoneVisibility ?? false;
 
-  const handleToggle = async (field: keyof typeof settings, value: boolean) => {
-    setUpdating(field);
-    
+  const handleToggle = async (field: PrivacyField, value: boolean) => {
+    if (disabled || pending.current) return;
+    pending.current = true; setUpdating(field);
     try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          profile: { [field]: value }
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update privacy setting');
+      let confirmed: { value: boolean; tierLimited?: boolean };
+      if (saveSetting) confirmed = await saveSetting(field, value);
+      else {
+        const response = await fetch('/api/user/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profile: { [field]: value } }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to update privacy setting');
+        const tierLimited = (data.tierLimitReached?.droppedFields ?? []).includes(field);
+        confirmed = { value: tierLimited ? false : value, tierLimited };
       }
-
-      // Check if the server silently rejected the change due to tier limits
-      const droppedFields: string[] = data.tierLimitReached?.droppedFields ?? [];
-      if (droppedFields.includes(field)) {
-        // Server forced this field to false — update local state to match
-        setSettings(prev => ({ ...prev, [field]: false }));
-        if (onUpdate) {
-          onUpdate({ [field]: false });
-        }
-        showError('This feature requires a Premium membership. Upgrade to unlock it.');
-        logger.log(`[PrivacySettings] ${field} rejected by server (tier limit)`);
-        return;
-      }
-
-      // Update local state with the confirmed value
-      setSettings(prev => ({ ...prev, [field]: value }));
-      
-      // Call optional callback
-      if (onUpdate) {
-        onUpdate({ [field]: value });
-      }
-
-      showSuccess('Privacy setting updated');
-      logger.log(`[PrivacySettings] Updated ${field} to ${value}`);
+      setSettings(previous => ({ ...previous, [field]: confirmed.value }));
+      onUpdate?.({ [field]: confirmed.value });
+      if (confirmed.tierLimited) showError('This feature requires a Premium membership. Upgrade to unlock it.');
+      else showSuccess('Privacy setting updated');
     } catch (error) {
       logger.error(`[PrivacySettings] Failed to update ${field}:`, error);
-      showError('Failed to update privacy setting');
-    } finally {
-      setUpdating(null);
-    }
+      showError(error instanceof Error ? error.message : 'Failed to update privacy setting');
+    } finally { pending.current = false; setUpdating(null); }
   };
 
   const PremiumBadge = () => (
@@ -108,7 +88,7 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
             description="Display 'Message Studio' button on public profile"
             checked={settings.show_email}
             onChange={(checked) => handleToggle('show_email', checked)}
-            disabled={updating === 'show_email'}
+            disabled={disabled || updating !== null}
           />
         </div>
 
@@ -123,7 +103,7 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
             description={!isPremium ? "Currently unavailable on Basic plan." : "Display phone number on public profile"}
             checked={isPremium ? settings.show_phone : false}
             onChange={(checked) => handleToggle('show_phone', checked)}
-            disabled={updating === 'show_phone' || !isPremium}
+            disabled={disabled || updating !== null || !isPremium}
             badge={!isPremium ? <PremiumBadge /> : undefined}
           />
         </div>
@@ -139,7 +119,7 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
             description="Display address on public profile page"
             checked={settings.show_address}
             onChange={(checked) => handleToggle('show_address', checked)}
-            disabled={updating === 'show_address'}
+            disabled={disabled || updating !== null}
           />
         </div>
 
@@ -154,7 +134,7 @@ export function PrivacySettingsToggles({ initialSettings, tierLimits, onUpdate }
             description={!isPremium ? "Currently unavailable on Basic plan." : "Display 'Get Directions' button on public profile"}
             checked={isPremium ? settings.show_directions : false}
             onChange={(checked) => handleToggle('show_directions', checked)}
-            disabled={updating === 'show_directions' || !isPremium}
+            disabled={disabled || updating !== null || !isPremium}
             badge={!isPremium ? <PremiumBadge /> : undefined}
           />
         </div>

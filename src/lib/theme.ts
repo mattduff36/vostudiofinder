@@ -51,8 +51,8 @@ export const theme = {
  * Layers:
  * - Content (0-10): Base page elements
  * - Navigation (40-50): Fixed navigation elements
- * - Overlays (60-80): Modals, drawers, sheets
- * - System (90-100): Toasts, tooltips
+ * - Overlays (250-600): Navigation, dialogs, nested prompts and owned controls
+ * - System (700-800): Toasts and tooltips
  */
 export const zIndex = {
   // Content layers (0-10)
@@ -64,13 +64,17 @@ export const zIndex = {
   bottomNav: 50,
   
   // Overlays (60-80)
-  backdrop: 60,
-  drawer: 70,
-  modal: 80,
+  backdrop: 299,
+  drawer: 300,
+  modal: 300,
+  navigationOverlay: 250,
+  confirmation: 500,
+  overlayControl: 600,
+  overlayStep: 4,
   
   // System (90-100)
-  toast: 90,
-  tooltip: 100,
+  toast: 700,
+  tooltip: 800,
 } as const;
 
 export type Theme = typeof theme;

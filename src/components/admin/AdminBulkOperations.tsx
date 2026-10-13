@@ -1,28 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import type { BulkActionResult } from '@/components/admin/studios/types';
 
 interface AdminBulkOperationsProps {
   selectedStudios: string[];
-  onBulkAction: (action: string, studioIds: string[]) => Promise<void>;
+  onBulkAction: (action: string, studioIds: string[]) => Promise<BulkActionResult>;
+  onProcessed: (ids: string[]) => void;
   onClearSelection: () => void;
 }
 
-export default function AdminBulkOperations({ selectedStudios, onBulkAction, onClearSelection }: AdminBulkOperationsProps) {
+export default function AdminBulkOperations({ selectedStudios, onBulkAction, onClearSelection, onProcessed }: AdminBulkOperationsProps) {
+  const pendingRef = useRef(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [bulkAction, setBulkAction] = useState('');
 
   const handleBulkAction = async () => {
-    if (!bulkAction || selectedStudios.length === 0) return;
+    if (pendingRef.current || !bulkAction || selectedStudios.length === 0) return;
 
+    pendingRef.current = true;
     setIsProcessing(true);
     try {
-      await onBulkAction(bulkAction, selectedStudios);
-      setBulkAction('');
-      onClearSelection();
+      const result = await onBulkAction(bulkAction, [...selectedStudios]);
+      if (result.status === 'success' || result.status === 'partial') {
+        onProcessed(result.processedIds);
+        setBulkAction('');
+      }
     } catch (error) {
       console.error('Bulk action failed:', error);
     } finally {
+      pendingRef.current = false;
       setIsProcessing(false);
     }
   };

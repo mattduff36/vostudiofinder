@@ -4,8 +4,12 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Loader2, Upload } from 'lucide-react';
 import { ImageCropperModal } from '@/components/images/ImageCropperModal';
+import { showError } from '@/lib/toast';
 
 interface AvatarUploadProps {
+  disabled?: boolean;
+  beginWrite?: () => boolean;
+  endWrite?: () => void;
   currentAvatar?: string | null | undefined;
   onAvatarChange: (url: string) => void;
   size?: 'small' | 'medium' | 'large';
@@ -21,9 +25,11 @@ export function AvatarUpload({
   editable = true,
   userName = 'User',
   variant = 'user',
+  disabled = false, beginWrite, endWrite,
 }: AvatarUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const writePending = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileToCrop, setFileToCrop] = useState<File | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
@@ -48,6 +54,7 @@ export function AvatarUpload({
   const hasAvatar = currentAvatar && currentAvatar.trim() !== '';
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (disabled || writePending.current) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -71,6 +78,8 @@ export function AvatarUpload({
   };
 
   const handleCropConfirm = async (croppedFile: File) => {
+    if (disabled || writePending.current || (beginWrite && !beginWrite())) return;
+    writePending.current = true;
     setIsUploading(true);
     setIsCropperOpen(false);
     setUploadError(null);
@@ -97,10 +106,12 @@ export function AvatarUpload({
       // Update avatar (API returns image.url)
       onAvatarChange(data.image.url);
       
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      setUploadError(error.message || 'Failed to upload image');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to upload image';
+      setUploadError(message);
+      showError(message.slice(0, 300));
     } finally {
+      writePending.current = false; endWrite?.();
       setIsUploading(false);
       // Reset file input
       if (fileInputRef.current) {
@@ -120,7 +131,7 @@ export function AvatarUpload({
   };
 
   const handleClick = () => {
-    if (editable && fileInputRef.current) {
+    if (editable && !disabled && !writePending.current && fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
@@ -244,7 +255,7 @@ export function AvatarUpload({
             accept="image/*"
             onChange={handleFileSelect}
             className="hidden"
-            disabled={isUploading}
+            disabled={disabled || isUploading}
           />
         )}
       </div>

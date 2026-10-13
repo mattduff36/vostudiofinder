@@ -12,6 +12,7 @@ import { signOut } from 'next-auth/react';
 import { Home, Search, User, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Session } from 'next-auth';
 import { getMobileMenuItems, BOTTOM_NAV_BUTTON_IDS } from '@/config/navigation';
+import { ManagedOverlay } from '@/components/ui/ManagedOverlay';
 import { FreeBadge } from '@/components/ui/FreeBadge';
 import { useHasNewPlatformUpdates } from '@/hooks/useHasNewPlatformUpdates';
 
@@ -67,34 +68,13 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
     return () => window.removeEventListener('profile-visibility-changed', handler as EventListener);
   }, []);
 
-  // Prevent body scroll when menu is open
+  const [mobileViewport, setMobileViewport] = useState(false);
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  // Close on Escape key
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen]);
+    const media = window.matchMedia('(max-width: 767px)');
+    const update = () => { setMobileViewport(media.matches); if (!media.matches) setIsOpen(false); }; update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
 
   // Listen for toggle event from Navbar button
   useEffect(() => {
@@ -188,8 +168,8 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
   return (
     <>
       {/* Menu Overlay - Button is now in Navbar component */}
-      {isOpen && (
-        <div className="fixed inset-0 z-[250] md:hidden">
+      {isOpen && mobileViewport && (
+        <ManagedOverlay title="Navigation" level="navigation" onClose={() => setIsOpen(false)} className="md:hidden">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/30"
@@ -409,7 +389,7 @@ export function MobileBurgerMenu({ session, isAdminUser }: MobileBurgerMenuProps
               })}
             </div>
           </div>
-        </div>
+        </ManagedOverlay>
       )}
     </>
   );

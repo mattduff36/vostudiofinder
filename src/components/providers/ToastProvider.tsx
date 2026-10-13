@@ -1,5 +1,6 @@
 'use client';
 
+import { zIndex } from '@/lib/theme';
 import { Toaster } from 'react-hot-toast';
 
 /**
@@ -16,7 +17,7 @@ export function ToastProvider() {
       containerClassName=""
       containerStyle={{
         top: 80, // Below navbar (navbar is 64px + 16px spacing)
-        zIndex: 9999, // Ensure toasts appear above all other elements
+        zIndex: zIndex.toast, // Ensure toasts appear above all other elements
       }}
       toastOptions={{
         // Default options for all toasts

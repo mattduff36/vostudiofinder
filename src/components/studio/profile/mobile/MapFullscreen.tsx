@@ -10,6 +10,7 @@
  */
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useState, useEffect, useRef } from 'react';
 import { SimpleStudioMap } from '@/components/maps/SimpleStudioMap';
 
@@ -62,17 +63,17 @@ export function MapFullscreen({
     };
   }, [supportsNativeFullscreen]);
 
+  useBodyScrollLock(!supportsNativeFullscreen && isFullscreen);
+
   // Lock body scroll and hide nav bars when in CSS-based fullscreen (iOS)
   useEffect(() => {
     if (!supportsNativeFullscreen && isFullscreen) {
-      document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
       document.body.style.height = '100%';
       document.documentElement.setAttribute('data-map-fullscreen', 'true');
       
       return () => {
-        document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.width = '';
         document.body.style.height = '';
